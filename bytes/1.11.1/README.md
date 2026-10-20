@@ -1,34 +1,355 @@
 # bytes 1.11.1 runtime verification
 
-The retained current proof covers nonempty Box input, arbitrary finite capped
-cursor steps, Clone and lexical peer Drop at each step, exact suffix contents,
-and final normal Root Drop/reclamation across Raw and Shared phases. It proves
-191 functions / 2,207 prover leaves with no unproved leaves. This is selected
-sequential, normal-return implementation evidence, not complete API verification.
-Concurrency, escaping owners, unwind and the remaining BytesMut/API paths are open.
-Generic physical, pointer, atomic and native/shadow compiler assumptions remain
-explicit in the [current TCB](verification/probes/original-root-phase-clone-2026-10-09/TCB.md).
+The selected direct-source constructor proofs cover `BytesMut::from_vec` and
+the public `with_capacity`, `new`, `zeroed`, `From<&[u8]>`, `From<&str>`, and
+`Default` paths. They establish an offset-zero Vec-backed `unique_valid` state
+and the stronger `unique_vec_rebuildable` condition: the visible initialized
+bytes and any hidden prefix needed to reconstruct the original Vec are known,
+with the specified length and contents. Capacity is at least the requested or
+copied length (`from_vec` retains the modeled Vec capacity), and spare-capacity
+slots remain unknown. `zeroed` establishes the requested zero-filled length;
+slice and string conversions establish the copied contents. `From<&str>` uses
+the generic Std model `Seq<char>::to_bytes()`; the concrete native UTF-8 encoder
+is not proved by this crate run (see the [Std overlay notes](verification/std-support/README.md)).
 
-- `./verify-all.bash --check`: check saved proof results and their exact current
-  source correspondence, offline, without compiling or calling a solver.
-- `./verify-all.bash`: translate/prove the current positive witness once with
-  default features, then check the outputs and source correspondence. Requires
-  the bytes Creusot 0.13 toolchain (`bash scripts/setup-bytes-toolchain.sh`).
-  Why3 execution requires elevated permissions; the wrapper serializes proofs.
+An item-level rustdoc-JSON census of the 1.11.1 source at checkpoint
+`1523308d` counted 642 source-defined public callable definitions and
+trait-implementation endpoints, excluding external blanket implementations
+and re-export duplicates. Eight endpoints (1.2%) have selected body proofs,
+together with any required trait-refinement proofs, over normal-return inputs
+without additional state or regime restrictions. Twelve more are proved only
+under preconditions or selected branches, for 20 of 642 endpoints (3.1%) total.
+This is an endpoint count, not a claim of full public API coverage.
 
-[Results](verification/results/README.md) contain one self-contained current
-snapshot and one deduplicated component archive. Current checks do not execute
-historical checkers, negative suites or audits. A saved proof is reused only for
-identical implementation/contract inputs; changed proofs need reviewed source
-correspondence before replacing the snapshot. Manifest test/bench metadata is
-excluded from the library identity; runtime features and dependency versions are not.
+`BytesMut::len` and `is_empty` are proved without a representation
+precondition. From a `buffer_view_valid` prestate, `clear` sets the length to
+zero and `truncate(n)` sets it to `min(n, old_len)`. Both preserve the visible
+byte prefix, native pointer, capacity, header word, exact proof sidecars and
+every allocation slot. Unsafe `set_len(n)` requires `n <= capacity` and known
+initialized slots for any growth; it changes only the logical length and
+preserves the same full allocation frame. The common view precondition covers
+either a Vec-backed unique layout or a packet-backed Shared view with known
+visible bytes. These are modular body proofs: the Shared form carries the
+`SharedOwnerPacket` type invariant, and the proofs do not establish that every
+safe producer or lifecycle transition supplies this precondition. The
+original-source proofs include the local ownership, provenance and
+capacity-representation helper bodies in their call cone.
 
-Upstream tests/benches, failed experiments, progress logs and retired workflows
-are removed from the working tree. Their history is available at commit
-`e5f127fb`; historical component results do not imply current implementation coverage.
-Only required Rust dependencies of the current witness remain under `verification/probes`.
+The private `advance_unchecked` body has selected Vec and packet-backed Shared
+cursor proofs. Both branches export a common view postcondition: the resulting
+view is valid, its length and bytes reflect the saturated advance, capacity and
+cursor move together, the exact native pointer advances by `count`, and
+allocation slots are framed while current-view slots are reindexed. The Vec
+path retains its full allocation-slot frame and updates the visible prefix in
+two phases. The Shared path advances the packet cursor and retains its
+packet-specific allocation-slot and lease-key frames under the internal layout
+and initialized-view preconditions. When advancing crosses its packed-position
+limit, the selected private path promotes through the supplied Context to a
+count-one Shared packet while preserving the original allocation namespace
+and physical slots, registering the new ready-cap entry, and retaining prior
+Context entries. The selected capsule and packet invariants
+tie each packet's ghost allocation identity (namespace, base and capacity) to
+the protected Shared storage through its ledger ticket; the ticket's owned
+interval also matches the packet's physical region. The identity and interval
+metadata grant no access authority, and the proofs do not establish every
+public producer or later owner-lifecycle path. Selected Shared split sequences
+reach a nonzero packet cursor, but public `Buf::advance` and a public producer
+chain supplying Context for packed-position promotion remain unproved.
+One closed proof sequence starts from a symbolic byte slice and Context, calls
+the public `BytesMut::from(&[u8])` constructor, crosses the packed-position
+limit, truncates the Shared view, and explicitly disposes its sole handle. It
+preserves prior Context entries and leaves the newly allocated ready-cap slot
+empty; this preconditioned witness does not establish general safe-state
+reachability.
+`BufMut::advance_mut` has a
+body proof, but its trait-refinement obligation remains open.
 
-Source: crates.io bytes 1.11.1, archive SHA-256
-`1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33`,
-revision `417dccdeff249e0c011327de7d92e0d6fbe7cc43`. The original API and representation
-are retained with the branch's runtime fixes. [MIT license](LICENSE).
+The original `BytesMut::extend_from_slice` body is also selected for its
+in-capacity unique and packet-backed Shared cases, plus the unique Vec
+cheap-reclaim case. The input either fits the existing view's spare capacity,
+or the unique Vec view satisfies the original offset and amortized reclaim
+guard. Both representations use the same all-build `write_spare_prefix`
+helper, which borrows the actual uninitialized suffix and calls the original
+raw-copy helper; `advance_mut` consumes the initialized prefix. The
+postconditions preserve the buffer view, append the exact input bytes, and
+frame allocation slots outside the write window. On the in-capacity path they
+also preserve the pointer, capacity, hidden allocation prefix, and remaining
+spare slots. On
+unique reclaim, they preserve the actual Vec proof resources and allocation
+capacity while reporting the rebased zero-offset pointer and capacity. The
+Shared case preserves packet metadata, the actual owner ticket and lease key,
+and the shared layout. The unique Vec allocation-growth case is also selected
+when the rebuilt prefix is known and the cheap-reclaim guard does not apply;
+it preserves the initialized prefix and exact appended bytes while recording
+new spare slots as Unknown. The shared ARC allocation fallback and unrestricted
+reserve policy remain outside this proof.
+
+The original `BytesMut::resize` body proves shrinking through `truncate`, the
+equal-length no-op, within-capacity growth in either representation, unique Vec
+growth through the original cheap-reclaim guard, and unique Vec allocation
+growth when the rebuilt prefix is known and that guard does not apply. Growth
+fills exactly the newly visible slots with the requested value through the
+same `reserve`, spare-fill, and `set_len` source calls. In-capacity paths retain
+the pointer, capacity, packet or Vec frame, and all allocation slots outside
+the written range. Unique reclaim preserves the Vec proof resources and total
+allocation capacity while rebasing the visible Vec to offset zero. Allocation
+growth preserves the initialized prefix and records new spare slots as
+Unknown; the shared ARC allocation fallback remains outside the proof.
+
+The selected `BytesMut::try_reclaim` body covers the unique Vec case under its
+`unique_valid` proof precondition. It retains the existing spare-capacity
+short circuit and calls `try_reclaim_unique_vec_prefix` with the original
+amortized reclaim guard. That checked helper performs the original one-copy
+reclaim, retains the actual recovery and physical-region resources, and proves
+the resulting zero-offset Vec geometry and spare-capacity result. Allocation
+paths and unrestricted `reserve_inner` selection policy, including its shared
+ARC fallback, remain outside this proof.
+
+The selected `BytesMut::reserve` body proves its in-capacity no-op for either
+representation, the unique Vec reclaim case under the original guard, and the
+unique Vec allocation-growth case when the request exceeds the view's spare
+capacity and the reconstructed Vec prefix is known. After the original cheap
+reclaim guard fails, the shared source worker consumes the old B1 resources to
+rebuild the Vec, calls the original single `Vec::reserve`, and captures fresh
+B1 resources for its resulting allocation. It preserves visible bytes and the
+initialized allocation prefix; the newly observed spare slots are Unknown.
+The `reserve_inner` proof keeps the original guard and no-allocation behavior.
+The shared ARC allocation fallback dispatch and unrestricted reserve policy remain
+outside the proof, and this precondition does not establish general reserve
+coverage.
+
+The private `reserve_shared_copy_detach` worker also has a body proof for its
+Shared copy-and-release operation. It reads the view through the checked
+`as_slice` body, copies into a guarded Vec, releases the actual Mutable packet
+through the common release body with the supplied Context, then captures that
+same Vec as a new unique allocation. Its checked post preserves the bytes,
+rebuildable initialized prefix, original capacity representation, and Context
+entry effects; new spare slots are Unknown. A closed source witness starts at
+the public slice constructor, uses `split_off(1)` to keep a peer live during
+the copy, truncates and explicitly disposes the new unique owner, then
+explicitly disposes the peer. `reserve_shared_inner` remains `no_translate`,
+so this proves the selected worker and lifecycle composition, not the public
+Shared reserve dispatch.
+
+One closed body proof starts from a symbolic slice through the public slice
+constructor and advances the unique Vec view to offset one. It appends a
+symbolic input, checking allocation growth on the branch where that input
+exceeds the actual spare capacity. When there is room below Vec's maximum
+after that prefix, it resizes one byte beyond the actual view capacity to
+force allocation growth. It checks the resulting bytes, truncates, and explicitly
+disposes the Vec owner. This preconditioned witness connects the selected
+append and resize growth bodies to existing unique-view operations; it does
+not prove general public API reachability.
+
+The selected ghost ownership proofs model each native strong reference as an
+exact singleton ticket in one ledger. Mutable tickets own disjoint physical
+intervals; readonly tickets record visible intervals and may overlap one
+another. The physical pool is the in-bounds complement of Mutable intervals.
+Body proofs cover readonly registration and reclassification, root and
+two-owner registration, splitting a Mutable interval, dropping a registration,
+and replacing a ticket binding while preserving ticket and authority
+identities. A generic event payload ties the ledger's reference count to the
+counter permission model; the initial count-one promotion and original Vec
+split producer construct matching payloads and packets. The generic pool
+interval lender, retirement, and full-range recovery helpers also have body
+proofs. The lender transfers the actual affine resource for a fully present
+interval and preserves unknown slots; it grants no byte-read authority by
+itself. A checked
+`freeze_into_readonly` path moves an actual Mutable packet's ticket to a
+Readonly ticket and returns its actual physical region to the pool, while
+preserving the reference count, storage, lease/release authority, caller
+tokens, and Context entries. The selected Shared branch of public
+`BytesMut::freeze` connects this transfer to a `Bytes` sidecar under the
+actual Shared packet and caller Context preconditions. Its
+`contents_at_freeze` result is a value-only certificate tied by the checked
+callback to the physical slots returned to the pool; it grants no byte-read
+authority and does not claim that later pool contents remain equal. The
+vtable value is passed opaquely through the checked helper: static vtable
+identity and callback execution remain unproved. The Vec-backed freeze branch
+and public readonly byte-read APIs also remain outside the proof. With
+no active physical lend, the protocol proves that every active
+Readonly ticket's visible interval remains in the physical pool with known
+slots; a checked helper derives this fact from a live ticket and the actual
+ledger. During an active lend, that exact interval is absent from the pool and
+is carried by the actual affine region in the loan, while known slots outside
+it remain in the pool. The pool fact grants no slice borrow authority. The
+selected
+`Bytes::dispose_shared` path uses that actual Readonly packet and pointer-cell
+permission to enter the same common release body, whose final-owner branch
+retains the original release, acquire, and storage-free order. Automatic
+`Bytes`/`BytesMut` Drop remains in place and unverified, so the selected
+operation sequence explicitly disposes each related handle and makes no
+Context-consistency claim after an untracked automatic Drop. The original
+`release_shared_common` body now passes its actual stored authority and full
+physical region to the generic `retire_stored_vec` boundary on the final
+release, explicitly destroys the empty replacement VecStorage, and consumes
+the actual Shared root permission before freeing the Box. The crate-private
+unsafe `BytesMut::dispose_shared` path supplies its actual packet and caller
+context to this same native release body and has a body proof. The ordinary
+automatic `Drop` caller remains untranslated, so this does not prove post-Drop
+context consistency or cover every native ARC clone, freeze, or recovery
+transition. Concurrency, unwind behavior and safe-state
+reachability of the common view precondition across all Shared lifecycle paths
+remain outside this checkpoint. Thus these body proofs do not yet establish
+an end-to-end public `BytesMut::truncate` guarantee for every safely produced
+state. See the
+[selected TCB](verification/results/direct-bytesmut-len-api/TCB.md) and
+[generic Std overlay](verification/std-support/README.md) assumptions.
+
+The distinct `bytes::Shared` created by the spare-capacity `From<Vec<u8>>`
+branch also has a checked explicit count-one release path. The private unsafe
+`Bytes::dispose_spare_shared` body reads the pointer through its actual
+permission, forgets the handle, and enters the original `release_shared` and
+`free_shared` source bodies with the exact counter, header Box and full B1
+allocation resources. It proves the Release decrement, Acquire load, byte
+allocation deallocation and header deallocation for that sole full-view state.
+For the same carrier, the private `Bytes::into_mut_spare_shared` and original
+`shared_to_mut_impl` bodies also prove the count-one transfer: one Acquire
+load, header deallocation without running `Shared::drop`, B2 Vec recovery,
+`BytesMut::from_vec`, and the original zero-offset advance. The result preserves
+the exact pointer, visible bytes, length, full capacity, and unknown spare
+slots. This does not prove the public `Bytes::try_into_mut` vtable dispatch.
+The public `From<Vec>` postcondition, cloning/refcount transitions, other vtable
+callbacks and automatic Drop remain unproved.
+
+The crate-private unsafe `BytesMut::dispose_unique` body also consumes a
+rebuildable Vec-backed handle: it reconstructs the original allocation through
+the checked signed-offset `rebuild_vec` path, captures that actual Vec with
+`VecStorage::hold_owned`, then consumes the resulting authority and full region
+through `retire_stored_vec`. Its native branch performs the same reconstruction
+and drops that Vec once. This narrow explicit path does not prove the public
+Vec-backed freeze branch,
+unselected `rebuild_vec` callers, or automatic `BytesMut::drop`.
+
+The verification-only Shared capsule also has body-proved affine header-loan
+transitions. A token-aware `EventBoundInvariant::open_with_tokens` exposes the
+protocol, counter-owner agreement and callback frame; packet take/restore
+helpers move the exact boxed header permission into and out of a lease bound to
+its generation and header/storage metadata. Acquisition remains conditional:
+the packet invariant and namespace token do not imply that the header root is
+present, so `try_take_header_read_loan` returns `Option`. The selected explicit
+disposal path uses these helpers around the original native decrement, acquire,
+and retirement sequence; its actual packet, matching context rights, terminal
+action, storage authority and full physical region are preserved through that
+source body. Automatic `Drop` remains in place, but its context-free wrapper is
+untranslated and this proof does not claim a post-Drop context state. The
+result does not close every safe producer or lifecycle path for `truncate`.
+The lease stamp carries the exact optional physical-lend span marker. The
+private active take/restore transitions are body-proved: they move the actual
+interval between the pool and its affine `PhysicalRegion` while preserving the
+lease and payload frames. The checked private
+`Bytes::copy_shared_readonly_to_vec_with_context` path now uses that loan to
+borrow through B4, perform the shared `slice::to_vec` source operation, tie a
+value-only copy witness to the actual region slots, restore the region, and
+enter the original shared release body. Its value-only witness also records
+the returned old count, so the postcondition distinguishes a retained key and
+idle cap from the final-owner tombstone. This body-checks the selected
+nonunique copy and release path under an actual Readonly packet and caller
+Context. It does not prove native static vtable identity or the outer native
+callback's Acquire/unique branch. The shared-readonly branch of
+`Bytes::as_slice` remains unproved. The Shared branch of public freeze is
+covered separately under its actual packet and Context preconditions; static
+vtable identity and callback execution remain unproved.
+
+The private `Bytes::copy_shared_readonly_to_mut_with_context` entry also reads
+the actual data cell and calls the all-build `shared_v_to_mut_nonunique`
+source helper. That helper uses the same copy-and-release body, then calls the
+original `BytesMut::from_vec` once. Its postcondition relates the new mutable
+buffer's contents, pointer, capacity and spare slots to the copied Vec
+snapshot, while preserving the read witness and the exact conditional
+Context result of releasing the old owner. The native `shared_v_to_mut`
+callback's nonunique continuation calls this same helper; the callback's
+unique test, outer dispatch, native static vtable identity and automatic Drop
+remain unproved.
+
+A generic append-only `ReadyRegistry<R>` now has body proofs for moving the
+producer's actual affine `Fragment<R>` into a fresh permanent slot, taking that
+same capability while leaving a tombstone, and returning it to the slot. Its
+contracts preserve the complete resource id and RA state of every other slot;
+`ReadyCap::update` applies the real authority update to the stored fragment and
+preserves its resource id and key. The selected private count-one promotion
+and original-Vec split producers pass a caller-supplied context into packet
+construction, which registers the actual idle header-lease fragment. The
+packet's take/restore helpers use that context to move the same capability into
+and back out of a header read loan. Body proofs cover both Vec-backed and
+packet-backed ARC branches of public `BytesMut::split_off`, `split_to`, and
+`split` for valid, normal-return inputs. The Vec route requires a rebuildable
+unique allocation and registers its idle capability. The ARC route requires
+the existing matching idle entry, performs the source relaxed refcount
+increment once, splits the actual owner ticket and physical region, and
+restores the same capability to its Context entry. Both routes export strict
+Shared layout and initialized-prefix facts, byte/length/capacity/pointer
+relations, distinct owner tickets for one allocation and lease key, and the
+matching idle Context entry for both handles. The crate-private explicit
+disposal method can consume either resulting handle with this actual Context
+and reaches the proven native release body. These split paths do not close
+every safe producer or lifecycle path needed for `truncate`.
+The verified operation sequences explicitly dispose each related Shared
+handle with its caller-supplied context; they do not assume that an untracked
+automatic `Drop` leaves that context consistent.
+
+One selected composition proof starts from a rebuildable unique Vec, performs
+`split_off`, freezes one side through the Shared branch of public
+`BytesMut::freeze`, copies it through the checked Readonly-to-Mutable path while
+borrowing the sibling's actual ticket, truncates and explicitly disposes the
+copied Vec, then explicitly disposes the sibling with the same Context. It
+proves the actual count sequence 2 → 1 → terminal tombstone. Both composition
+proofs exercise the selected public Shared freeze branch. They do not
+establish static vtable identity or callback execution, and bypass automatic
+Drop.
+
+A second selected composition covers the shared in-capacity append and unique
+recovery branch. It splits a unique allocation, appends to the survivor while
+the peer is live, checks that the peer bytes and shared key remain unchanged at
+count two, and truncates the survivor. It then explicitly disposes the peer,
+freezes the survivor through the Shared branch of public `BytesMut::freeze`,
+and uses the original unique-promotion source helper with the actual ticket,
+physical region, and caller Context. One Acquire result selects the count-one transition; the
+helper lends the real `[cursor, allocation_capacity)` suffix, including Unknown
+spare slots, and returns a Mutable view over the same allocation. Explicitly
+disposing that view leaves the Context's final tombstone. This selected
+sequence proves the shared append, public Shared freeze branch, private
+count-one transition, and their inputs; it does not prove public
+`BytesMut::from(Bytes)` dispatch, static vtable identity, callback execution,
+or automatic Drop. The focused native regression also checks
+that the original public path keeps the allocation pointer, spare capacity,
+and visible bytes at a nonzero offset.
+
+The selected targets also body-prove an affine `OwnedSharedContext` and its
+borrowed view. Construction consumes a caller-supplied token set and starts
+with an empty registry; reborrows preserve the actual token namespaces and
+frame the registry's exact final entries. Registration, take, and return move
+the producer's actual fragment through that registry. The selected private
+count-one promotion and `split_unique_to_shared` paths thread this context into
+packet construction, as do both Vec-backed and packet-backed ARC branches of
+public split methods. The ARC branch borrows the existing matching idle
+capability and returns it to the same registry entry after splitting actual
+affine resources. Packet loan take/restore returns the exact capability to the
+Context. Other public producer call chains and ordinary automatic lifecycle
+paths remain unproved; this context does not establish that every safely
+reachable state satisfies the `buffer_view_valid` precondition for `truncate`.
+
+This is a verification fork based on the crates.io 1.11.1 source. It includes
+branch runtime fixes and verification-only annotations/refactors; this evidence
+applies to the fork and does not establish equivalence to the unmodified
+published release. The added proof state is erased from native builds. The run
+uses default `std` features, x86_64 native atomic orderings, and disables
+sc-drf. Results describe the selected sequential, normal-return proof scope,
+not concurrent `Bytes` behavior.
+
+`./verify-all.bash` translates the live crate source and runs fresh, no-cache
+proofs with the pristine pinned bytes Creusot toolchain, default `std` features,
+native atomic orderings, and one prover under the shared lock. Why3 needs elevated
+execution. `./verify-all.bash --check` checks the saved COMA and prover results,
+source/configuration identities, target inventory and translation diagnostics
+without invoking a solver. A changed input is a reuse miss and requires a fresh
+proof run.
+
+The Root lifecycle result in `verification/results/current.zip` predates the
+current source changes. It and `components.zip` remain historical provenance;
+neither archive is used by the runner or checker, or represents current
+implementation coverage. See the [saved-results notes](verification/results/README.md).
+
+Source lineage: crates.io bytes 1.11.1, archive SHA-256
+`1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33`, revision
+`417dccdeff249e0c011327de7d92e0d6fbe7cc43`. [MIT license](LICENSE).

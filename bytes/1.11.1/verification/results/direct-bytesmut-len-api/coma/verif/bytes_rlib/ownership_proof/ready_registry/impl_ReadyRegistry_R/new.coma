@@ -1,0 +1,163 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 217 4 217 38 *)
+
+(* ownership_proof::ready_registry::ReadyRegistry<R> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sseq = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/seq.rs" 560 4 560 31
+let%span sseq'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/seq.rs" 558 14 558 38
+let%span sseq'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/seq.rs" 81 8 81 82
+let%span sseq'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/seq.rs" 993 20 993 91
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 162 8 162 19
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 220 25 220 35
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 218 8 223 9
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 217 27 217 38
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 215 14 215 46
+let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 216 14 216 55
+let%span sready_registry'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 310 12 316 17
+let%span sready_registry'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 152 8 152 34
+let%span sready_registry'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 119 12 119 76
+
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Id
+
+type t_ReadyKey = { resource_id: t_Id; slot: int }
+
+type t_Resource_View_AuthViewRel_R
+
+type t_Fragment_R = { f0: t_Resource_View_AuthViewRel_R }
+
+type t_ReadyCap_R = { key: t_ReadyKey; fragment: t_Fragment_R; _not_objective: () }
+
+type t_Option_ReadyCap_R = None | Some t_ReadyCap_R
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function id_View_AuthViewRel_R (self: t_Resource_View_AuthViewRel_R) : t_Id
+
+function id_R (self: t_Fragment_R) : t_Id = [%#sauth] id_View_AuthViewRel_R self.f0
+
+predicate invariant_ReadyCap_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 117 4 117 30] (self: t_ReadyCap_R) =
+  [%#sready_registry'6] ge_log_Int self.key.slot 0 /\ id_R self.fragment = self.key.resource_id
+
+predicate inv_ReadyCap_R (_1: t_ReadyCap_R)
+
+axiom inv_axiom [@rewrite]: forall x: t_ReadyCap_R [inv_ReadyCap_R x]. inv_ReadyCap_R x = invariant_ReadyCap_R x
+
+predicate inv_Option_ReadyCap_R (_1: t_Option_ReadyCap_R)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Option_ReadyCap_R [inv_Option_ReadyCap_R x]. inv_Option_ReadyCap_R x
+    = match x with
+      | None -> true
+      | Some f0'0 -> inv_ReadyCap_R f0'0
+      end
+
+predicate invariant_ref_Option_ReadyCap_R [@inline:trivial] (self: t_Option_ReadyCap_R) =
+  [%#sinvariant] inv_Option_ReadyCap_R self
+
+meta "rewrite_def" predicate invariant_ref_Option_ReadyCap_R
+
+predicate inv_ref_Option_ReadyCap_R [@inline:trivial] (_1: t_Option_ReadyCap_R) = invariant_ref_Option_ReadyCap_R _1
+
+meta "rewrite_def" predicate inv_ref_Option_ReadyCap_R
+
+predicate invariant_Seq_Option_ReadyCap_R [@inline:trivial] (self: Seq.seq t_Option_ReadyCap_R) =
+  [%#sseq'2] forall i: int. 0 <= i /\ i < Seq.length self -> inv_ref_Option_ReadyCap_R (Seq.get self i)
+
+meta "rewrite_def" predicate invariant_Seq_Option_ReadyCap_R
+
+predicate inv_Seq_Option_ReadyCap_R [@inline:trivial] (_1: Seq.seq t_Option_ReadyCap_R) =
+  invariant_Seq_Option_ReadyCap_R _1
+
+meta "rewrite_def" predicate inv_Seq_Option_ReadyCap_R
+
+predicate invariant_Ghost_Seq_Option_ReadyCap_R [@inline:trivial] (self: Seq.seq t_Option_ReadyCap_R) =
+  [%#sghost'2] inv_Seq_Option_ReadyCap_R self
+
+meta "rewrite_def" predicate invariant_Ghost_Seq_Option_ReadyCap_R
+
+predicate inv_Ghost_Seq_Option_ReadyCap_R [@inline:trivial] (_1: Seq.seq t_Option_ReadyCap_R) =
+  invariant_Ghost_Seq_Option_ReadyCap_R _1
+
+meta "rewrite_def" predicate inv_Ghost_Seq_Option_ReadyCap_R
+
+let new_Option_ReadyCap_R (return (x: Seq.seq t_Option_ReadyCap_R)) = any
+  [ return (result: Seq.seq t_Option_ReadyCap_R) ->
+  {[@stop_split] [@expl:new_Option_ReadyCap_R ensures] ([@stop_split] [@expl:new result type invariant] [%#sseq] inv_Ghost_Seq_Option_ReadyCap_R result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sseq'0] result = (Seq.empty: Seq.seq t_Option_ReadyCap_R))}
+    (! return {result}) ]
+
+type t_ReadyRegistry_R = { entries'0: Seq.seq t_Option_ReadyCap_R; _not_objective'0: () }
+
+function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 151 4 151 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
+ = [%#sready_registry'5] self.entries'0
+
+type t_Option_Option_ReadyCap_R = None'0 | Some'0 t_Option_ReadyCap_R
+
+function get_Option_ReadyCap_R (self: Seq.seq t_Option_ReadyCap_R) (ix: int) : t_Option_Option_ReadyCap_R =
+  [%#sseq'1] if 0 <= ix /\ ix < Seq.length self then Some'0 (Seq.get self ix) else None'0
+
+predicate invariant_ReadyRegistry_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 308 4 308 30] (self: t_ReadyRegistry_R) =
+  [%#sready_registry'4] invariant_Ghost_Seq_Option_ReadyCap_R self.entries'0
+  /\ (forall i: int. 0 <= i /\ i < Seq.length (entries_R self)
+    -> match get_Option_ReadyCap_R (entries_R self) i with
+      | Some'0 (Some cap) -> cap.key.slot = i /\ cap.key.resource_id = id_R cap.fragment
+      | _ -> true
+      end)
+
+predicate inv_ReadyRegistry_R (_1: t_ReadyRegistry_R)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_ReadyRegistry_R [inv_ReadyRegistry_R x]. inv_ReadyRegistry_R x
+    = (invariant_ReadyRegistry_R x /\ inv_Ghost_Seq_Option_ReadyCap_R x.entries'0)
+
+predicate invariant_Ghost_ReadyRegistry_R [@inline:trivial] (self: t_ReadyRegistry_R) =
+  [%#sghost'2] inv_ReadyRegistry_R self
+
+meta "rewrite_def" predicate invariant_Ghost_ReadyRegistry_R
+
+predicate inv_Ghost_ReadyRegistry_R [@inline:trivial] (_1: t_ReadyRegistry_R) = invariant_Ghost_ReadyRegistry_R _1
+
+meta "rewrite_def" predicate inv_Ghost_ReadyRegistry_R
+
+let new_ReadyRegistry_R (x: t_ReadyRegistry_R) (return (x'0: t_ReadyRegistry_R)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost] inv_ReadyRegistry_R x}
+  any
+  [ return (result: t_ReadyRegistry_R) ->
+  {[@stop_split] [@expl:new_ReadyRegistry_R ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'0] inv_Ghost_ReadyRegistry_R result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'1] result = x)}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let new_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 217 4 217 38]
+  (return (x: t_ReadyRegistry_R)) = (! bb0
+  [ bb0 = s0
+    [ s0 = new_Option_ReadyCap_R [%#sready_registry] (fun (_x: Seq.seq t_Option_ReadyCap_R) -> [ &_4 <- _x ] s1)
+    | s1 = [ &_5 <- () ] s2
+    | s2 = [ &_3 <- { entries'0 = _4; _not_objective'0 = _5 } ] s3
+    | s3 = new_ReadyRegistry_R [%#sready_registry'0] {_3} (fun (_x: t_ReadyRegistry_R) -> [ &_ret <- _x ] s4)
+    | s4 = return {_ret} ] ]
+  [ & _ret: t_ReadyRegistry_R = Any.any_l ()
+  | & _3: t_ReadyRegistry_R = Any.any_l ()
+  | & _4: Seq.seq t_Option_ReadyCap_R = Any.any_l ()
+  | & _5: () = Any.any_l () ])
+  [ return (result: t_ReadyRegistry_R) ->
+  {[@stop_split] [@expl:new_R ensures] ([@stop_split] [@expl:new result type invariant] [%#sready_registry'1] inv_Ghost_ReadyRegistry_R result)
+    /\ ([@stop_split] [@expl:new ensures #0] [%#sready_registry'2] invariant_ReadyRegistry_R result)
+    /\ ([@stop_split] [@expl:new ensures #1] [%#sready_registry'3] Seq.length (entries_R result) = 0)}
+    (! return {result}) ]

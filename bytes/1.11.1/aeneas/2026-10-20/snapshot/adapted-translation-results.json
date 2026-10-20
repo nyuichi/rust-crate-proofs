@@ -1,0 +1,55 @@
+{
+  "status": "whole-crate Charon extraction and Aeneas Lean generation successful",
+  "scope": {
+    "crate": "bytes",
+    "version": "1.11.1",
+    "features": [
+      "default",
+      "std"
+    ],
+    "target": "x86_64-unknown-linux-gnu",
+    "entry_selection": "whole crate; no --start-from selection, no --exclude options"
+  },
+  "tools": {
+    "aeneas": "e62dd83d133d9043e7d3628096838b7430f36565",
+    "charon": "de8736f7c995ac54dc490345cef9ea5143c06c62",
+    "rust": "nightly-2026-09-17"
+  },
+  "charon_exit": 0,
+  "llbc_has_errors": false,
+  "aeneas_exit": 0,
+  "local_functions_including_generated": {
+    "total": 706,
+    "translated_bodies": 469,
+    "opaque_bodies": 237
+  },
+  "changes": {
+    "modified_rust_files": [
+      "src/bytes.rs",
+      "src/buf/buf_impl.rs",
+      "src/buf/buf_mut.rs"
+    ],
+    "private_helper_adaptation": "Wrap fn(*mut ()) -> *mut u8 in repr(transparent) PromotablePtrMap; helper bodies still invoke the original function pointer. Wrapper type is opaque.",
+    "generic_bound_adaptation": "Remove unused U: Buf and U: BufMut bounds on chain/chain_mut constructors. Bodies unchanged; source accepts more argument types, and original valid calls retain the same bodies.",
+    "opacity_policy": "bytes-adapted/Cargo.toml [package.metadata.charon]; safe functions, types and globals are also opaque, not only unsafe functions.",
+    "backend_option": "-filter-trait-methods removes dictionary fields absent from the pinned standard-library model; includes Iterator::size_hint."
+  },
+  "remaining_limitations": [
+    "Lean file not type-checked; no API contracts proved.",
+    "Opaque functions and external declarations need models/contracts before using the result for proofs.",
+    "Aeneas still warns that the pinned Iterator model has no size_hint field; its generated implementation function is retained but the unsupported dictionary field is filtered out.",
+    "cargo-elicit is initialized and refreshed, but its current axiom policy does not accept these additional trusted assumptions; its Lean backend library is not built."
+  ],
+  "lean_file": "evidence/adapted-whole-final/lean/Crate.lean",
+  "lean_sha256": "3408ad4fd54d3c355397b7f88c14482d8d917a1026dc0d4b5c8b2e8da13e9c21",
+  "reproduce": "bash /workspace/bytes-aeneas-fresh/reproduce-adapted.sh",
+  "subsequent_whole_module_typecheck": {
+    "status": "failed",
+    "log": "verification/evidence/generated-build-initial.log",
+    "issues": [
+      "F32/F64 are undefined in the pinned Lean model",
+      "Forwarded mutable-reference trait methods have backward-signature mismatches"
+    ],
+    "resolution_for_initial_proofs": "Use native API-scoped extractions in verification; the full emitted module is not claimed to type-check."
+  }
+}

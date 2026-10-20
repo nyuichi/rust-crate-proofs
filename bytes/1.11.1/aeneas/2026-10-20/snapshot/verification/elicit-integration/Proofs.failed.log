@@ -1,0 +1,68 @@
+/workspace/bytes-aeneas-fresh/bytes-adapted/.elicit/cache/check/Proofs.lean:15:53: error: Tactic `rfl` failed: The left-hand side
+  Eq.{u_1 + 1} { inner := inner, limit := limit }.inner inner
+is not definitionally equal to the right-hand side
+  Eq.{1} { inner := inner, limit := limit }.limit limit
+
+T : Type u_1
+inner : T
+limit : Aeneas.Std.Usize
+x✝ : True
+⊢ (fun {T} inner limit out => out.inner = inner ∧ out.limit = limit) inner limit { inner := inner, limit := limit }
+/workspace/bytes-aeneas-fresh/bytes-adapted/.elicit/cache/check/Proofs.lean:27:45: error: Tactic `rfl` failed: The left-hand side
+  Eq.{u_1 + 1} { inner := self.inner, limit := lim }.inner self.inner
+is not definitionally equal to the right-hand side
+  Eq.{1} { inner := self.inner, limit := lim }.limit lim
+
+T : Type u_1
+self : ElicitGenerated.buf.take.Take T
+lim : Aeneas.Std.Usize
+x✝ : True
+⊢ (fun {T} self lim out => out.inner = self.inner ∧ out.limit = lim) self lim { inner := self.inner, limit := lim }
+/workspace/bytes-aeneas-fresh/bytes-adapted/.elicit/cache/check/Proofs.lean:31:37: error: Tactic `rfl` failed: The left-hand side
+  Eq.{u_1 + 1} { a := a, b := b }.a a
+is not definitionally equal to the right-hand side
+  Eq.{u_2 + 1} { a := a, b := b }.b b
+
+T : Type u_1
+U : Type u_2
+a : T
+b : U
+x✝ : True
+⊢ (fun {T} {U} a b out => out.a = a ∧ out.b = b) a b { a := a, b := b }
+/workspace/bytes-aeneas-fresh/bytes-adapted/.elicit/cache/check/Proofs.lean:40:2: error: Tactic `rfl` failed: The left-hand side
+  (self.a, fun replacement => { a := replacement, b := self.b }).1 = self.a
+is not definitionally equal to the right-hand side
+  ∀ (replacement : T),
+    ((self.a, fun replacement => { a := replacement, b := self.b }).2 replacement).a = replacement ∧
+      ((self.a, fun replacement => { a := replacement, b := self.b }).2 replacement).b = self.b
+
+T : Type u_1
+U : Type u_2
+self : ElicitGenerated.buf.chain.Chain T U
+x✝ : True
+⊢ (fun {T} {U} self out =>
+      out.1 = self.a ∧ ∀ (replacement : T), (out.2 replacement).a = replacement ∧ (out.2 replacement).b = self.b)
+    self (self.a, fun replacement => { a := replacement, b := self.b })
+/workspace/bytes-aeneas-fresh/bytes-adapted/.elicit/cache/check/Proofs.lean:49:2: error: Tactic `rfl` failed: The left-hand side
+  (self.b, fun replacement => { a := self.a, b := replacement }).1 = self.b
+is not definitionally equal to the right-hand side
+  ∀ (replacement : U),
+    ((self.b, fun replacement => { a := self.a, b := replacement }).2 replacement).a = self.a ∧
+      ((self.b, fun replacement => { a := self.a, b := replacement }).2 replacement).b = replacement
+
+T : Type u_1
+U : Type u_2
+self : ElicitGenerated.buf.chain.Chain T U
+x✝ : True
+⊢ (fun {T} {U} self out =>
+      out.1 = self.b ∧ ∀ (replacement : U), (out.2 replacement).a = self.a ∧ (out.2 replacement).b = replacement)
+    self (self.b, fun replacement => { a := self.a, b := replacement })
+/workspace/bytes-aeneas-fresh/bytes-adapted/.elicit/cache/check/Proofs.lean:53:32: error: Application type mismatch: The argument
+  rfl
+has type
+  ?m.23 = ?m.23
+but is expected to have type
+  (fun {T} {U} self out => out.1 = self.a ∧ out.2 = self.b) self (self.a, self.b)
+in the application
+  ⟨rfl, rfl⟩
+

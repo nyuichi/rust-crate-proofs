@@ -1,0 +1,381 @@
+{
+  "status": "kernel_checked",
+  "group": "core",
+  "theorems": [
+    "BytesProofs.Core.bytes_buf_chunk_returns_as_slice",
+    "BytesProofs.Core.bytes_buf_copy_to_bytes_returns_split",
+    "BytesProofs.Core.bytes_buf_remaining_returns_length",
+    "BytesProofs.Core.bytes_clear_truncates_to_zero",
+    "BytesProofs.Core.bytes_copy_from_slice_returns_converted_vector",
+    "BytesProofs.Core.bytes_mut_as_ref_returns_as_slice",
+    "BytesProofs.Core.bytes_mut_buf_chunk_returns_as_slice",
+    "BytesProofs.Core.bytes_mut_buf_remaining_returns_length",
+    "BytesProofs.Core.bytes_mut_clone_converts_full_slice",
+    "BytesProofs.Core.bytes_mut_copy_to_bytes_returns_frozen_split",
+    "BytesProofs.Core.bytes_mut_default_is_zero_capacity_construction",
+    "BytesProofs.Core.bytes_mut_deref_returns_as_slice",
+    "BytesProofs.Core.bytes_mut_from_vec_records_vector_metadata",
+    "BytesProofs.Core.bytes_mut_new_uses_zero_capacity_constructor",
+    "BytesProofs.Core.bytes_mut_ord_matches_slice_order",
+    "BytesProofs.Core.bytes_mut_reserve_fit_preserves_slice_observation",
+    "BytesProofs.Core.bytes_mut_reserve_noop_when_additional_fits",
+    "BytesProofs.Core.bytes_mut_reserve_returns_inner_state_when_additional_does_not_fit",
+    "BytesProofs.Core.bytes_mut_split_uses_current_length",
+    "BytesProofs.Core.bytes_mut_try_reclaim_delegates_when_additional_does_not_fit",
+    "BytesProofs.Core.bytes_mut_try_reclaim_reports_success_without_changing_state",
+    "BytesProofs.Core.bytes_mut_unsplit_empty_left_returns_other",
+    "BytesProofs.Core.bytes_mut_unsplit_extends_after_failed_in_place_join",
+    "BytesProofs.Core.bytes_mut_unsplit_uses_successful_in_place_join",
+    "BytesProofs.Core.bytes_mut_with_capacity_returns_empty_buffer",
+    "BytesProofs.Core.bytes_mut_zeroed_builds_zero_vector",
+    "BytesProofs.Core.bytes_mut_zeroed_returns_requested_length",
+    "BytesProofs.Core.bytes_ord_matches_slice_order",
+    "BytesProofs.Core.bytes_try_into_mut_when_shared",
+    "BytesProofs.Core.bytes_try_into_mut_when_unique"
+  ],
+  "axioms": {
+    "BytesProofs.Core.bytes_buf_chunk_returns_as_slice": [
+      "propext",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes.Bytes.as_slice",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_buf_copy_to_bytes_returns_split": [
+      "propext",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes.Bytes.split_to",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_buf_remaining_returns_length": [
+      "propext",
+      "Quot.sound",
+      "bytes.Vtable",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_clear_truncates_to_zero": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes.Bytes.truncate",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_copy_from_slice_returns_converted_vector": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes.Vtable",
+      "core.sync.atomic.Atomic",
+      "bytes.Bytes.Insts.CoreConvertFromVecU8.from",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_as_ref_returns_as_slice": [
+      "propext",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_buf_chunk_returns_as_slice": [
+      "propext",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_buf_remaining_returns_length": [
+      "propext",
+      "Quot.sound",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_clone_converts_full_slice": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "bytes_mut.BytesMut.Insts.CoreConvertFromSharedASliceU8.from",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_copy_to_bytes_returns_frozen_split": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes_mut.BytesMut.freeze",
+      "bytes_mut.BytesMut.split_to",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_default_is_zero_capacity_construction": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.mem.manually_drop.ManuallyDrop.new",
+      "core.sync.atomic.private.Align8",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+    ],
+    "BytesProofs.Core.bytes_mut_deref_returns_as_slice": [
+      "propext",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_from_vec_records_vector_metadata": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.mem.manually_drop.ManuallyDrop.new",
+      "core.sync.atomic.private.Align8",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+    ],
+    "BytesProofs.Core.bytes_mut_new_uses_zero_capacity_constructor": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.mem.manually_drop.ManuallyDrop.new",
+      "core.sync.atomic.private.Align8",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+    ],
+    "BytesProofs.Core.bytes_mut_ord_matches_slice_order": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "Slice.Insts.CoreCmpOrd.cmp",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_reserve_fit_preserves_slice_observation": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "bytes_mut.BytesMut.reserve_inner",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_reserve_noop_when_additional_fits": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.reserve_inner",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_reserve_returns_inner_state_when_additional_does_not_fit": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.reserve_inner",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_split_uses_current_length": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.split_to",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_try_reclaim_delegates_when_additional_does_not_fit": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.reserve_inner",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_try_reclaim_reports_success_without_changing_state": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.reserve_inner",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_unsplit_empty_left_returns_other": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "bytes_mut.BytesMut.extend_from_slice",
+      "bytes_mut.BytesMut.try_unsplit",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_unsplit_extends_after_failed_in_place_join": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "bytes_mut.BytesMut.extend_from_slice",
+      "bytes_mut.BytesMut.try_unsplit",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_unsplit_uses_successful_in_place_join": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.BytesMut.as_slice",
+      "bytes_mut.BytesMut.extend_from_slice",
+      "bytes_mut.BytesMut.try_unsplit",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_mut_with_capacity_returns_empty_buffer": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.mem.manually_drop.ManuallyDrop.new",
+      "core.sync.atomic.private.Align8",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+    ],
+    "BytesProofs.Core.bytes_mut_zeroed_builds_zero_vector": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.mem.manually_drop.ManuallyDrop.new",
+      "core.sync.atomic.private.Align8",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+    ],
+    "BytesProofs.Core.bytes_mut_zeroed_returns_requested_length": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes_mut.invalid_ptr",
+      "bytes_mut.vptr",
+      "alloc.vec.Vec.as_mut_ptr",
+      "alloc.vec.Vec.capacity",
+      "core.mem.manually_drop.ManuallyDrop",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.mem.manually_drop.ManuallyDrop.new",
+      "core.sync.atomic.private.Align8",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDeref.deref",
+      "core.mem.manually_drop.ManuallyDrop.Insts.CoreOpsDerefDerefMut.deref_mut"
+    ],
+    "BytesProofs.Core.bytes_ord_matches_slice_order": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes.Bytes.as_slice",
+      "Slice.Insts.CoreCmpOrd.cmp",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_try_into_mut_when_shared": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes.Bytes.is_unique",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "bytes_mut.BytesMut.Insts.CoreConvertFromBytes.from",
+      "core.sync.atomic.private.Align8"
+    ],
+    "BytesProofs.Core.bytes_try_into_mut_when_unique": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound",
+      "bytes.Vtable",
+      "bytes.Bytes.is_unique",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "bytes_mut.BytesMut.Insts.CoreConvertFromBytes.from",
+      "core.sync.atomic.private.Align8"
+    ]
+  },
+  "files": {
+    "Generated.lean": "6802bab184468c56744e6f58fe928301e3323cea2667484a7d1b7e777b4633b9",
+    "Proofs.lean": "768d16424053c8276b5d4d235915bd332e8e5d6091760a5eeab72f6ca5acc8d1",
+    "manifest.json": "8386a717a2d96da14669d87d85a427ef450ec8e3b20169b709158ac711aa651f",
+    "extraction.json": "1e65967848d7ba10547086b6b99b300c0f1b3452b6b28c5c3fad4847783310a4",
+    "Audit.lean": "4827f2f952a22d82b66c6916c8c26ae9d50cc38bed8851b9775497ea2491dd93",
+    "audit.log": "e2fd749c3bc95e675d312f2eb5f4aa766a889e3e9e4fbe7e6ed784c5bd151c3e",
+    "build.log": "2965186fbde1945ee14dd9a666bdf1a45ca18cff0f9f84ab5e50c310c4c5b7ee"
+  },
+  "commands": [
+    [
+      "lake",
+      "build",
+      "extensions.core.Generated"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "extensions/core/Audit.lean"
+    ]
+  ],
+  "source_boundary_sha256": "b82efd3a256077b9774b1edfc5b110555bbc57eb68c49530d9abd7bb7b02c878",
+  "scope": "Named theorem claims and their explicit hypotheses only; not complete API or crate verification"
+}

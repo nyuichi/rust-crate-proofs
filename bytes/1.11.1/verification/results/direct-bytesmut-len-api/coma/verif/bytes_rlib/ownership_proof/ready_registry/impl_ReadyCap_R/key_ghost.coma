@@ -1,0 +1,73 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 78 4 78 53 *)
+
+(* ownership_proof::ready_registry::ReadyCap<R> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sauth = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource/auth.rs" 162 8 162 19
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 79 8 79 27
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 78 29 78 33
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 77 14 77 48
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 71 8 71 16
+let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 119 12 119 76
+
+use creusot.prelude.Any
+use int.Int
+
+type t_Id
+
+type t_ReadyKey = { resource_id: t_Id; slot: int }
+
+type t_Resource_View_AuthViewRel_R
+
+type t_Fragment_R = { f0: t_Resource_View_AuthViewRel_R }
+
+type t_ReadyCap_R = { key: t_ReadyKey; fragment: t_Fragment_R; _not_objective: () }
+
+let new_ReadyKey (x: t_ReadyKey) (return (x'0: t_ReadyKey)) = any
+  [ return (result: t_ReadyKey) -> {[@stop_split] [@expl:new ensures] [%#sghost] result = x} (! return {result}) ]
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function id_View_AuthViewRel_R (self: t_Resource_View_AuthViewRel_R) : t_Id
+
+function id_R (self: t_Fragment_R) : t_Id = [%#sauth] id_View_AuthViewRel_R self.f0
+
+predicate invariant_ReadyCap_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 117 4 117 30] (self: t_ReadyCap_R) =
+  [%#sready_registry'3] ge_log_Int self.key.slot 0 /\ id_R self.fragment = self.key.resource_id
+
+predicate inv_ReadyCap_R (_1: t_ReadyCap_R)
+
+axiom inv_axiom [@rewrite]: forall x: t_ReadyCap_R [inv_ReadyCap_R x]. inv_ReadyCap_R x = invariant_ReadyCap_R x
+
+predicate invariant_ref_ReadyCap_R [@inline:trivial] (self: t_ReadyCap_R) = [%#sinvariant] inv_ReadyCap_R self
+
+meta "rewrite_def" predicate invariant_ref_ReadyCap_R
+
+predicate inv_ref_ReadyCap_R [@inline:trivial] (_1: t_ReadyCap_R) = invariant_ref_ReadyCap_R _1
+
+meta "rewrite_def" predicate inv_ref_ReadyCap_R
+
+function key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 70 4 70 39] (self: t_ReadyCap_R) : t_ReadyKey
+ = [%#sready_registry'2] self.key
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let key_ghost_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 78 4 78 53]
+  (self: t_ReadyCap_R) (return (x: t_ReadyKey)) =
+{[@stop_split] [@expl:key_ghost 'self' type invariant] [%#sready_registry'0] inv_ref_ReadyCap_R self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = new_ReadyKey [%#sready_registry] {self.key} (fun (_x: t_ReadyKey) -> [ &_ret <- _x ] s1)
+    | s1 = return {_ret} ] ] [ & _ret: t_ReadyKey = Any.any_l () | & self: t_ReadyCap_R = self ])
+  [ return (result: t_ReadyKey) -> {[@stop_split] [@expl:key_ghost ensures] [%#sready_registry'1] result = key_R self}
+    (! return {result}) ]

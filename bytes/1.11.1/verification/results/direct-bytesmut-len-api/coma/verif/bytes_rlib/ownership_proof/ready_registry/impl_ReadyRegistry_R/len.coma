@@ -1,0 +1,40 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 160 4 160 34 *)
+
+(* ownership_proof::ready_registry::ReadyRegistry<R> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 159 14 159 44
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 152 8 152 34
+
+use seq.Seq
+
+type t_Id
+
+type t_ReadyKey = { resource_id: t_Id; slot: int }
+
+type t_Resource_View_AuthViewRel_R
+
+type t_Fragment_R = { f0: t_Resource_View_AuthViewRel_R }
+
+type t_ReadyCap_R = { key: t_ReadyKey; fragment: t_Fragment_R; _not_objective: () }
+
+type t_Option_ReadyCap_R = None | Some t_ReadyCap_R
+
+type t_ReadyRegistry_R = { entries'0: Seq.seq t_Option_ReadyCap_R; _not_objective'0: () }
+
+function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 151 4 151 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
+ = [%#sready_registry'0] self.entries'0
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_ReadyRegistry_R
+
+function len_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 160 4 160 34] (self: t_ReadyRegistry_R) : int
+
+goal vc_len_R: [@stop_split] [@expl:len ensures] [%#sready_registry] Seq.length (entries_R self)
+  = Seq.length (entries_R self)

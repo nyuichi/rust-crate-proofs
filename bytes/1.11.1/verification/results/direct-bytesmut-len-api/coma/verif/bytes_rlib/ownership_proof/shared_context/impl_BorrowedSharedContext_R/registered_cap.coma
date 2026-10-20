@@ -1,0 +1,188 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 182 4 187 13 *)
+
+(* ownership_proof::shared_context::BorrowedSharedContext<'view, R> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sshared_context = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 171 14 181 5
+let%span sshared_context'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 115 14 115 69
+let%span sshared_context'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 106 8 106 46
+let%span sshared_context'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 111 8 111 38
+let%span sshared_context'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 122 8 122 45
+let%span sshared_context'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 117 8 117 50
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 159 14 159 44
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 200 14 200 46
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 201 14 209 5
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 177 14 177 52
+let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 178 14 178 63
+
+use creusot.prelude.MutBorrow
+use set.Set
+use seq.Seq
+use int.Int
+
+type t_Tokens
+
+type t_ReadyRegistry_R
+
+type t_BorrowedSharedContext_R = { tokens: t_Tokens; ready: MutBorrow.t t_ReadyRegistry_R; _not_objective: () }
+
+type t_ReadyKey
+
+type t_R
+
+function namespaces (self: t_Tokens) : Set.set t_Namespace
+
+function token_namespaces_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 105 4 105 58] (self: t_BorrowedSharedContext_R) : Set.set t_Namespace
+ = [%#sshared_context'1] namespaces self.tokens
+
+type t_ReadyCap_R
+
+type t_Option_ReadyCap_R = None | Some t_ReadyCap_R
+
+function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 151 4 151 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
+
+function len_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 160 4 160 34] (self: t_ReadyRegistry_R) : int
+
+axiom len_R_spec: forall self: t_ReadyRegistry_R [len_R self]. [%#sready_registry] len_R self
+    = Seq.length (entries_R self)
+
+function ready_len_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 110 4 110 40] (self: t_BorrowedSharedContext_R) : int
+ = [%#sshared_context'2] len_R self.ready.current
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
+
+predicate contains_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 184 4 184 48] (self: t_ReadyRegistry_R) (key: t_ReadyKey)
+
+type t_Id
+
+type tup4_Id_Int_Id_R = { f0: t_Id; f1: int; f2: t_Id; f3: t_R }
+
+type t_Option_tup4_Id_Int_Id_R = None'0 | Some'0 tup4_Id_Int_Id_R
+
+function entry_state_model_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 167 4 167 69] (self: t_ReadyRegistry_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+
+function entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 179 4 179 74] (self: t_ReadyRegistry_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+
+axiom entry_state_R_spec:
+  forall self: t_ReadyRegistry_R, slot'0: int [entry_state_R self slot'0]. [%#sready_registry'2] entry_state_R self slot'0
+    = entry_state_model_R self slot'0
+
+axiom entry_state_R_spec'0:
+  forall self: t_ReadyRegistry_R, slot'0: int [entry_state_R self slot'0]. [%#sready_registry'3] entry_state_R self slot'0
+      <> None'0 -> 0 <= slot'0 /\ slot'0 < len_R self
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 25 4 25 41] (self: t_ReadyKey) : t_Id
+
+predicate has_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 210 4 210 54] (self: t_ReadyRegistry_R) (key: t_ReadyKey)
+
+axiom has_key_R_spec:
+  forall self: t_ReadyRegistry_R, key: t_ReadyKey [has_key_R self key]. [%#sready_registry'0] has_key_R self key
+    = contains_key_R self key
+
+axiom has_key_R_spec'0:
+  forall self: t_ReadyRegistry_R, key: t_ReadyKey [has_key_R self key]. [%#sready_registry'1] has_key_R self key
+    = (0 <= slot key
+    /\ slot key < len_R self
+    /\ match entry_state_R self (slot key) with
+      | Some'0 {f0 = resource_id'0; f1 = slot'0; f2 = fragment_id} -> resource_id'0 = resource_id key
+      /\ slot'0 = slot key /\ fragment_id = resource_id key
+      | None'0 -> false
+      end)
+
+predicate ready_has_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 121 4 121 60] (self: t_BorrowedSharedContext_R) (key: t_ReadyKey) =
+  [%#sshared_context'3] has_key_R self.ready.current key
+
+function ready_entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 116 4 116 80] (self: t_BorrowedSharedContext_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+ = [%#sshared_context'4] entry_state_R self.ready.current slot'0
+
+axiom ready_entry_state_R_spec:
+  forall self: t_BorrowedSharedContext_R, slot'0: int [ready_entry_state_R self slot'0]. [%#sshared_context'0] ready_entry_state_R self slot'0
+      <> None'0 -> 0 <= slot'0 /\ slot'0 < ready_len_R self
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_BorrowedSharedContext_R
+
+constant after : t_BorrowedSharedContext_R
+
+constant key : t_ReadyKey
+
+constant fragment_value : t_R
+
+predicate registered_cap_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 182 4 187 13] (self: t_BorrowedSharedContext_R) (after: t_BorrowedSharedContext_R) (key: t_ReadyKey) (fragment_value: t_R)
+
+goal vc_registered_cap_R: if token_namespaces_R after = token_namespaces_R self then
+    if ready_len_R after = ready_len_R self + 1 then
+      if slot key = ready_len_R self then
+        if ready_has_key_R after key then
+          ([@stop_split] [@expl:ready_entry_state ensures] [%#sshared_context'0] ready_entry_state_R after (slot key)
+              <> None'0 -> 0 <= slot key /\ slot key < ready_len_R after)
+          -> (if ready_entry_state_R after (slot key)
+          = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value } then
+            [@stop_split] [@expl:registered_cap ensures] [%#sshared_context] (forall i: int. 0 <= i
+                  /\ i < ready_len_R self -> ready_entry_state_R after i = ready_entry_state_R self i)
+            = (token_namespaces_R after = token_namespaces_R self
+            /\ ready_len_R after = ready_len_R self + 1
+            /\ slot key = ready_len_R self
+            /\ ready_has_key_R after key
+            /\ ready_entry_state_R after (slot key)
+              = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value }
+            /\ (forall i: int. 0 <= i /\ i < ready_len_R self
+              -> ready_entry_state_R after i = ready_entry_state_R self i))
+          else
+            [@stop_split] [@expl:registered_cap ensures] [%#sshared_context] false
+            = (token_namespaces_R after = token_namespaces_R self
+            /\ ready_len_R after = ready_len_R self + 1
+            /\ slot key = ready_len_R self
+            /\ ready_has_key_R after key
+            /\ ready_entry_state_R after (slot key)
+              = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value }
+            /\ (forall i: int. 0 <= i /\ i < ready_len_R self
+              -> ready_entry_state_R after i = ready_entry_state_R self i))
+          )
+        else
+          [@stop_split] [@expl:registered_cap ensures] [%#sshared_context] false
+          = (token_namespaces_R after = token_namespaces_R self
+          /\ ready_len_R after = ready_len_R self + 1
+          /\ slot key = ready_len_R self
+          /\ ready_has_key_R after key
+          /\ ready_entry_state_R after (slot key)
+            = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value }
+          /\ (forall i: int. 0 <= i /\ i < ready_len_R self
+            -> ready_entry_state_R after i = ready_entry_state_R self i))
+      
+      else
+        [@stop_split] [@expl:registered_cap ensures] [%#sshared_context] false
+        = (token_namespaces_R after = token_namespaces_R self
+        /\ ready_len_R after = ready_len_R self + 1
+        /\ slot key = ready_len_R self
+        /\ ready_has_key_R after key
+        /\ ready_entry_state_R after (slot key)
+          = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value }
+        /\ (forall i: int. 0 <= i /\ i < ready_len_R self -> ready_entry_state_R after i = ready_entry_state_R self i))
+    
+    else
+      [@stop_split] [@expl:registered_cap ensures] [%#sshared_context] false
+      = (token_namespaces_R after = token_namespaces_R self
+      /\ ready_len_R after = ready_len_R self + 1
+      /\ slot key = ready_len_R self
+      /\ ready_has_key_R after key
+      /\ ready_entry_state_R after (slot key)
+        = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value }
+      /\ (forall i: int. 0 <= i /\ i < ready_len_R self -> ready_entry_state_R after i = ready_entry_state_R self i))
+  
+  else
+    [@stop_split] [@expl:registered_cap ensures] [%#sshared_context] false
+    = (token_namespaces_R after = token_namespaces_R self
+    /\ ready_len_R after = ready_len_R self + 1
+    /\ slot key = ready_len_R self
+    /\ ready_has_key_R after key
+    /\ ready_entry_state_R after (slot key)
+      = Some'0 { f0 = resource_id key; f1 = slot key; f2 = resource_id key; f3 = fragment_value }
+    /\ (forall i: int. 0 <= i /\ i < ready_len_R self -> ready_entry_state_R after i = ready_entry_state_R self i))
+  

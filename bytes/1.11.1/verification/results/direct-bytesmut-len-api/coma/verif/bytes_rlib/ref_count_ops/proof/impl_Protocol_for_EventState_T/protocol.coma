@@ -1,0 +1,56 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 462 8 462 33 *)
+
+(* <ref_count_ops::proof::EventState<T> as creusot_std::ghost::invariant::Protocol> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 459 18 461 61
+
+use creusot.int.UInt64
+
+type t_Perm_NativeCounter
+
+type t_T
+
+type t_EventState_T = { owner: t_Perm_NativeCounter; current': t_T }
+
+predicate protocol_T (self: t_T)
+
+type t_NativeCounter
+
+function counter_model_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 439 8 439 48] (self: t_T) : t_NativeCounter
+
+function ward_NativeCounter (self: t_Perm_NativeCounter) : t_NativeCounter
+
+predicate agrees_with_value_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 442 8 442 57] (self: t_T) (value: UInt64.t)
+
+function val_NativeCounter (self: t_Perm_NativeCounter) : UInt64.t
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_EventState_T
+
+predicate protocol_EventState_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 462 8 462 33] (self: t_EventState_T)
+
+goal vc_protocol_EventState_T: if protocol_T self.current' then
+    if counter_model_T self.current' = ward_NativeCounter self.owner then
+      [@stop_split] [@expl:protocol ensures] [%#sref_count_ops] agrees_with_value_T self.current' (val_NativeCounter self.owner)
+      = (protocol_T self.current'
+      /\ counter_model_T self.current' = ward_NativeCounter self.owner
+      /\ agrees_with_value_T self.current' (val_NativeCounter self.owner))
+    else
+      [@stop_split] [@expl:protocol ensures] [%#sref_count_ops] false
+      = (protocol_T self.current'
+      /\ counter_model_T self.current' = ward_NativeCounter self.owner
+      /\ agrees_with_value_T self.current' (val_NativeCounter self.owner))
+  
+  else
+    [@stop_split] [@expl:protocol ensures] [%#sref_count_ops] false
+    = (protocol_T self.current'
+    /\ counter_model_T self.current' = ward_NativeCounter self.owner
+    /\ agrees_with_value_T self.current' (val_NativeCounter self.owner))
+  

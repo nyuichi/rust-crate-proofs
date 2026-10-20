@@ -1,0 +1,58 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 156 4 156 60 *)
+
+(* ownership_proof::owned_region::OwnedRegion *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 155 4 155 35
+let%span sowned_region'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 77 20 77 74
+let%span sresource = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource.rs" 59 12 59 22
+
+type t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+type t_OwnedRegion = { lo: int; hi: int; resource: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+type t_FMap_Int_Excl_Option_u8
+
+type t_Id
+
+type t_Excl_unit = { f0: () }
+
+type t_Option_Excl_unit = None | Some t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'0: t_Option_Excl_unit; f1'0: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'1: int;
+  f1'1: int;
+  f2'1: t_Id;
+  f3'1: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 (self: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) : t_Id
+
+function val_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 (self: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) : tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 [@inline:trivial] (self: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) : tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+ = [%#sresource] val_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self
+
+meta "rewrite_def" function view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+ = [%#sowned_region'0] { f0'1 = self.lo;
+                         f1'1 = self.hi;
+                         f2'1 = id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self.resource;
+                         f3'1 = view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self.resource }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_OwnedRegion
+
+function slots [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 156 4 156 60] (self: t_OwnedRegion) : t_FMap_Int_Excl_Option_u8
+
+goal vc_slots:
+  [@stop_split] [@expl:slots ensures] [%#sowned_region] (view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self.resource).f1'0
+  = (view_OwnedRegion self).f3'1.f1'0

@@ -1,0 +1,48 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "errors",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Errors.try_get_error_equality_compares_both_counts",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq for bytes::TryGetError}::eq"
+      ],
+      "verified_behavior": "Equality succeeds and compares both requested and available counts.",
+      "assumptions": [],
+      "source_file": "src/lib.rs",
+      "source_span": "src/lib.rs:137:16-137:25"
+    },
+    {
+      "theorem": "BytesProofs.Errors.try_get_error_equal_iff_same_record",
+      "rust_functions": [
+        "{impl core::cmp::PartialEq for bytes::TryGetError}::eq"
+      ],
+      "verified_behavior": "Equality returns true iff both error records are equal.",
+      "assumptions": [],
+      "source_file": "src/lib.rs",
+      "source_span": "src/lib.rs:137:16-137:25"
+    },
+    {
+      "theorem": "BytesProofs.Errors.advance_panic_reports_panic",
+      "rust_functions": [
+        "bytes::panic_advance"
+      ],
+      "verified_behavior": "The out-of-bounds panic helper evaluates to the Aeneas panic result.",
+      "assumptions": [
+        "Aeneas standard formatting model erases formatting arguments and messages; actual message rendering is not verified."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Errors.oversized_integer_reports_panic",
+      "rust_functions": [
+        "bytes::panic_does_not_fit"
+      ],
+      "verified_behavior": "The oversized-integer panic helper evaluates to the Aeneas panic result.",
+      "assumptions": [
+        "Aeneas standard formatting model erases formatting arguments and messages; actual message rendering is not verified."
+      ]
+    }
+  ],
+  "blocked_roots": []
+}

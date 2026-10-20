@@ -1,0 +1,425 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1307 4 1307 80 *)
+
+(* bytes_mut::shared_capsule::SharedHeaderReadLoan *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 22 8 22 20
+let%span sord'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1005 15 1005 32
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1007 20 1007 44
+let%span sshared_capsule = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1307 46 1307 50
+let%span sshared_capsule'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1303 15 1303 31
+let%span sshared_capsule'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1304 14 1304 50
+let%span sshared_capsule'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1305 14 1305 35
+let%span sshared_capsule'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1306 14 1306 68
+let%span sshared_capsule'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1485 8 1485 20
+let%span sshared_capsule'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1353 12 1361 34
+let%span sshared_capsule'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1456 12 1477 13
+let%span sshared_capsule'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 401 10 411 2
+let%span sshared_capsule'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 150 8 150 81
+let%span sshared_capsule'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 157 8 160 9
+let%span sshared_capsule'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 187 4 198 5
+let%span sboxed = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/boxed.rs" 49 8 49 18
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 537 12 539 34
+let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 142 8 142 35
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 740 12 744 33
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 20 752 30
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 757 20 757 30
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 762 20 762 27
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 772 20 772 30
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 767 20 767 27
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1523 16 1523 59
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+
+use creusot.prelude.Opaque
+use creusot.int.UInt64
+use creusot.prelude.Any
+use creusot.prelude.Ptr
+use creusot.int.UInt8
+use map.Map
+use int.Int
+
+type t_Perm_ptr_Shared
+
+type t_NativeCounter
+
+type t_VecStorage
+
+type t_StoredAuthority
+
+type t_Id
+
+type t_ReadyKey
+
+type tup3_Int_Int_Int = { f0: int; f1: int; f2: int }
+
+type t_Option_tup3_Int_Int_Int = None | Some tup3_Int_Int_Int
+
+type tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int = {
+  f0'0: int;
+  f1'0: Opaque.ptr;
+  f2'0: t_NativeCounter;
+  f3'0: t_Id;
+  f4'0: t_Id;
+  f5'0: t_StoredAuthority;
+  f6'0: t_VecStorage;
+  f7'0: UInt64.t;
+  f8'0: t_ReadyKey;
+  f9'0: t_Option_tup3_Int_Int_Int }
+
+type t_PhysicalRegion
+
+type t_Option_PhysicalRegion = None'0 | Some'0 t_PhysicalRegion
+
+type t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int
+
+type t_SharedHeaderReadLoanState = {
+  header_id: Opaque.ptr;
+  counter_model: t_NativeCounter;
+  header_vec: t_VecStorage;
+  original_capacity_repr: UInt64.t;
+  storage_model: t_StoredAuthority;
+  ledger_id: t_Id;
+  phase_id: t_Id;
+  generation: int;
+  lease_id: t_Id;
+  lease_key: t_ReadyKey;
+  stamp: tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int;
+  lent_span: t_Option_tup3_Int_Int_Int;
+  lent_region: t_Option_PhysicalRegion;
+  lease_cap: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int }
+
+type t_SharedHeaderReadLoan = { root: t_Perm_ptr_Shared; state: t_SharedHeaderReadLoanState }
+
+predicate is_null_ptr_Shared (self: Opaque.ptr) = [%#sptr'0] Ptr.addr_logic_u64 self = (0: UInt64.t)
+
+function ward_ptr_Shared (self: t_Perm_ptr_Shared) : Opaque.ptr
+
+type t_MaybeUninit_VecStorage
+
+type t_RefCountCell
+
+type t_Shared = { vec'0: t_MaybeUninit_VecStorage; original_capacity_repr'0: UInt64.t; ref_count'0: t_RefCountCell }
+
+predicate metadata_matches_Shared [@inline:trivial] (_value: t_Shared) (_metadata: ()) = true
+
+meta "rewrite_def" predicate metadata_matches_Shared
+
+function val_ptr_Shared (self: t_Perm_ptr_Shared) : t_Shared
+
+function metadata_Shared (_1: Opaque.ptr) : ()
+
+predicate invariant_RefCountCell [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 673 8 673 34] (self: t_RefCountCell)
+
+predicate inv_RefCountCell (_1: t_RefCountCell)
+
+axiom inv_axiom: forall x: t_RefCountCell [inv_RefCountCell x]. inv_RefCountCell x -> invariant_RefCountCell x
+
+predicate inv_Shared (_1: t_Shared)
+
+axiom inv_axiom'0 [@rewrite]: forall x: t_Shared [inv_Shared x]. inv_Shared x = inv_RefCountCell x.ref_count'0
+
+predicate invariant_ref_Shared [@inline:trivial] (self: t_Shared) = [%#sinvariant] inv_Shared self
+
+meta "rewrite_def" predicate invariant_ref_Shared
+
+predicate inv_ref_Shared [@inline:trivial] (_1: t_Shared) = invariant_ref_Shared _1
+
+meta "rewrite_def" predicate inv_ref_Shared
+
+predicate invariant_Perm_ptr_Shared (self: t_Perm_ptr_Shared) =
+  [%#sptr] not is_null_ptr_Shared (ward_ptr_Shared self)
+  /\ metadata_matches_Shared (val_ptr_Shared self) (metadata_Shared (ward_ptr_Shared self))
+  /\ inv_ref_Shared (val_ptr_Shared self)
+
+predicate inv_Perm_ptr_Shared (_1: t_Perm_ptr_Shared)
+
+axiom inv_axiom'1 [@rewrite]: forall x: t_Perm_ptr_Shared [inv_Perm_ptr_Shared x]. inv_Perm_ptr_Shared x
+    = invariant_Perm_ptr_Shared x
+
+predicate invariant_Box_Perm_ptr_Shared_Global (self: t_Perm_ptr_Shared) = [%#sboxed] inv_Perm_ptr_Shared self
+
+function counter_model'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 176 4 176 54] (self: t_RefCountCell) : t_NativeCounter
+
+predicate has_event_invariant [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 191 4 191 51] (self: t_RefCountCell)
+
+type t_Option_VecStorage = None'1 | Some'1 t_VecStorage
+
+function view_MaybeUninit_VecStorage (self: t_MaybeUninit_VecStorage) : t_Option_VecStorage
+
+constant any_VecStorage : t_VecStorage
+
+function unwrap_Option_VecStorage (self: t_Option_VecStorage) : t_VecStorage = [%#soption'0] match self with
+    | Some'1 x -> x
+    | None'1 -> any_VecStorage
+    end
+
+function vec_model [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 1006 4 1006 36] (self: t_Shared) : t_VecStorage
+ = [%#sbytes_mut'0] unwrap_Option_VecStorage (view_MaybeUninit_VecStorage self.vec'0)
+
+predicate matches_authority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 582 4 582 77] (self: t_VecStorage) (authority: t_StoredAuthority)
+
+predicate gt_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other < self
+
+meta "rewrite_def" predicate gt_log_Int
+
+predicate invariant_StoredAuthority [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 547 4 547 30] (self: t_StoredAuthority)
+
+type tup2_Option_tup3_Int_Int_Int_Option_PhysicalRegion = {
+  f0'1: t_Option_tup3_Int_Int_Int;
+  f1'1: t_Option_PhysicalRegion }
+
+type t_OwnedRegion
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+type tup3_OwnedRegion_Int_Id = { f0'2: t_OwnedRegion; f1'2: int; f2'2: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+type t_Excl_unit = { f0'3: () }
+
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'4: t_Option_Excl_unit; f1'4: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'5: int;
+  f1'5: int;
+  f2'5: t_Id;
+  f3'5: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 738 4 738 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec] invariant_OwnedRegion (view_PhysicalRegion self).f0'2
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5 <= (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5 <= (view_PhysicalRegion self).f1'2
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0'2).f2'5 = (view_PhysicalRegion self).f2'2
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 751 4 751 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'0] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f0'5
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 756 4 756 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'1] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f1'5
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 761 4 761 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'2] (view_PhysicalRegion self).f2'2
+
+function binding [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 502 4 502 37] (self: t_StoredAuthority) : t_Id
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 771 4 771 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'3] (view_OwnedRegion (view_PhysicalRegion self).f0'2).f2'5
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 766 4 766 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'4] (view_PhysicalRegion self).f1'2
+
+function capacity'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/vec_storage.rs" 520 4 520 39] (self: t_StoredAuthority) : int
+
+type t_Option_u8 = None'3 | Some'3 UInt8.t
+
+type t_Option_Option_u8 = None'4 | Some'4 t_Option_u8
+
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1522 0 1522 58] (slot: t_Option_Option_u8) =
+  [%#sraw_vec'5] exists value: UInt8.t. slot = Some'4 (Some'3 value)
+
+type t_Excl_Option_u8 = { f0'6: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'5 | Some'5 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'5.f1'4 index with
+      | None'5 -> None'4
+      | Some'5 {f0'6 = value} -> Some'4 value
+      end
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'6] slot'0 self index
+    = slot (view_PhysicalRegion self).f0'2 index
+
+predicate lent_region_matches [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 412 0 416 9] (lent_span'0: t_Option_tup3_Int_Int_Int) (region: t_Option_PhysicalRegion) (storage: t_StoredAuthority)
+
+axiom lent_region_matches_spec:
+  forall lent_span'0: t_Option_tup3_Int_Int_Int, region: t_Option_PhysicalRegion, storage: t_StoredAuthority [lent_region_matches lent_span'0 region storage]. [%#sshared_capsule'7] lent_region_matches lent_span'0 region storage
+    = match { f0'1 = lent_span'0; f1'1 = region } with
+      | {f0'1 = None; f1'1 = None'0} -> true
+      | {f0'1 = Some {f1 = lo'0; f2 = hi'0}; f1'1 = Some'0 region'0} -> invariant_PhysicalRegion region'0
+      /\ lo region'0 = lo'0
+      /\ hi region'0 = hi'0
+      /\ namespace region'0 = binding storage
+      /\ resource_id region'0 = binding storage
+      /\ capacity region'0 = capacity'0 storage
+      /\ (forall index: int. lo'0 <= index /\ index < hi'0 -> slot_known (slot'0 region'0 index))
+      | _ -> false
+      end
+
+predicate invariant_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 117 4 117 30] (self: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int)
+
+function key_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 70 4 70 39] (self: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int) : t_ReadyKey
+
+function resource_id'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 25 4 25 41] (self: t_ReadyKey) : t_Id
+
+function fragment_id_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 60 4 60 41] (self: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int) : t_Id
+
+type t_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int =
+  | None'6
+  | Some'6 tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int
+
+type tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int = {
+  f0'7: t_Id;
+  f1'7: t_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int;
+  f2'7: int }
+
+type t_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int = {
+  f0'8: tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int }
+
+type t_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int =
+  | None'7
+  | Some'7 t_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int
+
+predicate header_lease_active [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 144 0 148 9] (value: t_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int) (resource_id'1: t_Id) (stamp'0: tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int) =
+  [%#sshared_capsule'8] exists count: int. value
+    = Some'7 { f0'8 = { f0'7 = resource_id'1; f1'7 = Some'6 stamp'0; f2'7 = count } }
+
+function fragment_value_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 65 4 65 43] (self: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int) : t_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord'0] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function header_lease_count [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 155 0 155 53] (value: t_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int) : int
+ = [%#sshared_capsule'9] match value with
+    | Some'7 {f0'8 = {f2'7 = count}} -> count
+    | None'7 -> - 1
+    end
+
+function header_lease_stamp [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 175 0 186 21] (generation'0: int) (header_id'0: Opaque.ptr) (counter_model'1: t_NativeCounter) (ledger_id'0: t_Id) (phase_id'0: t_Id) (storage: t_StoredAuthority) (header_vec'0: t_VecStorage) (original_capacity_repr'1: UInt64.t) (lease_key'0: t_ReadyKey) (lent_span'0: t_Option_tup3_Int_Int_Int) : tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int
+ = [%#sshared_capsule'10] { f0'0 = generation'0;
+                            f1'0 = header_id'0;
+                            f2'0 = counter_model'1;
+                            f3'0 = ledger_id'0;
+                            f4'0 = phase_id'0;
+                            f5'0 = storage;
+                            f6'0 = header_vec'0;
+                            f7'0 = original_capacity_repr'1;
+                            f8'0 = lease_key'0;
+                            f9'0 = lent_span'0 }
+
+predicate invariant_SharedHeaderReadLoanState [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1454 4 1454 30] (self: t_SharedHeaderReadLoanState) =
+  [%#sshared_capsule'6] gt_log_Int self.generation 0
+  /\ invariant_StoredAuthority self.storage_model
+  /\ lent_region_matches self.lent_span self.lent_region self.storage_model
+  /\ invariant_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int self.lease_cap
+  /\ key_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int self.lease_cap
+    = self.lease_key
+  /\ resource_id'0 self.lease_key = self.lease_id
+  /\ fragment_id_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int self.lease_cap
+    = self.lease_id
+  /\ header_lease_active (fragment_value_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int self.lease_cap) self.lease_id self.stamp
+  /\ ge_log_Int (header_lease_count (fragment_value_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int self.lease_cap)) 0
+  /\ self.stamp
+  = header_lease_stamp self.generation self.header_id self.counter_model self.ledger_id self.phase_id self.storage_model self.header_vec self.original_capacity_repr self.lease_key self.lent_span
+
+predicate valid [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1351 4 1351 26] (self: t_SharedHeaderReadLoan) =
+  [%#sshared_capsule'5] invariant_Box_Perm_ptr_Shared_Global self.root
+  /\ ward_ptr_Shared self.root = self.state.header_id
+  /\ counter_model'0 (val_ptr_Shared self.root).ref_count'0 = self.state.counter_model
+  /\ not has_event_invariant (val_ptr_Shared self.root).ref_count'0
+  /\ view_MaybeUninit_VecStorage (val_ptr_Shared self.root).vec'0 <> None'1
+  /\ vec_model (val_ptr_Shared self.root) = self.state.header_vec
+  /\ (val_ptr_Shared self.root).original_capacity_repr'0 = self.state.original_capacity_repr
+  /\ matches_authority (vec_model (val_ptr_Shared self.root)) self.state.storage_model
+  /\ invariant_SharedHeaderReadLoanState self.state
+
+predicate invariant_SharedHeaderReadLoan [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1484 4 1484 30] (self: t_SharedHeaderReadLoan) =
+  [%#sshared_capsule'4] valid self
+
+predicate inv_Box_Perm_ptr_Shared_Global [@inline:trivial] (_1: t_Perm_ptr_Shared) =
+  invariant_Box_Perm_ptr_Shared_Global _1
+
+meta "rewrite_def" predicate inv_Box_Perm_ptr_Shared_Global
+
+predicate inv_ReadyKey (_1: t_ReadyKey)
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom'2: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate inv_Option_PhysicalRegion (_1: t_Option_PhysicalRegion)
+
+axiom inv_axiom'3 [@rewrite]:
+  forall x: t_Option_PhysicalRegion [inv_Option_PhysicalRegion x]. inv_Option_PhysicalRegion x
+    = match x with
+      | None'0 -> true
+      | Some'0 f0'9 -> inv_PhysicalRegion f0'9
+      end
+
+predicate inv_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int (_1: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int)
+
+axiom inv_axiom'4:
+  forall x: t_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int [inv_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int x]. inv_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int x
+    -> invariant_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int x
+
+predicate inv_SharedHeaderReadLoanState (_1: t_SharedHeaderReadLoanState)
+
+axiom inv_axiom'5 [@rewrite]:
+  forall x: t_SharedHeaderReadLoanState [inv_SharedHeaderReadLoanState x]. inv_SharedHeaderReadLoanState x
+    = (invariant_SharedHeaderReadLoanState x
+    /\ inv_ReadyKey x.lease_key
+    /\ inv_Option_PhysicalRegion x.lent_region
+    /\ inv_ReadyCap_Option_Excl_tup3_Id_Option_tup10_Int_ptr_unit_NativeCounter_Id_Id_StoredAuthority_VecStorage_usize_ReadyKey_Option_tup3_Int_Int_Int_Int x.lease_cap)
+
+predicate inv_SharedHeaderReadLoan (_1: t_SharedHeaderReadLoan)
+
+axiom inv_axiom'6 [@rewrite]: forall x: t_SharedHeaderReadLoan [inv_SharedHeaderReadLoan x]. inv_SharedHeaderReadLoan x
+    = (invariant_SharedHeaderReadLoan x
+    /\ inv_Box_Perm_ptr_Shared_Global x.root /\ inv_SharedHeaderReadLoanState x.state)
+
+predicate invariant_ref_SharedHeaderReadLoan [@inline:trivial] (self: t_SharedHeaderReadLoan) =
+  [%#sinvariant] inv_SharedHeaderReadLoan self
+
+meta "rewrite_def" predicate invariant_ref_SharedHeaderReadLoan
+
+predicate inv_ref_SharedHeaderReadLoan [@inline:trivial] (_1: t_SharedHeaderReadLoan) =
+  invariant_ref_SharedHeaderReadLoan _1
+
+meta "rewrite_def" predicate inv_ref_SharedHeaderReadLoan
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let storage_authority_snapshot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut/shared_capsule.rs" 1307 4 1307 80]
+  (self: t_SharedHeaderReadLoan) (return (x: t_StoredAuthority)) =
+{[@stop_split] [@expl:storage_authority_snapshot requires] ([@stop_split] [@expl:storage_authority_snapshot 'self' type invariant] [%#sshared_capsule] inv_ref_SharedHeaderReadLoan self)
+  /\ ([@stop_split] [@expl:storage_authority_snapshot requires] [%#sshared_capsule'0] invariant_ref_SharedHeaderReadLoan self)}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- self.state.storage_model ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: t_StoredAuthority = Any.any_l () | & self: t_SharedHeaderReadLoan = self ])
+  [ return (result: t_StoredAuthority) ->
+  {[@stop_split] [@expl:storage_authority_snapshot ensures] ([@stop_split] [@expl:storage_authority_snapshot ensures #0] [%#sshared_capsule'1] result
+      = self.state.storage_model)
+    /\ ([@stop_split] [@expl:storage_authority_snapshot ensures #1] [%#sshared_capsule'2] invariant_StoredAuthority result)
+    /\ ([@stop_split] [@expl:storage_authority_snapshot ensures #2] [%#sshared_capsule'3] matches_authority (vec_model (val_ptr_Shared self.root)) result)}
+    (! return {result}) ]

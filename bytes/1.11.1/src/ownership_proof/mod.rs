@@ -7,3 +7,8 @@ pub(crate) mod boxed_alignment;
 
 pub(crate) mod vec_capacity;
 pub(crate) mod unique_reclaim;
+pub(crate) mod view_region;
+pub(crate) mod ref_count_ledger;
+pub(crate) mod terminal_phase;
+pub(crate) mod ready_registry;
+pub(crate) mod shared_context;

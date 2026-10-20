@@ -1,0 +1,23 @@
+diff --git a/src/extract/ExtractBase.ml b/src/extract/ExtractBase.ml
+index 146416b8..4aa939ae 100644
+--- a/src/extract/ExtractBase.ml
++++ b/src/extract/ExtractBase.ml
+@@ -2120,8 +2120,18 @@ let basename_to_unique (ctx : extraction_ctx) (name : string) =
+     (* Note that we ignore the "unsafe" names which contain in particular
+        field names: we want to allow using field names for variables if
+        the backend allows such collisions *)
++    let is_namespace_prefix names =
++      StringSet.exists
++        (fun name ->
++          String.length name > String.length s
++          && String.sub name 0 (String.length s) = s
++          && name.[String.length s] = '.')
++        names
++    in
+     StringSet.mem s ctx.names_maps.names_map.names_set
+     || StringSet.mem s ctx.names_maps.strict_names_map.names_set
++    || is_namespace_prefix ctx.names_maps.names_map.names_set
++    || is_namespace_prefix ctx.names_maps.strict_names_map.names_set
+   in
+   basename_to_unique_aux collision name_append_index name
+ 

@@ -1,0 +1,227 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 157 4 160 18 *)
+
+(* ownership_proof::shared_context::BorrowedSharedContext<'view, R> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 93 20 93 44
+let%span sshared_context = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 162 26 162 46
+let%span sshared_context'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 163 26 163 67
+let%span sshared_context'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 161 8 164 9
+let%span sshared_context'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 158 8 158 15
+let%span sshared_context'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 159 8 159 11
+let%span sshared_context'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 152 15 152 48
+let%span sshared_context'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 153 15 154 68
+let%span sshared_context'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 155 15 155 88
+let%span sshared_context'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 156 14 156 69
+let%span sshared_context'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 122 8 122 45
+let%span sshared_context'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 111 8 111 38
+let%span sshared_context'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 115 14 115 69
+let%span sshared_context'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 117 8 117 50
+let%span sshared_context'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 398 8 398 57
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sready_registry = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 200 14 200 46
+let%span sready_registry'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 201 14 209 5
+let%span sready_registry'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 159 14 159 44
+let%span sready_registry'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 177 14 177 52
+let%span sready_registry'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 178 14 178 63
+
+use creusot.prelude.MutBorrow
+use seq.Seq
+use creusot.prelude.Any
+use int.Int
+
+type t_Tokens
+
+type t_ReadyRegistry_R
+
+type t_BorrowedSharedContext_R = { tokens: t_Tokens; ready: MutBorrow.t t_ReadyRegistry_R; _not_objective: () }
+
+predicate inv_Tokens [@inline:trivial] (_1: t_Tokens) = true
+
+meta "rewrite_def" predicate inv_Tokens
+
+predicate invariant_Ghost_Tokens [@inline:trivial] (self: t_Tokens) = [%#sghost'3] inv_Tokens self
+
+meta "rewrite_def" predicate invariant_Ghost_Tokens
+
+predicate invariant_ReadyRegistry_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 308 4 308 30] (self: t_ReadyRegistry_R)
+
+predicate inv_ReadyRegistry_R (_1: t_ReadyRegistry_R)
+
+axiom inv_axiom: forall x: t_ReadyRegistry_R [inv_ReadyRegistry_R x]. inv_ReadyRegistry_R x
+    -> invariant_ReadyRegistry_R x
+
+predicate invariant_refmut_ReadyRegistry_R [@inline:trivial] (self: MutBorrow.t t_ReadyRegistry_R) =
+  [%#sinvariant'0] inv_ReadyRegistry_R self.current /\ inv_ReadyRegistry_R self.final
+
+meta "rewrite_def" predicate invariant_refmut_ReadyRegistry_R
+
+predicate inv_refmut_ReadyRegistry_R [@inline:trivial] (_1: MutBorrow.t t_ReadyRegistry_R) =
+  invariant_refmut_ReadyRegistry_R _1
+
+meta "rewrite_def" predicate inv_refmut_ReadyRegistry_R
+
+predicate invariant_Ghost_refmut_ReadyRegistry_R [@inline:trivial] (self: MutBorrow.t t_ReadyRegistry_R) =
+  [%#sghost'3] inv_refmut_ReadyRegistry_R self
+
+meta "rewrite_def" predicate invariant_Ghost_refmut_ReadyRegistry_R
+
+predicate invariant_BorrowedSharedContext_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 397 4 397 30] (self: t_BorrowedSharedContext_R) =
+  [%#sshared_context'12] invariant_Ghost_Tokens self.tokens /\ invariant_Ghost_refmut_ReadyRegistry_R self.ready
+
+predicate inv_Ghost_refmut_ReadyRegistry_R [@inline:trivial] (_1: MutBorrow.t t_ReadyRegistry_R) =
+  invariant_Ghost_refmut_ReadyRegistry_R _1
+
+meta "rewrite_def" predicate inv_Ghost_refmut_ReadyRegistry_R
+
+predicate inv_BorrowedSharedContext_R (_1: t_BorrowedSharedContext_R)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_BorrowedSharedContext_R [inv_BorrowedSharedContext_R x]. inv_BorrowedSharedContext_R x
+    = (invariant_BorrowedSharedContext_R x /\ inv_Ghost_refmut_ReadyRegistry_R x.ready)
+
+predicate invariant_ref_BorrowedSharedContext_R [@inline:trivial] (self: t_BorrowedSharedContext_R) =
+  [%#sinvariant] inv_BorrowedSharedContext_R self
+
+meta "rewrite_def" predicate invariant_ref_BorrowedSharedContext_R
+
+predicate inv_ref_BorrowedSharedContext_R [@inline:trivial] (_1: t_BorrowedSharedContext_R) =
+  invariant_ref_BorrowedSharedContext_R _1
+
+meta "rewrite_def" predicate inv_ref_BorrowedSharedContext_R
+
+predicate invariant_Ghost_ref_BorrowedSharedContext_R [@inline:trivial] (self: t_BorrowedSharedContext_R) =
+  [%#sghost'3] inv_ref_BorrowedSharedContext_R self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_BorrowedSharedContext_R
+
+predicate inv_Ghost_ref_BorrowedSharedContext_R [@inline:trivial] (_1: t_BorrowedSharedContext_R) =
+  invariant_Ghost_ref_BorrowedSharedContext_R _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_BorrowedSharedContext_R
+
+let into_inner_ref_BorrowedSharedContext_R (self: t_BorrowedSharedContext_R) (return (x: t_BorrowedSharedContext_R)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost] inv_Ghost_ref_BorrowedSharedContext_R self}
+  any
+  [ return (result: t_BorrowedSharedContext_R) ->
+  {[@stop_split] [@expl:into_inner_ref_BorrowedSharedContext_R ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'0] inv_ref_BorrowedSharedContext_R result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_ReadyKey
+
+predicate contains_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 184 4 184 48] (self: t_ReadyRegistry_R) (key: t_ReadyKey)
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 30 4 30 35] (self: t_ReadyKey) : int
+
+type t_ReadyCap_R
+
+type t_Option_ReadyCap_R = None | Some t_ReadyCap_R
+
+function entries_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 151 4 151 48] (self: t_ReadyRegistry_R) : Seq.seq t_Option_ReadyCap_R
+
+function len_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 160 4 160 34] (self: t_ReadyRegistry_R) : int
+
+axiom len_R_spec: forall self: t_ReadyRegistry_R [len_R self]. [%#sready_registry'1] len_R self
+    = Seq.length (entries_R self)
+
+type t_Id
+
+type t_R
+
+type tup4_Id_Int_Id_R = { f0: t_Id; f1: int; f2: t_Id; f3: t_R }
+
+type t_Option_tup4_Id_Int_Id_R = None'0 | Some'0 tup4_Id_Int_Id_R
+
+function entry_state_model_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 167 4 167 69] (self: t_ReadyRegistry_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+
+function entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 179 4 179 74] (self: t_ReadyRegistry_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+
+axiom entry_state_R_spec:
+  forall self: t_ReadyRegistry_R, slot'0: int [entry_state_R self slot'0]. [%#sready_registry'2] entry_state_R self slot'0
+    = entry_state_model_R self slot'0
+
+axiom entry_state_R_spec'0:
+  forall self: t_ReadyRegistry_R, slot'0: int [entry_state_R self slot'0]. [%#sready_registry'3] entry_state_R self slot'0
+      <> None'0 -> 0 <= slot'0 /\ slot'0 < len_R self
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 25 4 25 41] (self: t_ReadyKey) : t_Id
+
+predicate has_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ready_registry.rs" 210 4 210 54] (self: t_ReadyRegistry_R) (key: t_ReadyKey)
+
+axiom has_key_R_spec:
+  forall self: t_ReadyRegistry_R, key: t_ReadyKey [has_key_R self key]. [%#sready_registry] has_key_R self key
+    = contains_key_R self key
+
+axiom has_key_R_spec'0:
+  forall self: t_ReadyRegistry_R, key: t_ReadyKey [has_key_R self key]. [%#sready_registry'0] has_key_R self key
+    = (0 <= slot key
+    /\ slot key < len_R self
+    /\ match entry_state_R self (slot key) with
+      | Some'0 {f0 = resource_id'0; f1 = slot'0; f2 = fragment_id} -> resource_id'0 = resource_id key
+      /\ slot'0 = slot key /\ fragment_id = resource_id key
+      | None'0 -> false
+      end)
+
+predicate ready_has_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 121 4 121 60] (self: t_BorrowedSharedContext_R) (key: t_ReadyKey) =
+  [%#sshared_context'8] has_key_R self.ready.current key
+
+let new_unit (x: ()) (return (x'0: ())) = any
+  [ return (result: ()) -> {[@stop_split] [@expl:new ensures] [%#sghost'2] result = x} (! return {result}) ]
+
+predicate inv_ReadyKey (_1: t_ReadyKey)
+
+predicate invariant_Ghost_ReadyKey [@inline:trivial] (self: t_ReadyKey) = [%#sghost'3] inv_ReadyKey self
+
+meta "rewrite_def" predicate invariant_Ghost_ReadyKey
+
+predicate inv_Ghost_ReadyKey [@inline:trivial] (_1: t_ReadyKey) = invariant_Ghost_ReadyKey _1
+
+meta "rewrite_def" predicate inv_Ghost_ReadyKey
+
+function ready_len_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 110 4 110 40] (self: t_BorrowedSharedContext_R) : int
+ = [%#sshared_context'9] len_R self.ready.current
+
+function ready_entry_state_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 116 4 116 80] (self: t_BorrowedSharedContext_R) (slot'0: int) : t_Option_tup4_Id_Int_Id_R
+ = [%#sshared_context'11] entry_state_R self.ready.current slot'0
+
+axiom ready_entry_state_R_spec:
+  forall self: t_BorrowedSharedContext_R, slot'0: int [ready_entry_state_R self slot'0]. [%#sshared_context'10] ready_entry_state_R self slot'0
+      <> None'0 -> 0 <= slot'0 /\ slot'0 < ready_len_R self
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_tombstone_has_no_key_R [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/shared_context.rs" 157 4 160 18]
+  (context: t_BorrowedSharedContext_R) (key: t_ReadyKey) (return (x: ())) =
+{[@stop_split] [@expl:prove_tombstone_has_no_key_R requires] ([@stop_split] [@expl:prove_tombstone_has_no_key 'context' type invariant] [%#sshared_context'2] inv_Ghost_ref_BorrowedSharedContext_R context)
+  /\ ([@stop_split] [@expl:prove_tombstone_has_no_key 'key' type invariant] [%#sshared_context'3] inv_Ghost_ReadyKey key)
+  /\ ([@stop_split] [@expl:prove_tombstone_has_no_key requires #0] [%#sshared_context'4] invariant_ref_BorrowedSharedContext_R context)
+  /\ ([@stop_split] [@expl:prove_tombstone_has_no_key requires #1] [%#sshared_context'5] 0 <= slot key
+    /\ slot key < ready_len_R context)
+  /\ ([@stop_split] [@expl:prove_tombstone_has_no_key requires #2] [%#sshared_context'6] ready_entry_state_R context (slot key)
+  = None'0)}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_inner_ref_BorrowedSharedContext_R [%#sshared_context] {context}
+        (fun (_x: t_BorrowedSharedContext_R) -> [ &context'0 <- _x ] s1)
+    | s1 = {[@expl:assertion] [%#sshared_context'0] not ready_has_key_R context'0 key} s2
+    | s2 = new_unit [%#sshared_context'1] {_14} (fun (_x: ()) -> [ &_ret <- _x ] s3)
+    | s3 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & context: t_BorrowedSharedContext_R = context
+  | & key: t_ReadyKey = key
+  | & _14: () = Any.any_l ()
+  | & context'0: t_BorrowedSharedContext_R = Any.any_l () ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_tombstone_has_no_key ensures] [%#sshared_context'7] not ready_has_key_R context key}
+    (! return {result}) ]

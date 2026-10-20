@@ -1,0 +1,679 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "comparisons",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_eq_slice_returns_boolean_characterizing_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<bytes::bytes::Bytes, [u8]>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:802:4-802:38"
+        }
+      ],
+      "verified_behavior": "After successful Bytes::as_slice, the Eq result succeeds and is true exactly when the returned byte slices are equal.",
+      "assumptions": [
+        "Bytes::as_slice returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_partial_cmp_slice_after_as_slice",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<bytes::bytes::Bytes, [u8]>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:808:4-808:64"
+        }
+      ],
+      "verified_behavior": "After successful Bytes::as_slice, PartialOrd is exactly the standard Aeneas byte-slice comparison applied to the returned slice and argument.",
+      "assumptions": [
+        "Bytes::as_slice returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.reverse_slice_eq_bytes_uses_forward_body",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<[u8], bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:814:4-814:39"
+        }
+      ],
+      "verified_behavior": "The reverse [u8]-vs-Bytes Eq method delegates to Bytes-vs-[u8] Eq with reversed arguments.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.reverse_slice_partial_cmp_bytes_after_deref",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<[u8], bytes::bytes::Bytes>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:820:4-820:65"
+        }
+      ],
+      "verified_behavior": "After successful Bytes dereference, reverse [u8]-vs-Bytes PartialOrd compares the supplied left slice to the returned right slice.",
+      "assumptions": [
+        "Bytes dereference returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_eq_str_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<bytes::bytes::Bytes, str>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:826:4-826:37"
+        }
+      ],
+      "verified_behavior": "After successful conversions to byte slices, the Eq result succeeds and is true exactly when those slices are equal.",
+      "assumptions": [
+        "Bytes::as_slice and str::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_partial_cmp_str_after_slice_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<bytes::bytes::Bytes, str>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:832:4-832:63"
+        }
+      ],
+      "verified_behavior": "After successful conversions, PartialOrd delegates to byte-slice PartialOrd in Bytes-then-str order.",
+      "assumptions": [
+        "Bytes::as_slice and str::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_reverse_str_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<str, bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:838:4-838:39"
+        }
+      ],
+      "verified_behavior": "The reverse str-vs-Bytes Eq method delegates to the Bytes-vs-str Eq method.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_reverse_str_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<str, bytes::bytes::Bytes>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:844:4-844:65"
+        }
+      ],
+      "verified_behavior": "After successful conversions, reverse str-vs-Bytes PartialOrd compares the str byte slice to the Bytes slice.",
+      "assumptions": [
+        "str::as_bytes and Bytes dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_eq_vec_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<bytes::bytes::Bytes, alloc::vec::Vec<u8>>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:850:4-850:41"
+        }
+      ],
+      "verified_behavior": "After successful conversions to byte slices, the Eq result succeeds and is true exactly when those slices are equal.",
+      "assumptions": [
+        "Bytes::as_slice and Vec full-range indexing return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_partial_cmp_vec_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<bytes::bytes::Bytes, alloc::vec::Vec<u8>>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:856:4-856:67"
+        }
+      ],
+      "verified_behavior": "After successful conversions, PartialOrd delegates to byte-slice PartialOrd in Bytes-then-Vec order.",
+      "assumptions": [
+        "Bytes::as_slice and Vec full-range indexing return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_reverse_vec_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<alloc::vec::Vec<u8>, bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:862:4-862:39"
+        }
+      ],
+      "verified_behavior": "The reverse Vec-vs-Bytes Eq method delegates to the Bytes-vs-Vec Eq method.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_reverse_vec_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<alloc::vec::Vec<u8>, bytes::bytes::Bytes>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:868:4-868:65"
+        }
+      ],
+      "verified_behavior": "After successful conversions, reverse Vec-vs-Bytes PartialOrd compares the Vec slice to the Bytes slice.",
+      "assumptions": [
+        "Vec dereference and Bytes dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_eq_string_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<bytes::bytes::Bytes, alloc::string::String>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:874:4-874:40"
+        }
+      ],
+      "verified_behavior": "After successful conversions to byte slices, the Eq result succeeds and is true exactly when those slices are equal.",
+      "assumptions": [
+        "Bytes::as_slice, String full-range indexing, and str::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_partial_cmp_string_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<bytes::bytes::Bytes, alloc::string::String>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:880:4-880:66"
+        }
+      ],
+      "verified_behavior": "After successful conversions, PartialOrd delegates to byte-slice PartialOrd in Bytes-then-String order.",
+      "assumptions": [
+        "Bytes::as_slice and String::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_reverse_string_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<alloc::string::String, bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:886:4-886:39"
+        }
+      ],
+      "verified_behavior": "The reverse String-vs-Bytes Eq method delegates to the Bytes-vs-String Eq method.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_reverse_string_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<alloc::string::String, bytes::bytes::Bytes>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:892:4-892:65"
+        }
+      ],
+      "verified_behavior": "After successful conversions, reverse String-vs-Bytes PartialOrd compares the String byte slice to the Bytes slice.",
+      "assumptions": [
+        "String::as_bytes and Bytes dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_ref_eq_slice_uses_underlying_inst",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<bytes::bytes::Bytes, &'a @T>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:925:4-925:39"
+        }
+      ],
+      "verified_behavior": "The generic Bytes-vs-&T Eq implementation returns the supplied PartialEq<Bytes, T> dictionary result for every T.",
+      "assumptions": [
+        "The theorem is uniform over arbitrary T and the supplied PartialEq<Bytes, T> instance."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_slice_ref_eq_uses_bytes_generic_impl",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<&'0 [u8], bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:898:4-898:39"
+        }
+      ],
+      "verified_behavior": "The concrete &[u8]-vs-Bytes Eq implementation delegates to Bytes generic reference Eq with the byte-slice PartialEq dictionary.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_ref_slice_partial_cmp_after_deref",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<&'0 [u8], bytes::bytes::Bytes>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:904:4-904:65"
+        }
+      ],
+      "verified_behavior": "After successful Bytes dereference, concrete &[u8]-vs-Bytes PartialOrd compares slices in left-to-right order.",
+      "assumptions": [
+        "Bytes dereference returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_ref_str_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialEq<&'0 str, bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:910:4-910:39"
+        }
+      ],
+      "verified_behavior": "The concrete &str-vs-Bytes Eq implementation delegates to Bytes generic reference Eq with the str PartialEq dictionary.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_ref_str_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<&'0 str, bytes::bytes::Bytes>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:916:4-916:65"
+        }
+      ],
+      "verified_behavior": "After successful conversions, concrete &str-vs-Bytes PartialOrd compares slices in left-to-right order.",
+      "assumptions": [
+        "str::as_bytes and Bytes dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_ref_partial_cmp_uses_underlying_inst",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<bytes::bytes::Bytes, &'a @T>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:934:4-934:65"
+        }
+      ],
+      "verified_behavior": "The generic Bytes-vs-&T PartialOrd implementation returns the supplied PartialOrd<Bytes, T> dictionary result for every T.",
+      "assumptions": [
+        "The theorem is uniform over arbitrary T and the supplied PartialOrd<Bytes, T> instance."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_eq_slice_returns_boolean_characterizing_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, [u8]>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1582:4-1582:38"
+        }
+      ],
+      "verified_behavior": "After successful BytesMut dereference, the Eq result succeeds and is true exactly when the returned byte slices are equal.",
+      "assumptions": [
+        "BytesMut dereference returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_partial_cmp_slice_after_deref",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<bytes::bytes_mut::BytesMut, [u8]>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1588:4-1588:64"
+        }
+      ],
+      "verified_behavior": "After successful BytesMut dereference, PartialOrd is exactly the standard Aeneas byte-slice comparison applied to the returned slice and argument.",
+      "assumptions": [
+        "BytesMut dereference returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.reverse_slice_eq_bytesmut_uses_forward_body",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<[u8], bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1594:4-1594:42"
+        }
+      ],
+      "verified_behavior": "The reverse [u8]-vs-BytesMut Eq method delegates to BytesMut-vs-[u8] Eq with reversed arguments.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.reverse_slice_partial_cmp_bytesmut_after_deref",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<[u8], bytes::bytes_mut::BytesMut>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1600:4-1600:68"
+        }
+      ],
+      "verified_behavior": "After successful BytesMut dereference, reverse [u8]-vs-BytesMut PartialOrd compares the supplied left slice to the returned right slice.",
+      "assumptions": [
+        "BytesMut dereference returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_eq_str_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, str>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1606:4-1606:37"
+        }
+      ],
+      "verified_behavior": "After successful conversions to byte slices, the Eq result succeeds and is true exactly when those slices are equal.",
+      "assumptions": [
+        "BytesMut dereference and str::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_partial_cmp_str_after_slice_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<bytes::bytes_mut::BytesMut, str>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1612:4-1612:63"
+        }
+      ],
+      "verified_behavior": "After successful conversions, PartialOrd delegates to byte-slice PartialOrd in BytesMut-then-str order.",
+      "assumptions": [
+        "BytesMut dereference and str::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_reverse_str_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<str, bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1618:4-1618:42"
+        }
+      ],
+      "verified_behavior": "The reverse str-vs-BytesMut Eq method delegates to the BytesMut-vs-str Eq method.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_reverse_str_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<str, bytes::bytes_mut::BytesMut>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1624:4-1624:68"
+        }
+      ],
+      "verified_behavior": "After successful conversions, reverse str-vs-BytesMut PartialOrd compares the str byte slice to the BytesMut slice.",
+      "assumptions": [
+        "str::as_bytes and BytesMut dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_eq_vec_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, alloc::vec::Vec<u8>>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1630:4-1630:41"
+        }
+      ],
+      "verified_behavior": "After successful conversions to byte slices, the Eq result succeeds and is true exactly when those slices are equal.",
+      "assumptions": [
+        "BytesMut dereference and Vec full-range indexing return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_partial_cmp_vec_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<bytes::bytes_mut::BytesMut, alloc::vec::Vec<u8>>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1636:4-1636:67"
+        }
+      ],
+      "verified_behavior": "After successful conversions, PartialOrd delegates to byte-slice PartialOrd in BytesMut-then-Vec order.",
+      "assumptions": [
+        "BytesMut dereference and Vec full-range indexing return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_reverse_vec_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<alloc::vec::Vec<u8>, bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1642:4-1642:42"
+        }
+      ],
+      "verified_behavior": "The reverse Vec-vs-BytesMut Eq method delegates to the BytesMut-vs-Vec Eq method.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_reverse_vec_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<alloc::vec::Vec<u8>, bytes::bytes_mut::BytesMut>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1648:4-1648:68"
+        }
+      ],
+      "verified_behavior": "After successful conversions, reverse Vec-vs-BytesMut PartialOrd compares the BytesMut slice to the Vec slice, as the source implementation reverses operands through the forward method.",
+      "assumptions": [
+        "Vec full-range indexing and BytesMut dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_eq_string_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, alloc::string::String>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1654:4-1654:40"
+        }
+      ],
+      "verified_behavior": "After successful conversions to byte slices, the Eq result succeeds and is true exactly when those slices are equal.",
+      "assumptions": [
+        "BytesMut dereference, String full-range indexing, and str::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_partial_cmp_string_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<bytes::bytes_mut::BytesMut, alloc::string::String>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1660:4-1660:66"
+        }
+      ],
+      "verified_behavior": "After successful conversions, PartialOrd delegates to byte-slice PartialOrd in BytesMut-then-String order.",
+      "assumptions": [
+        "BytesMut dereference and String::as_bytes return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_reverse_string_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<alloc::string::String, bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1666:4-1666:42"
+        }
+      ],
+      "verified_behavior": "The reverse String-vs-BytesMut Eq method delegates to the BytesMut-vs-String Eq method.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_reverse_string_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<alloc::string::String, bytes::bytes_mut::BytesMut>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1672:4-1672:68"
+        }
+      ],
+      "verified_behavior": "After successful conversions, reverse String-vs-BytesMut PartialOrd compares the String byte slice to the BytesMut slice.",
+      "assumptions": [
+        "String::as_bytes and BytesMut dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_ref_eq_slice_uses_underlying_inst",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, &'a @T>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1681:4-1681:39"
+        }
+      ],
+      "verified_behavior": "The generic BytesMut-vs-&T Eq implementation returns the supplied PartialEq<BytesMut, T> dictionary result for every T.",
+      "assumptions": [
+        "The theorem is uniform over arbitrary T and the supplied PartialEq<BytesMut, T> instance."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_ref_partial_cmp_uses_underlying_inst",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<bytes::bytes_mut::BytesMut, &'a @T>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1690:4-1690:65"
+        }
+      ],
+      "verified_behavior": "The generic BytesMut-vs-&T PartialOrd implementation returns the supplied PartialOrd<BytesMut, T> dictionary result for every T.",
+      "assumptions": [
+        "The theorem is uniform over arbitrary T and the supplied PartialOrd<BytesMut, T> instance."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_slice_ref_eq_uses_bytesmut_generic_impl",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<&'0 [u8], bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1696:4-1696:42"
+        }
+      ],
+      "verified_behavior": "The concrete &[u8]-vs-BytesMut Eq implementation delegates to BytesMut generic reference Eq with the byte-slice PartialEq dictionary.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_ref_slice_partial_cmp_after_deref",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<&'0 [u8], bytes::bytes_mut::BytesMut>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1702:4-1702:68"
+        }
+      ],
+      "verified_behavior": "After successful BytesMut dereference, concrete &[u8]-vs-BytesMut PartialOrd compares slices in left-to-right order.",
+      "assumptions": [
+        "BytesMut dereference returns the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_ref_str_eq_delegates",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<&'0 str, bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1708:4-1708:42"
+        }
+      ],
+      "verified_behavior": "The concrete &str-vs-BytesMut Eq implementation delegates to BytesMut generic reference Eq with the str PartialEq dictionary.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_ref_str_partial_cmp_after_conversions",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<&'0 str, bytes::bytes_mut::BytesMut>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1714:4-1714:68"
+        }
+      ],
+      "verified_behavior": "After successful conversions, concrete &str-vs-BytesMut PartialOrd compares slices in BytesMut-then-str order, matching the forwarding implementation.",
+      "assumptions": [
+        "str::as_bytes and BytesMut dereference return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_eq_bytes_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1726:4-1726:39"
+        }
+      ],
+      "verified_behavior": "After successful dereferences and full-range indexing, the Eq result succeeds and is true exactly when the resulting byte slices are equal.",
+      "assumptions": [
+        "Bytes and BytesMut dereference plus full-range indexing return the supplied slices."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_eq_bytesmut_characterizes_contents",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes::Bytes, bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1720:4-1720:42"
+        }
+      ],
+      "verified_behavior": "After successful dereferences and full-range indexing, Bytes-vs-BytesMut Eq succeeds and is true exactly when the extracted BytesMut slice equals the extracted Bytes slice.",
+      "assumptions": [
+        "BytesMut dereference and full-range indexing return the supplied slice.",
+        "Bytes dereference and full-range indexing return the supplied slice."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_partial_cmp_slice_matches_lexicographic_spec",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes::{core::cmp::PartialOrd<bytes::bytes::Bytes, [u8]>}::partial_cmp",
+          "source_file": "src/bytes.rs",
+          "source_span": "src/bytes.rs:808:4-808:64"
+        }
+      ],
+      "verified_behavior": "With successful Bytes::as_slice and the explicit standard-slice lexicographic semantic law, Bytes-vs-slice PartialOrd returns the recursive byte-list lexicographic result. The recursive comparator is kernel-proved equal to Lean List.compareLex.",
+      "assumptions": [
+        "Bytes::as_slice returns the supplied slice.",
+        "The explicit byteSlicePartialOrdLexLaw premise holds: Aeneas Slice.PartialOrd.partial_cmp returns some of the supplied byteListLexOrder. This is not proved because the translated standard-library slice method is an axiom."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytesmut_partial_cmp_slice_matches_lexicographic_spec",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialOrd<bytes::bytes_mut::BytesMut, [u8]>}::partial_cmp",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1588:4-1588:64"
+        }
+      ],
+      "verified_behavior": "With successful BytesMut dereference and the explicit standard-slice lexicographic semantic law, BytesMut-vs-slice PartialOrd returns the recursive byte-list lexicographic result. The recursive comparator is kernel-proved equal to Lean List.compareLex.",
+      "assumptions": [
+        "BytesMut dereference returns the supplied slice.",
+        "The explicit byteSlicePartialOrdLexLaw premise holds: Aeneas Slice.PartialOrd.partial_cmp returns some of the supplied byteListLexOrder. This is not proved because the translated standard-library slice method is an axiom."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.Comparisons.bytes_bytesmut_eq_is_symmetric",
+      "rust_functions": [
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes::Bytes, bytes::bytes_mut::BytesMut>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1720:4-1720:42"
+        },
+        {
+          "target": "bytes::bytes_mut::{core::cmp::PartialEq<bytes::bytes_mut::BytesMut, bytes::bytes::Bytes>}::eq",
+          "source_file": "src/bytes_mut.rs",
+          "source_span": "src/bytes_mut.rs:1726:4-1726:39"
+        }
+      ],
+      "verified_behavior": "After successful dereferences and full-range indexing, the Bytes-vs-BytesMut and BytesMut-vs-Bytes Eq methods return the same Boolean.",
+      "assumptions": [
+        "BytesMut and Bytes dereference return the supplied slices.",
+        "Full-range indexing succeeds on both supplied slices."
+      ]
+    }
+  ],
+  "blocked_roots": []
+}

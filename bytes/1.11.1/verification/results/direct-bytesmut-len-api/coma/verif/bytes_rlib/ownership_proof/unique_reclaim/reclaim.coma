@@ -1,0 +1,758 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 32 0 34 38 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span soption = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 852 15 852 27
+let%span soption'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/option.rs" 854 8 857 9
+let%span smem = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/mem.rs" 132 10 132 21
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 136 19 136 23
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 136 4 136 37
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 135 14 135 32
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 22 201 26
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 201 4 203 17
+let%span sghost'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 81 14 81 31
+let%span sghost'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
+let%span sghost'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
+let%span sghost'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 228 17 228 21
+let%span sghost'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 228 4 228 46
+let%span sghost'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 226 14 226 36
+let%span sghost'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 227 14 227 36
+let%span sghost'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+let%span sptr = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 271 15 271 70
+let%span sptr'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 272 15 272 80
+let%span sptr'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 273 14 273 88
+let%span sptr'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 275 20 275 69
+let%span sptr'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 279 14 279 42
+let%span sptr'4 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 283 14 283 102
+let%span sptr'5 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 292 14 292 39
+let%span sptr'6 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 296 14 296 65
+let%span sptr'7 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 297 14 297 67
+let%span sptr'8 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 232 15 232 70
+let%span sptr'9 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 233 15 233 80
+let%span sptr'10 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 234 14 234 88
+let%span sptr'11 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 288 20 288 65
+let%span sptr'12 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 241 14 241 42
+let%span sptr'13 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 246 14 246 102
+let%span sptr'14 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 258 14 258 39
+let%span sptr'15 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 263 14 263 65
+let%span sptr'16 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/ptr.rs" 264 14 264 67
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 514 9 514 13
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 516 8 516 12
+let%span sraw_vec'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 517 8 517 14
+let%span sraw_vec'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 488 15 488 48
+let%span sraw_vec'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 489 15 489 48
+let%span sraw_vec'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 490 15 490 47
+let%span sraw_vec'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 491 15 501 5
+let%span sraw_vec'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 502 15 502 36
+let%span sraw_vec'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 518 9 518 13
+let%span sraw_vec'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 503 14 503 32
+let%span sraw_vec'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 504 14 505 41
+let%span sraw_vec'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 506 14 506 73
+let%span sraw_vec'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 507 14 507 81
+let%span sraw_vec'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 508 14 512 5
+let%span sraw_vec'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 848 27 848 31
+let%span sraw_vec'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 831 15 831 31
+let%span sraw_vec'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 832 15 832 49
+let%span sraw_vec'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 848 45 848 57
+let%span sraw_vec'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 833 14 833 58
+let%span sraw_vec'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 834 14 834 54
+let%span sraw_vec'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 835 14 835 54
+let%span sraw_vec'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 836 14 836 52
+let%span sraw_vec'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 837 14 837 52
+let%span sraw_vec'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 838 14 838 63
+let%span sraw_vec'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 839 14 839 63
+let%span sraw_vec'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 840 14 840 58
+let%span sraw_vec'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 841 14 841 58
+let%span sraw_vec'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 842 14 844 82
+let%span sraw_vec'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 845 14 847 82
+let%span sraw_vec'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 878 23 878 27
+let%span sraw_vec'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 878 29 878 34
+let%span sraw_vec'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 859 15 859 52
+let%span sraw_vec'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 860 15 860 52
+let%span sraw_vec'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 861 15 861 50
+let%span sraw_vec'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 862 15 862 56
+let%span sraw_vec'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 863 15 863 38
+let%span sraw_vec'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 878 45 878 49
+let%span sraw_vec'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 864 14 864 32
+let%span sraw_vec'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 865 14 865 52
+let%span sraw_vec'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 866 14 866 50
+let%span sraw_vec'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 867 14 867 56
+let%span sraw_vec'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 868 14 868 67
+let%span sraw_vec'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 869 14 877 13
+let%span sraw_vec'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 368 12 376 13
+let%span sraw_vec'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 740 12 744 33
+let%span sraw_vec'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 762 20 762 27
+let%span sraw_vec'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 767 20 767 27
+let%span sraw_vec'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 395 14 395 60
+let%span sraw_vec'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 752 20 752 30
+let%span sraw_vec'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 757 20 757 30
+let%span sraw_vec'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1523 16 1523 59
+let%span sraw_vec'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
+let%span sraw_vec'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 772 20 772 30
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sint = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/int.rs" 238 14 238 31
+let%span sunique_reclaim = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 35 56 35 71
+let%span sunique_reclaim'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 35 15 35 72
+let%span sunique_reclaim'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 36 29 36 48
+let%span sunique_reclaim'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 36 59 36 83
+let%span sunique_reclaim'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 36 58 36 83
+let%span sunique_reclaim'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 36 29 36 84
+let%span sunique_reclaim'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 36 20 36 86
+let%span sunique_reclaim'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 37 24 37 41
+let%span sunique_reclaim'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 38 24 38 73
+let%span sunique_reclaim'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 39 24 39 41
+let%span sunique_reclaim'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 39 47 39 65
+let%span sunique_reclaim'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 39 24 39 66
+let%span sunique_reclaim'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 39 15 39 68
+let%span sunique_reclaim'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 33 4 33 8
+let%span sunique_reclaim'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 33 20 33 24
+let%span sunique_reclaim'14 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 33 63 33 69
+let%span sunique_reclaim'15 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 8 11 8 44
+let%span sunique_reclaim'16 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 9 11 9 44
+let%span sunique_reclaim'17 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 10 11 10 43
+let%span sunique_reclaim'18 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 11 11 11 102
+let%span sunique_reclaim'19 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 12 11 12 99
+let%span sunique_reclaim'20 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 13 11 13 73
+let%span sunique_reclaim'21 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 14 11 14 69
+let%span sunique_reclaim'22 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 15 11 15 105
+let%span sunique_reclaim'23 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 16 11 16 24
+let%span sunique_reclaim'24 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 17 11 17 60
+let%span sunique_reclaim'25 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 18 11 18 108
+let%span sunique_reclaim'26 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 34 5 34 38
+let%span sunique_reclaim'27 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 19 10 19 30
+let%span sunique_reclaim'28 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 20 10 20 83
+let%span sunique_reclaim'29 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 21 10 21 28
+let%span sunique_reclaim'30 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 22 10 22 54
+let%span sunique_reclaim'31 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 23 10 23 62
+let%span sunique_reclaim'32 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 24 10 24 44
+let%span sunique_reclaim'33 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 25 10 25 80
+let%span sunique_reclaim'34 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 26 10 26 78
+let%span sunique_reclaim'35 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 27 10 27 84
+let%span sunique_reclaim'36 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 28 10 28 108
+let%span sunique_reclaim'37 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 29 10 29 120
+let%span sunique_reclaim'38 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 30 10 30 99
+let%span sunique_reclaim'39 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 31 10 31 140
+let%span sunique_reclaim'40 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 76 4 76 8
+let%span sunique_reclaim'41 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 77 4 77 8
+let%span sunique_reclaim'42 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 80 8 80 12
+let%span sunique_reclaim'43 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 81 4 81 9
+let%span sunique_reclaim'44 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 46 11 46 44
+let%span sunique_reclaim'45 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 47 11 47 44
+let%span sunique_reclaim'46 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 48 11 48 76
+let%span sunique_reclaim'47 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 49 11 49 98
+let%span sunique_reclaim'48 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 50 11 50 95
+let%span sunique_reclaim'49 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 51 11 51 73
+let%span sunique_reclaim'50 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 52 11 52 69
+let%span sunique_reclaim'51 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 53 11 53 76
+let%span sunique_reclaim'52 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 54 11 54 74
+let%span sunique_reclaim'53 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 55 11 55 80
+let%span sunique_reclaim'54 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 56 11 56 77
+let%span sunique_reclaim'55 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 57 11 57 107
+let%span sunique_reclaim'56 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 58 11 58 24
+let%span sunique_reclaim'57 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 59 11 59 58
+let%span sunique_reclaim'58 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 60 11 61 62
+let%span sunique_reclaim'59 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 82 5 82 51
+let%span sunique_reclaim'60 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 62 10 62 44
+let%span sunique_reclaim'61 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 63 10 63 78
+let%span sunique_reclaim'62 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 64 10 64 76
+let%span sunique_reclaim'63 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 65 10 65 82
+let%span sunique_reclaim'64 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 66 10 67 58
+let%span sunique_reclaim'65 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 68 10 69 75
+let%span sunique_reclaim'66 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 70 10 71 55
+let%span sunique_reclaim'67 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 72 10 73 64
+let%span sunique_reclaim'68 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 74 10 74 55
+
+use creusot.int.UInt64
+use creusot.int.Int64
+use creusot.prelude.Opaque
+use creusot.prelude.Ptr
+use creusot.int.Int128
+use creusot.int.UInt8
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_PhysicalRegion
+
+type t_OwnedRegion
+
+predicate invariant_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 83 4 83 30] (self: t_OwnedRegion)
+
+type t_Id
+
+type tup3_OwnedRegion_Int_Id = { f0: t_OwnedRegion; f1: int; f2: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+
+type t_Excl_unit = { f0'0: () }
+
+type t_Option_Excl_unit = None | Some t_Excl_unit
+
+type t_FMap_Int_Excl_Option_u8
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'1: t_Option_Excl_unit; f1'1: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'2: int;
+  f1'2: int;
+  f2'2: t_Id;
+  f3'2: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+predicate invariant_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 738 4 738 30] (self: t_PhysicalRegion) =
+  [%#sraw_vec'43] invariant_OwnedRegion (view_PhysicalRegion self).f0
+  /\ 0 <= (view_OwnedRegion (view_PhysicalRegion self).f0).f0'2
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f0'2 <= (view_OwnedRegion (view_PhysicalRegion self).f0).f1'2
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f1'2 <= (view_PhysicalRegion self).f1
+  /\ (view_OwnedRegion (view_PhysicalRegion self).f0).f2'2 = (view_PhysicalRegion self).f2
+
+predicate inv_PhysicalRegion (_1: t_PhysicalRegion)
+
+axiom inv_axiom: forall x: t_PhysicalRegion [inv_PhysicalRegion x]. inv_PhysicalRegion x -> invariant_PhysicalRegion x
+
+predicate invariant_Ghost_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sghost'13] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_PhysicalRegion
+
+predicate inv_Ghost_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_PhysicalRegion
+
+predicate invariant_ref_Ghost_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sinvariant] inv_Ghost_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_Ghost_PhysicalRegion
+
+predicate inv_ref_Ghost_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_ref_Ghost_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_Ghost_PhysicalRegion
+
+predicate invariant_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sinvariant] inv_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_ref_PhysicalRegion
+
+predicate inv_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_ref_PhysicalRegion
+
+predicate invariant_Ghost_ref_PhysicalRegion [@inline:trivial] (self: t_PhysicalRegion) =
+  [%#sghost'13] inv_ref_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_ref_PhysicalRegion
+
+predicate inv_Ghost_ref_PhysicalRegion [@inline:trivial] (_1: t_PhysicalRegion) = invariant_Ghost_ref_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_ref_PhysicalRegion
+
+let borrow_PhysicalRegion (self: t_PhysicalRegion) (return (x: t_PhysicalRegion)) =
+{[@stop_split] [@expl:borrow 'self' type invariant] [%#sghost] inv_ref_Ghost_PhysicalRegion self}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:borrow_PhysicalRegion ensures] ([@stop_split] [@expl:borrow result type invariant] [%#sghost'0] inv_Ghost_ref_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:borrow ensures] [%#sghost'1] result = self)}
+    (! return {result}) ]
+
+type t_BoundPtr
+
+type tup3_Id_Int_Int = { f0'3: t_Id; f1'3: int; f2'3: int }
+
+type t_Option_tup3_Id_Int_Int = None'0 | Some'0 tup3_Id_Int_Int
+
+function view_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 349 4 349 33] (self: t_BoundPtr) : t_Option_tup3_Id_Int_Int
+
+constant const_MAX: Int64.t = (9223372036854775807: Int64.t)
+
+function current_address [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 385 4 385 39] (self: t_BoundPtr) : int
+
+constant const_MAX'0: UInt64.t = (18446744073709551615: UInt64.t)
+
+predicate invariant_BoundPtr [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 366 4 366 30] (self: t_BoundPtr) =
+  [%#sraw_vec'42] match view_BoundPtr self with
+    | None'0 -> true
+    | Some'0 {f1'3 = allocation_capacity; f2'3 = absolute_offset} -> 0 <= absolute_offset
+    /\ absolute_offset <= allocation_capacity
+    /\ allocation_capacity <= Int64.to_int const_MAX
+    /\ absolute_offset < current_address self
+    /\ current_address self + allocation_capacity - absolute_offset <= UInt64.t'int const_MAX'0
+    end
+
+predicate inv_BoundPtr (_1: t_BoundPtr)
+
+axiom inv_axiom'0: forall x: t_BoundPtr [inv_BoundPtr x]. inv_BoundPtr x -> invariant_BoundPtr x
+
+predicate invariant_ref_BoundPtr [@inline:trivial] (self: t_BoundPtr) = [%#sinvariant] inv_BoundPtr self
+
+meta "rewrite_def" predicate invariant_ref_BoundPtr
+
+predicate inv_ref_BoundPtr [@inline:trivial] (_1: t_BoundPtr) = invariant_ref_BoundPtr _1
+
+meta "rewrite_def" predicate inv_ref_BoundPtr
+
+type tup2_Option_tup3_Id_Int_Int_Option_tup3_Id_Int_Int = {
+  f0'4: t_Option_tup3_Id_Int_Int;
+  f1'4: t_Option_tup3_Id_Int_Int }
+
+function raw_pointer [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 396 4 396 46] (self: t_BoundPtr) : Opaque.ptr
+
+axiom raw_pointer_spec:
+  forall self: t_BoundPtr [raw_pointer self]. [%#sraw_vec'46] UInt64.t'int (Ptr.addr_logic_u64 (raw_pointer self))
+    = current_address self
+
+constant size_of_u8: int = 1
+
+meta "rewrite_def" constant size_of_u8
+
+axiom size_of_u8_spec: [%#smem] 0 <= size_of_u8
+
+function offset_ptr_u8 (self: Opaque.ptr) (offset: int) : Opaque.ptr
+
+axiom offset_ptr_u8_spec: forall self: Opaque.ptr, offset: int [offset_ptr_u8 self offset]. ([%#sptr'8] 0
+      <= UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+    -> ([%#sptr'9] UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8 <= UInt64.t'int const_MAX'0)
+    -> ([%#sptr'10] UInt64.t'int (Ptr.addr_logic_u64 (offset_ptr_u8 self offset))
+    = UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+
+function sub_ptr_u8 (self: Opaque.ptr) (rhs: Opaque.ptr) : int
+
+function sub_offset_ptr_u8 (self: Opaque.ptr) (offset: int) : ()
+
+axiom sub_offset_ptr_u8_spec:
+  forall self: Opaque.ptr, offset: int. [%#sptr'15] sub_ptr_u8 (offset_ptr_u8 self offset) self = offset
+
+axiom sub_offset_ptr_u8_spec'0:
+  forall self: Opaque.ptr, offset: int. [%#sptr'16] sub_ptr_u8 self (offset_ptr_u8 self offset) = - offset
+
+function sub_logic_refl_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom sub_logic_refl_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr'14] sub_ptr_u8 self self = 0
+
+function offset_logic_assoc_ptr_u8 (self: Opaque.ptr) (offset1: int) (offset2: int) : ()
+
+axiom offset_logic_assoc_ptr_u8_spec:
+  forall self: Opaque.ptr, offset1: int, offset2: int. [%#sptr'13] offset_ptr_u8 (offset_ptr_u8 self offset1) offset2
+    = offset_ptr_u8 self (offset1 + offset2)
+
+function offset_logic_zero_ptr_u8 (self: Opaque.ptr) : ()
+
+axiom offset_logic_zero_ptr_u8_spec: forall self: Opaque.ptr. [%#sptr'12] offset_ptr_u8 self 0 = self
+
+function sub_ptr_u8'0 [@inline:trivial] (self: Opaque.ptr) (rhs: Opaque.ptr) : int = [%#sptr'11] sub_ptr_u8 self rhs
+
+meta "rewrite_def" function sub_ptr_u8'0
+
+function offset_ptr_u8'0 [@inline:trivial] (self: Opaque.ptr) (offset: int) : Opaque.ptr =
+  [%#sptr'2] offset_ptr_u8 self offset
+
+meta "rewrite_def" function offset_ptr_u8'0
+
+axiom offset_ptr_u8_spec'0: forall self: Opaque.ptr, offset: int [offset_ptr_u8'0 self offset]. ([%#sptr] 0
+      <= UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+    -> ([%#sptr'0] UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8 <= UInt64.t'int const_MAX'0)
+    -> ([%#sptr'1] UInt64.t'int (Ptr.addr_logic_u64 (offset_ptr_u8'0 self offset))
+    = UInt64.t'int (Ptr.addr_logic_u64 self) + offset * size_of_u8)
+
+function sub_offset_ptr_u8'0 (self: Opaque.ptr) (offset: int) : ()
+
+axiom sub_offset_ptr_u8_spec'1:
+  forall self: Opaque.ptr, offset: int. [%#sptr'6] sub_ptr_u8'0 (offset_ptr_u8'0 self offset) self = offset
+
+axiom sub_offset_ptr_u8_spec'2:
+  forall self: Opaque.ptr, offset: int. [%#sptr'7] sub_ptr_u8'0 self (offset_ptr_u8'0 self offset) = - offset
+
+function sub_logic_refl_ptr_u8'0 (self: Opaque.ptr) : ()
+
+axiom sub_logic_refl_ptr_u8_spec'0: forall self: Opaque.ptr. [%#sptr'5] sub_ptr_u8'0 self self = 0
+
+function offset_logic_assoc_ptr_u8'0 (self: Opaque.ptr) (offset1: int) (offset2: int) : ()
+
+axiom offset_logic_assoc_ptr_u8_spec'0:
+  forall self: Opaque.ptr, offset1: int, offset2: int. [%#sptr'4] offset_ptr_u8'0 (offset_ptr_u8'0 self offset1) offset2
+    = offset_ptr_u8'0 self (offset1 + offset2)
+
+function offset_logic_zero_ptr_u8'0 (self: Opaque.ptr) : ()
+
+axiom offset_logic_zero_ptr_u8_spec'0: forall self: Opaque.ptr. [%#sptr'3] offset_ptr_u8'0 self 0 = self
+
+function namespace [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 761 4 761 39] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'44] (view_PhysicalRegion self).f2
+
+function capacity [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 766 4 766 39] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'45] (view_PhysicalRegion self).f1
+
+function lo [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 751 4 751 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'47] (view_OwnedRegion (view_PhysicalRegion self).f0).f0'2
+
+function hi [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 756 4 756 33] (self: t_PhysicalRegion) : int
+ = [%#sraw_vec'48] (view_OwnedRegion (view_PhysicalRegion self).f0).f1'2
+
+constant any_tup3_Id_Int_Int : tup3_Id_Int_Int
+
+function unwrap_Option_tup3_Id_Int_Int (self: t_Option_tup3_Id_Int_Int) : tup3_Id_Int_Int =
+  [%#soption'0] match self with
+    | Some'0 x -> x
+    | None'0 -> any_tup3_Id_Int_Int
+    end
+
+let retreat_within_region (self: t_BoundPtr) (count: UInt64.t) (base: t_BoundPtr) (region: t_PhysicalRegion)
+  (return (x: t_BoundPtr)) =
+{[@stop_split] [@expl:retreat_within_region requires] ([@stop_split] [@expl:retreat_within_region 'self' type invariant] [%#sraw_vec] inv_ref_BoundPtr self)
+  /\ ([@stop_split] [@expl:retreat_within_region 'base' type invariant] [%#sraw_vec'0] inv_BoundPtr base)
+  /\ ([@stop_split] [@expl:retreat_within_region 'region' type invariant] [%#sraw_vec'1] inv_Ghost_ref_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:retreat_within_region requires #0] [%#sraw_vec'2] invariant_ref_BoundPtr self
+    /\ view_BoundPtr self <> None'0)
+  /\ ([@stop_split] [@expl:retreat_within_region requires #1] [%#sraw_vec'3] invariant_BoundPtr base
+    /\ view_BoundPtr base <> None'0)
+  /\ ([@stop_split] [@expl:retreat_within_region requires #2] [%#sraw_vec'4] invariant_ref_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:retreat_within_region requires #3] [%#sraw_vec'5] match { f0'4 = view_BoundPtr self;
+                                                                                     f1'4 = view_BoundPtr base } with
+      | {f0'4 = Some'0 {f0'3 = namespace'0; f1'3 = capacity'0; f2'3 = offset}; f1'4 = Some'0 {f0'3 = base_namespace; f1'3 = base_capacity; f2'3 = base_offset}} -> namespace'0
+        = base_namespace
+      /\ capacity'0 = base_capacity
+      /\ base_offset = 0
+      /\ raw_pointer self = offset_ptr_u8'0 (raw_pointer base) offset
+      /\ UInt64.t'int count <= offset
+      /\ namespace region = namespace'0
+      /\ capacity region = capacity'0 /\ lo region <= offset - UInt64.t'int count /\ offset <= hi region
+      | _ -> false
+      end)
+  /\ ([@stop_split] [@expl:retreat_within_region requires #4] [%#sraw_vec'6] UInt64.t'int count
+  <= Int64.to_int const_MAX)}
+  any
+  [ return (result: t_BoundPtr) ->
+  {[@stop_split] [@expl:retreat_within_region ensures] ([@stop_split] [@expl:retreat_within_region result type invariant] [%#sraw_vec'7] inv_BoundPtr result)
+    /\ ([@stop_split] [@expl:retreat_within_region ensures #0] [%#sraw_vec'8] invariant_BoundPtr result)
+    /\ ([@stop_split] [@expl:retreat_within_region ensures #1] [%#sraw_vec'9] view_BoundPtr result
+      = Some'0 { f0'3 = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self)).f0'3;
+                 f1'3 = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self)).f1'3;
+                 f2'3 = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr self)).f2'3 - UInt64.t'int count })
+    /\ ([@stop_split] [@expl:retreat_within_region ensures #2] [%#sraw_vec'10] current_address result
+      = current_address self - UInt64.t'int count)
+    /\ ([@stop_split] [@expl:retreat_within_region ensures #3] [%#sraw_vec'11] raw_pointer result
+      = offset_ptr_u8'0 (raw_pointer self) (0 - UInt64.t'int count))
+    /\ ([@stop_split] [@expl:retreat_within_region ensures #4] [%#sraw_vec'12] match { f0'4 = view_BoundPtr self;
+                                                                                       f1'4 = view_BoundPtr base } with
+      | {f0'4 = Some'0 {f2'3 = offset}; f1'4 = Some'0 _} -> raw_pointer result
+      = offset_ptr_u8'0 (raw_pointer base) (offset - UInt64.t'int count)
+      | _ -> false
+      end)}
+    (! return {result}) ]
+
+let into_inner_PhysicalRegion (self: t_PhysicalRegion) (return (x: t_PhysicalRegion)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sghost'2] inv_Ghost_PhysicalRegion self}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:into_inner_PhysicalRegion ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sghost'3] inv_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sghost'4] result = self)}
+    (! return {result}) ]
+
+let new (value: Int128.t) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:new ensures] [%#sint] result = Int128.to_int value}
+    (! return {result}) ]
+
+let deref_Ghost_Int (self: int) (return (x: int)) = any
+  [ return (result: int) -> {[@stop_split] [@expl:deref ensures] [%#sghost'5] result = self} (! return {result}) ]
+
+type tup2_PhysicalRegion_PhysicalRegion = { f0'5: t_PhysicalRegion; f1'5: t_PhysicalRegion }
+
+predicate inv_tup2_PhysicalRegion_PhysicalRegion [@inline:trivial] (_1: tup2_PhysicalRegion_PhysicalRegion) =
+  inv_PhysicalRegion _1.f0'5 /\ inv_PhysicalRegion _1.f1'5
+
+meta "rewrite_def" predicate inv_tup2_PhysicalRegion_PhysicalRegion
+
+function resource_id [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 771 4 771 41] (self: t_PhysicalRegion) : t_Id
+ = [%#sraw_vec'51] (view_OwnedRegion (view_PhysicalRegion self).f0).f2'2
+
+type t_Option_u8 = None'1 | Some'1 UInt8.t
+
+type t_Option_Option_u8 = None'2 | Some'2 t_Option_u8
+
+type t_Excl_Option_u8 = { f0'6: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'3 | Some'3 t_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'2.f1'1 index with
+      | None'3 -> None'2
+      | Some'3 {f0'6 = value} -> Some'2 value
+      end
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec'0: forall self: t_PhysicalRegion, index: int [slot'0 self index]. [%#sraw_vec'50] slot'0 self index
+    = slot (view_PhysicalRegion self).f0 index
+
+let split_at (self: t_PhysicalRegion) (at': int) (return (x: tup2_PhysicalRegion_PhysicalRegion)) =
+{[@stop_split] [@expl:split_at requires] ([@stop_split] [@expl:split_at 'self' type invariant] [%#sraw_vec'13] inv_PhysicalRegion self)
+  /\ ([@stop_split] [@expl:split_at requires #0] [%#sraw_vec'14] invariant_PhysicalRegion self)
+  /\ ([@stop_split] [@expl:split_at requires #1] [%#sraw_vec'15] lo self <= at' /\ at' <= hi self)}
+  any
+  [ return (result: tup2_PhysicalRegion_PhysicalRegion) ->
+  {[@stop_split] [@expl:split_at ensures] ([@stop_split] [@expl:split_at result type invariant] [%#sraw_vec'16] inv_tup2_PhysicalRegion_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:split_at ensures #0] [%#sraw_vec'17] invariant_PhysicalRegion result.f0'5
+      /\ invariant_PhysicalRegion result.f1'5)
+    /\ ([@stop_split] [@expl:split_at ensures #1] [%#sraw_vec'18] namespace result.f0'5 = namespace self)
+    /\ ([@stop_split] [@expl:split_at ensures #2] [%#sraw_vec'19] namespace result.f1'5 = namespace self)
+    /\ ([@stop_split] [@expl:split_at ensures #3] [%#sraw_vec'20] capacity result.f0'5 = capacity self)
+    /\ ([@stop_split] [@expl:split_at ensures #4] [%#sraw_vec'21] capacity result.f1'5 = capacity self)
+    /\ ([@stop_split] [@expl:split_at ensures #5] [%#sraw_vec'22] lo result.f0'5 = lo self /\ hi result.f0'5 = at')
+    /\ ([@stop_split] [@expl:split_at ensures #6] [%#sraw_vec'23] lo result.f1'5 = at' /\ hi result.f1'5 = hi self)
+    /\ ([@stop_split] [@expl:split_at ensures #7] [%#sraw_vec'24] resource_id result.f0'5 = resource_id self)
+    /\ ([@stop_split] [@expl:split_at ensures #8] [%#sraw_vec'25] resource_id result.f1'5 = resource_id self)
+    /\ ([@stop_split] [@expl:split_at ensures #9] [%#sraw_vec'26] forall index: int. slot'0 result.f0'5 index
+        = (if lo self <= index /\ index < at' then slot'0 self index else None'2))
+    /\ ([@stop_split] [@expl:split_at ensures #10] [%#sraw_vec'27] forall index: int. slot'0 result.f1'5 index
+      = (if at' <= index /\ index < hi self then slot'0 self index else None'2))}
+    (! return {result}) ]
+
+predicate invariant_Ghost_tup2_PhysicalRegion_PhysicalRegion [@inline:trivial] (self: tup2_PhysicalRegion_PhysicalRegion) =
+  [%#sghost'13] inv_tup2_PhysicalRegion_PhysicalRegion self
+
+meta "rewrite_def" predicate invariant_Ghost_tup2_PhysicalRegion_PhysicalRegion
+
+predicate inv_Ghost_tup2_PhysicalRegion_PhysicalRegion [@inline:trivial] (_1: tup2_PhysicalRegion_PhysicalRegion) =
+  invariant_Ghost_tup2_PhysicalRegion_PhysicalRegion _1
+
+meta "rewrite_def" predicate inv_Ghost_tup2_PhysicalRegion_PhysicalRegion
+
+let new_tup2_PhysicalRegion_PhysicalRegion (x: tup2_PhysicalRegion_PhysicalRegion)
+  (return (x'0: tup2_PhysicalRegion_PhysicalRegion)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'6] inv_tup2_PhysicalRegion_PhysicalRegion x}
+  any
+  [ return (result: tup2_PhysicalRegion_PhysicalRegion) ->
+  {[@stop_split] [@expl:new_tup2_PhysicalRegion_PhysicalRegion ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'7] inv_Ghost_tup2_PhysicalRegion_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'8] result = x)}
+    (! return {result}) ]
+
+type tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion = { f0'7: t_PhysicalRegion; f1'7: t_PhysicalRegion }
+
+predicate inv_tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion [@inline:trivial] (_1: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion) =
+  inv_Ghost_PhysicalRegion _1.f0'7 /\ inv_Ghost_PhysicalRegion _1.f1'7
+
+meta "rewrite_def" predicate inv_tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion
+
+let split_PhysicalRegion (self: tup2_PhysicalRegion_PhysicalRegion)
+  (return (x: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion)) =
+{[@stop_split] [@expl:split 'self' type invariant] [%#sghost'9] inv_Ghost_tup2_PhysicalRegion_PhysicalRegion self}
+  any
+  [ return (result: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion) ->
+  {[@stop_split] [@expl:split_PhysicalRegion ensures] ([@stop_split] [@expl:split result type invariant] [%#sghost'10] inv_tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:split ensures #0] [%#sghost'11] self.f0'5 = result.f0'7)
+    /\ ([@stop_split] [@expl:split ensures #1] [%#sghost'12] self.f1'5 = result.f1'7)}
+    (! return {result}) ]
+
+predicate slot_known [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 1522 0 1522 58] (slot'1: t_Option_Option_u8) =
+  [%#sraw_vec'49] exists value: UInt8.t. slot'1 = Some'2 (Some'1 value)
+
+let copy_prefix (view: t_BoundPtr) (base: t_BoundPtr) (offset: UInt64.t) (len: UInt64.t) (left: t_PhysicalRegion)
+  (right: t_PhysicalRegion) (return (x: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion)) =
+{[@stop_split] [@expl:copy_prefix requires] ([@stop_split] [@expl:copy_prefix 'view' type invariant] [%#sunique_reclaim'40] inv_BoundPtr view)
+  /\ ([@stop_split] [@expl:copy_prefix 'base' type invariant] [%#sunique_reclaim'41] inv_BoundPtr base)
+  /\ ([@stop_split] [@expl:copy_prefix 'left' type invariant] [%#sunique_reclaim'42] inv_Ghost_PhysicalRegion left)
+  /\ ([@stop_split] [@expl:copy_prefix 'right' type invariant] [%#sunique_reclaim'43] inv_Ghost_PhysicalRegion right)
+  /\ ([@stop_split] [@expl:copy_prefix requires #0] [%#sunique_reclaim'44] invariant_BoundPtr view
+    /\ view_BoundPtr view <> None'0)
+  /\ ([@stop_split] [@expl:copy_prefix requires #1] [%#sunique_reclaim'45] invariant_BoundPtr base
+    /\ view_BoundPtr base <> None'0)
+  /\ ([@stop_split] [@expl:copy_prefix requires #2] [%#sunique_reclaim'46] invariant_PhysicalRegion left
+    /\ invariant_PhysicalRegion right)
+  /\ ([@stop_split] [@expl:copy_prefix requires #3] [%#sunique_reclaim'47] view_BoundPtr view
+    = Some'0 { f0'3 = namespace left; f1'3 = capacity left; f2'3 = UInt64.t'int offset })
+  /\ ([@stop_split] [@expl:copy_prefix requires #4] [%#sunique_reclaim'48] view_BoundPtr base
+    = Some'0 { f0'3 = namespace left; f1'3 = capacity left; f2'3 = 0 })
+  /\ ([@stop_split] [@expl:copy_prefix requires #5] [%#sunique_reclaim'49] raw_pointer view
+    = offset_ptr_u8'0 (raw_pointer base) (UInt64.t'int offset))
+  /\ ([@stop_split] [@expl:copy_prefix requires #6] [%#sunique_reclaim'50] current_address view
+    = current_address base + UInt64.t'int offset)
+  /\ ([@stop_split] [@expl:copy_prefix requires #7] [%#sunique_reclaim'51] namespace left = namespace right)
+  /\ ([@stop_split] [@expl:copy_prefix requires #8] [%#sunique_reclaim'52] capacity left = capacity right)
+  /\ ([@stop_split] [@expl:copy_prefix requires #9] [%#sunique_reclaim'53] resource_id left = resource_id right)
+  /\ ([@stop_split] [@expl:copy_prefix requires #10] [%#sunique_reclaim'54] lo left = 0
+    /\ hi left = UInt64.t'int offset)
+  /\ ([@stop_split] [@expl:copy_prefix requires #11] [%#sunique_reclaim'55] lo right = UInt64.t'int offset
+    /\ hi right = capacity left)
+  /\ ([@stop_split] [@expl:copy_prefix requires #12] [%#sunique_reclaim'56] UInt64.le len offset)
+  /\ ([@stop_split] [@expl:copy_prefix requires #13] [%#sunique_reclaim'57] UInt64.t'int offset + UInt64.t'int len
+    <= capacity left)
+  /\ ([@stop_split] [@expl:copy_prefix requires #14] [%#sunique_reclaim'58] forall i: int. 0 <= i
+      /\ i < UInt64.t'int len -> slot_known (slot'0 right (UInt64.t'int offset + i)))}
+  any
+  [ return (result: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion) ->
+  {[@stop_split] [@expl:copy_prefix ensures] ([@stop_split] [@expl:copy_prefix result type invariant] [%#sunique_reclaim'59] inv_tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #0] [%#sunique_reclaim'60] invariant_PhysicalRegion result.f0'7)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #1] [%#sunique_reclaim'61] namespace result.f0'7 = namespace left)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #2] [%#sunique_reclaim'62] capacity result.f0'7 = capacity left)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #3] [%#sunique_reclaim'63] resource_id result.f0'7 = resource_id left)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #4] [%#sunique_reclaim'64] lo result.f0'7 = lo left
+      /\ hi result.f0'7 = hi left)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #5] [%#sunique_reclaim'65] forall i: int. 0 <= i
+          /\ i < UInt64.t'int len -> slot'0 result.f0'7 i = slot'0 right (UInt64.t'int offset + i))
+    /\ ([@stop_split] [@expl:copy_prefix ensures #6] [%#sunique_reclaim'66] forall i: int. 0 <= i
+          /\ i < UInt64.t'int len -> slot_known (slot'0 result.f0'7 i))
+    /\ ([@stop_split] [@expl:copy_prefix ensures #7] [%#sunique_reclaim'67] forall i: int. UInt64.t'int len <= i
+          /\ i < UInt64.t'int offset -> slot'0 result.f0'7 i = slot'0 left i)
+    /\ ([@stop_split] [@expl:copy_prefix ensures #8] [%#sunique_reclaim'68] result.f1'7 = right)}
+    (! return {result}) ]
+
+let join (self: t_PhysicalRegion) (other: t_PhysicalRegion) (return (x: t_PhysicalRegion)) =
+{[@stop_split] [@expl:join requires] ([@stop_split] [@expl:join 'self' type invariant] [%#sraw_vec'28] inv_PhysicalRegion self)
+  /\ ([@stop_split] [@expl:join 'other' type invariant] [%#sraw_vec'29] inv_PhysicalRegion other)
+  /\ ([@stop_split] [@expl:join requires #0] [%#sraw_vec'30] invariant_PhysicalRegion self
+    /\ invariant_PhysicalRegion other)
+  /\ ([@stop_split] [@expl:join requires #1] [%#sraw_vec'31] namespace self = namespace other)
+  /\ ([@stop_split] [@expl:join requires #2] [%#sraw_vec'32] capacity self = capacity other)
+  /\ ([@stop_split] [@expl:join requires #3] [%#sraw_vec'33] resource_id self = resource_id other)
+  /\ ([@stop_split] [@expl:join requires #4] [%#sraw_vec'34] hi self = lo other)}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:join ensures] ([@stop_split] [@expl:join result type invariant] [%#sraw_vec'35] inv_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:join ensures #0] [%#sraw_vec'36] invariant_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:join ensures #1] [%#sraw_vec'37] namespace result = namespace self)
+    /\ ([@stop_split] [@expl:join ensures #2] [%#sraw_vec'38] capacity result = capacity self)
+    /\ ([@stop_split] [@expl:join ensures #3] [%#sraw_vec'39] resource_id result = resource_id self)
+    /\ ([@stop_split] [@expl:join ensures #4] [%#sraw_vec'40] lo result = lo self /\ hi result = hi other)
+    /\ ([@stop_split] [@expl:join ensures #5] [%#sraw_vec'41] forall index: int. slot'0 result index
+      = (if lo self <= index /\ index < hi self then
+        slot'0 self index
+      else
+        if lo other <= index /\ index < hi other then slot'0 other index else None'2
+      ))}
+    (! return {result}) ]
+
+let new_PhysicalRegion (x: t_PhysicalRegion) (return (x'0: t_PhysicalRegion)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'6] inv_PhysicalRegion x}
+  any
+  [ return (result: t_PhysicalRegion) ->
+  {[@stop_split] [@expl:new_PhysicalRegion ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'7] inv_Ghost_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'8] result = x)}
+    (! return {result}) ]
+
+type tup2_BoundPtr_Ghost_PhysicalRegion = { f0'8: t_BoundPtr; f1'8: t_PhysicalRegion }
+
+predicate inv_tup2_BoundPtr_Ghost_PhysicalRegion [@inline:trivial] (_1: tup2_BoundPtr_Ghost_PhysicalRegion) =
+  inv_BoundPtr _1.f0'8 /\ inv_Ghost_PhysicalRegion _1.f1'8
+
+meta "rewrite_def" predicate inv_tup2_BoundPtr_Ghost_PhysicalRegion
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let reclaim [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/unique_reclaim.rs" 32 0 34 38]
+  (view: t_BoundPtr) (base: t_BoundPtr) (offset: UInt64.t) (len: UInt64.t) (region: t_PhysicalRegion)
+  (return (x: tup2_BoundPtr_Ghost_PhysicalRegion)) =
+{[@stop_split] [@expl:reclaim requires] ([@stop_split] [@expl:reclaim 'view' type invariant] [%#sunique_reclaim'12] inv_BoundPtr view)
+  /\ ([@stop_split] [@expl:reclaim 'base' type invariant] [%#sunique_reclaim'13] inv_BoundPtr base)
+  /\ ([@stop_split] [@expl:reclaim 'region' type invariant] [%#sunique_reclaim'14] inv_Ghost_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:reclaim requires #0] [%#sunique_reclaim'15] invariant_BoundPtr view
+    /\ view_BoundPtr view <> None'0)
+  /\ ([@stop_split] [@expl:reclaim requires #1] [%#sunique_reclaim'16] invariant_BoundPtr base
+    /\ view_BoundPtr base <> None'0)
+  /\ ([@stop_split] [@expl:reclaim requires #2] [%#sunique_reclaim'17] invariant_PhysicalRegion region)
+  /\ ([@stop_split] [@expl:reclaim requires #3] [%#sunique_reclaim'18] view_BoundPtr view
+    = Some'0 { f0'3 = namespace region; f1'3 = capacity region; f2'3 = UInt64.t'int offset })
+  /\ ([@stop_split] [@expl:reclaim requires #4] [%#sunique_reclaim'19] view_BoundPtr base
+    = Some'0 { f0'3 = namespace region; f1'3 = capacity region; f2'3 = 0 })
+  /\ ([@stop_split] [@expl:reclaim requires #5] [%#sunique_reclaim'20] raw_pointer view
+    = offset_ptr_u8'0 (raw_pointer base) (UInt64.t'int offset))
+  /\ ([@stop_split] [@expl:reclaim requires #6] [%#sunique_reclaim'21] current_address view
+    = current_address base + UInt64.t'int offset)
+  /\ ([@stop_split] [@expl:reclaim requires #7] [%#sunique_reclaim'22] lo region = 0 /\ hi region = capacity region)
+  /\ ([@stop_split] [@expl:reclaim requires #8] [%#sunique_reclaim'23] UInt64.le len offset)
+  /\ ([@stop_split] [@expl:reclaim requires #9] [%#sunique_reclaim'24] UInt64.t'int offset + UInt64.t'int len
+    <= capacity region)
+  /\ ([@stop_split] [@expl:reclaim requires #10] [%#sunique_reclaim'25] forall i: int. 0 <= i /\ i < UInt64.t'int len
+    -> slot_known (slot'0 region (UInt64.t'int offset + i)))}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = borrow_PhysicalRegion [%#sunique_reclaim] {region} (fun (_x: t_PhysicalRegion) -> [ &_71 <- _x ] s1)
+    | s1 = retreat_within_region [%#sunique_reclaim'0] {view} {offset} {base} {_71}
+        (fun (_x: t_BoundPtr) -> [ &base'0 <- _x ] s2)
+    | s2 = into_inner_PhysicalRegion [%#sunique_reclaim'1] {region} (fun (_x: t_PhysicalRegion) -> [ &_75 <- _x ] s3)
+    | s3 = [ &_81 <- Int128.of_int (UInt64.t'int offset) ] s4
+    | s4 = new [%#sunique_reclaim'2] {_81} (fun (_x: int) -> [ &_80 <- _x ] s5)
+    | s5 = deref_Ghost_Int [%#sunique_reclaim'3] {_80} (fun (_x: int) -> [ &_78 <- _x ] s6)
+    | s6 = split_at [%#sunique_reclaim'4] {_75} {_78}
+        (fun (_x: tup2_PhysicalRegion_PhysicalRegion) -> [ &_74 <- _x ] s7)
+    | s7 = new_tup2_PhysicalRegion_PhysicalRegion [%#sunique_reclaim'5] {_74}
+        (fun (_x: tup2_PhysicalRegion_PhysicalRegion) -> [ &fragments <- _x ] s8)
+    | s8 = split_PhysicalRegion [%#sunique_reclaim'6] {fragments}
+        (fun (_x: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion) -> [ &_85 <- _x ] s9)
+    | s9 = [ &left <- _85.f0'7 ] s10
+    | s10 = [ &right <- _85.f1'7 ] s11
+    | s11 = copy_prefix [%#sunique_reclaim'7] {view} {base'0} {offset} {len} {left} {right}
+        (fun (_x: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion) -> [ &_89 <- _x ] s12)
+    | s12 = [ &left'0 <- _89.f0'7 ] s13
+    | s13 = [ &right'0 <- _89.f1'7 ] s14
+    | s14 = into_inner_PhysicalRegion [%#sunique_reclaim'8] {left'0} (fun (_x: t_PhysicalRegion) -> [ &_98 <- _x ] s15)
+    | s15 = into_inner_PhysicalRegion [%#sunique_reclaim'9] {right'0}
+        (fun (_x: t_PhysicalRegion) -> [ &_100 <- _x ] s16)
+    | s16 = join [%#sunique_reclaim'10] {_98} {_100} (fun (_x: t_PhysicalRegion) -> [ &_97 <- _x ] s17)
+    | s17 = new_PhysicalRegion [%#sunique_reclaim'11] {_97} (fun (_x: t_PhysicalRegion) -> [ &full <- _x ] s18)
+    | s18 = [ &_ret <- { f0'8 = base'0; f1'8 = full } ] s19
+    | s19 = return {_ret} ] ]
+  [ & _ret: tup2_BoundPtr_Ghost_PhysicalRegion = Any.any_l ()
+  | & view: t_BoundPtr = view
+  | & base: t_BoundPtr = base
+  | & offset: UInt64.t = offset
+  | & len: UInt64.t = len
+  | & region: t_PhysicalRegion = region
+  | & base'0: t_BoundPtr = Any.any_l ()
+  | & _71: t_PhysicalRegion = Any.any_l ()
+  | & fragments: tup2_PhysicalRegion_PhysicalRegion = Any.any_l ()
+  | & _74: tup2_PhysicalRegion_PhysicalRegion = Any.any_l ()
+  | & _75: t_PhysicalRegion = Any.any_l ()
+  | & _78: int = Any.any_l ()
+  | & _80: int = Any.any_l ()
+  | & _81: Int128.t = Any.any_l ()
+  | & left: t_PhysicalRegion = Any.any_l ()
+  | & right: t_PhysicalRegion = Any.any_l ()
+  | & _85: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion = Any.any_l ()
+  | & left'0: t_PhysicalRegion = Any.any_l ()
+  | & right'0: t_PhysicalRegion = Any.any_l ()
+  | & _89: tup2_Ghost_PhysicalRegion_Ghost_PhysicalRegion = Any.any_l ()
+  | & full: t_PhysicalRegion = Any.any_l ()
+  | & _97: t_PhysicalRegion = Any.any_l ()
+  | & _98: t_PhysicalRegion = Any.any_l ()
+  | & _100: t_PhysicalRegion = Any.any_l () ])
+  [ return (result: tup2_BoundPtr_Ghost_PhysicalRegion) ->
+  {[@stop_split] [@expl:reclaim ensures] ([@stop_split] [@expl:reclaim result type invariant] [%#sunique_reclaim'26] inv_tup2_BoundPtr_Ghost_PhysicalRegion result)
+    /\ ([@stop_split] [@expl:reclaim ensures #0] [%#sunique_reclaim'27] invariant_BoundPtr result.f0'8)
+    /\ ([@stop_split] [@expl:reclaim ensures #1] [%#sunique_reclaim'28] view_BoundPtr result.f0'8
+      = Some'0 { f0'3 = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr view)).f0'3;
+                 f1'3 = (unwrap_Option_tup3_Id_Int_Int (view_BoundPtr view)).f1'3;
+                 f2'3 = 0 })
+    /\ ([@stop_split] [@expl:reclaim ensures #2] [%#sunique_reclaim'29] view_BoundPtr result.f0'8 = view_BoundPtr base)
+    /\ ([@stop_split] [@expl:reclaim ensures #3] [%#sunique_reclaim'30] raw_pointer result.f0'8 = raw_pointer base)
+    /\ ([@stop_split] [@expl:reclaim ensures #4] [%#sunique_reclaim'31] current_address result.f0'8
+      = current_address base)
+    /\ ([@stop_split] [@expl:reclaim ensures #5] [%#sunique_reclaim'32] invariant_PhysicalRegion result.f1'8)
+    /\ ([@stop_split] [@expl:reclaim ensures #6] [%#sunique_reclaim'33] namespace result.f1'8 = namespace region)
+    /\ ([@stop_split] [@expl:reclaim ensures #7] [%#sunique_reclaim'34] capacity result.f1'8 = capacity region)
+    /\ ([@stop_split] [@expl:reclaim ensures #8] [%#sunique_reclaim'35] resource_id result.f1'8 = resource_id region)
+    /\ ([@stop_split] [@expl:reclaim ensures #9] [%#sunique_reclaim'36] lo result.f1'8 = 0
+      /\ hi result.f1'8 = capacity region)
+    /\ ([@stop_split] [@expl:reclaim ensures #10] [%#sunique_reclaim'37] forall i: int. 0 <= i /\ i < UInt64.t'int len
+        -> slot'0 result.f1'8 i = slot'0 region (UInt64.t'int offset + i))
+    /\ ([@stop_split] [@expl:reclaim ensures #11] [%#sunique_reclaim'38] forall i: int. 0 <= i /\ i < UInt64.t'int len
+        -> slot_known (slot'0 result.f1'8 i))
+    /\ ([@stop_split] [@expl:reclaim ensures #12] [%#sunique_reclaim'39] forall i: int. UInt64.t'int len <= i
+        /\ i < capacity region -> slot'0 result.f1'8 i = slot'0 region i)}
+    (! return {result}) ]

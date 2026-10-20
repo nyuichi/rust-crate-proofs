@@ -25,24 +25,25 @@
       "original_sha256": "3cdf909b658fbb37fe5474b88cd4d9b2b9cf98359a5320f81d4752c8a09a50cd"
     },
     "src/std/string.rs": {
-      "final_sha256": "90d53d05ab8001a57267b4f7c96e4e88851d49cfd8a2e95270ac20263c94f153",
+      "final_sha256": "2f9bad31252c00c24940e23193332cf31970ee03ce636234c4c2ff4c7500cd05",
       "original_sha256": "3380344474fde787cbccb1b1c4b1d5ebe08689b13d107022d5d5de36fe2ea836"
     },
     "src/std/vec.rs": {
-      "final_sha256": "fc52751f54cbfcb670100d7402200d9685537425cd7013211eaddcc5755468ad",
+      "final_sha256": "bfac843d9911e0810592a0c3fb274505bdae9471e059576cddd879b4781cb313",
       "original_sha256": "5ce87b16b5e6b633e77c32c7c98cf73e0584c0f0b23127fe4f5277c1d4f1a427"
     }
   },
   "candidate_tree": {
-    "bytes": 710525,
+    "sha256": "3609ec6c3e0c8dc38db2afced03ffc686064c57bcc7b9725bd23e86d2e8bf0fd",
     "files": 110,
-    "sha256": "4c254d026e7fa57d45558621e4eaccff58bdeeca101666e2c6d0ad090ea76613"
+    "bytes": 710716
   },
   "install_policy": {
-    "cargo_config_policy": "Append only the required crates-io patch if the table is absent; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
+    "cargo_config_policy": "Append only the required crates-io patch if the table is absent; migrate only the exact prior generated config; preserve unrelated config; refuse conflicting creusot-std patches; require the generated file to be Git-ignored.",
     "generated_cargo_config_relative_path": ".cargo/config.toml",
     "idempotent_only_when_exact_candidate_tree": true,
     "input_must_match_full_stock_tree": true,
+    "migrate_previous_generated_config_only_when_exact": true,
     "output_is_private_copy_only": true,
     "overwrite_existing": false
   },
@@ -55,7 +56,8 @@
   "package": {
     "edition": "2024",
     "name": "creusot-std",
-    "private_copy_relative_path": "bytes-proof-std",
+    "previous_generated_private_copy_relative_path": "bytes-proof-std-as-bytes-core-events",
+    "private_copy_relative_path": "bytes-proof-std-as-bytes-refcount",
     "provenance": "Pinned normalized Cargo registry package; no workspace-relative dependencies are used.",
     "stock_registry_glob": "*/creusot-std-0.13.0",
     "version": "0.13.0"
@@ -67,8 +69,8 @@
       "source_patch_sha256": "390e375616660d9859ad28b02667ea480387c1dc1c852286fa8708c0dc6eba2b"
     },
     "alloc-capacity.patch": {
-      "scope": "Only the eight normalized registry-package chunks from the generic capacity and alloc exposure proposal.",
-      "sha256": "9eead572270996da05b5472b65ed61f1199b702e4723e88431e146edeaa80f13",
+      "scope": "Generic capacity and alloc exposure, plus the str::as_bytes UTF-8 view contract.",
+      "sha256": "c1d65df37e3047715650877d2db2e9663258110aac5266a29e79caea966be46a",
       "source_patch_sha256": "3fb15fe81bb4e5582631b7009594dc78a7af9adff73d4e56b7bc83af129d753b"
     },
     "pointer-model.patch": {

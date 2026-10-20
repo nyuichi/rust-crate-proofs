@@ -1,0 +1,59 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 7428 0 7428 67 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sslice = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/slice.rs" 526 18 526 46
+let%span sslice'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/slice.rs" 527 18 527 117
+let%span snum = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/num.rs" 50 26 50 32
+let%span sbytes_mut = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 7429 4 7429 18
+let%span sbytes_mut'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 7427 61 7427 78
+let%span svec = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/std/vec.rs" 53 14 53 41
+
+use creusot.slice.Slice64
+use creusot.int.UInt8
+use seq.Seq
+use creusot.int.UInt64
+use creusot.prelude.Any
+use int.Int
+
+type t_Vec_u8_Global
+
+constant const_MAX: UInt64.t = (18446744073709551615: UInt64.t)
+
+function view_Vec_u8_Global (self: t_Vec_u8_Global) : Seq.seq UInt8.t
+
+axiom view_Vec_u8_Global_spec:
+  forall self: t_Vec_u8_Global [view_Vec_u8_Global self]. [%#svec] Seq.length (view_Vec_u8_Global self)
+    <= UInt64.t'int const_MAX
+
+predicate postcondition_clone (self: ()) (args: UInt8.t) (result: UInt8.t) = let self_ = args in [%#snum] result = self_
+
+meta "rewrite_def" predicate postcondition_clone
+
+let clone_u8 (self_: UInt8.t) (return (x: UInt8.t)) = any
+  [ return (result: UInt8.t) -> {[@stop_split] [@expl:clone ensures] [%#snum] result = self_} (! return {result}) ]
+
+let to_vec_u8 (self_: Slice64.slice UInt8.t) (return (x: t_Vec_u8_Global)) = any
+  [ return (result: t_Vec_u8_Global) ->
+  {[@stop_split] [@expl:to_vec_u8 ensures] ([@stop_split] [@expl:to_vec ensures #0] [%#sslice] Seq.length (view_Vec_u8_Global result)
+      = Seq.length (Slice64.view self_))
+    /\ ([@stop_split] [@expl:to_vec ensures #1] [%#sslice'0] forall i: int. 0 <= i
+        /\ i < Seq.length (Slice64.view self_)
+      -> postcondition_clone () (Seq.get (Slice64.view self_) i) (Seq.get (view_Vec_u8_Global result) i))}
+    (! return {result}) ]
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let shared_readonly_slice_to_vec [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/bytes_mut.rs" 7428 0 7428 67]
+  (bytes: Slice64.slice UInt8.t) (return (x: t_Vec_u8_Global)) = (! bb0
+  [ bb0 = s0
+    [ s0 = to_vec_u8 [%#sbytes_mut] {bytes} (fun (_x: t_Vec_u8_Global) -> [ &_ret <- _x ] s1) | s1 = return {_ret} ] ]
+  [ & _ret: t_Vec_u8_Global = Any.any_l () | & bytes: Slice64.slice UInt8.t = bytes ])
+  [ return (result: t_Vec_u8_Global) ->
+  {[@stop_split] [@expl:shared_readonly_slice_to_vec ensures] [%#sbytes_mut'0] view_Vec_u8_Global result
+    = Slice64.view bytes}
+    (! return {result}) ]

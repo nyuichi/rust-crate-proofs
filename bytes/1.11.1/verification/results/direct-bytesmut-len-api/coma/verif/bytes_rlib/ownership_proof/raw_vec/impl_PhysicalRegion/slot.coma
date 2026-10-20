@@ -1,0 +1,85 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62 *)
+
+(* ownership_proof::raw_vec::PhysicalRegion *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sraw_vec = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 776 14 776 43
+let%span sraw_vec'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 728 12 728 78
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+
+use creusot.int.UInt8
+use map.Map
+
+type t_OwnedRegion
+
+type t_Id
+
+type t_AllocationDesc = { capacity: int; namespace: t_Id }
+
+type t_PhysicalRegion = { ledger: t_OwnedRegion; descriptor: t_AllocationDesc; _not_objective: () }
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
+
+type t_Excl_Option_u8 = { f0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'1 | Some'1 t_Excl_Option_u8
+
+type t_FMap_Int_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type t_Excl_unit = { f0'0: () }
+
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'1: t_Option_Excl_unit; f1'1: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'2: int;
+  f1'2: int;
+  f2'2: t_Id;
+  f3'2: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+axiom slot_spec: forall self: t_OwnedRegion, index: int [slot self index]. [%#sowned_region] slot self index
+    = match get_Int (view_OwnedRegion self).f3'2.f1'1 index with
+      | None'1 -> None'0
+      | Some'1 {f0 = value} -> Some'0 value
+      end
+
+type tup3_OwnedRegion_Int_Id = { f0'3: t_OwnedRegion; f1'3: int; f2'3: t_Id }
+
+function view_PhysicalRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 726 4 726 33] (self: t_PhysicalRegion) : tup3_OwnedRegion_Int_Id
+ = [%#sraw_vec'0] { f0'3 = self.ledger; f1'3 = self.descriptor.capacity; f2'3 = self.descriptor.namespace }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_PhysicalRegion
+
+constant index : int
+
+function slot'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/raw_vec.rs" 777 4 777 62] (self: t_PhysicalRegion) (index: int) : t_Option_Option_u8
+
+goal vc_slot: ([@stop_split] [@expl:slot ensures] [%#sowned_region] slot self.ledger index
+    = match get_Int (view_OwnedRegion self.ledger).f3'2.f1'1 index with
+      | None'1 -> None'0
+      | Some'1 {f0 = value} -> Some'0 value
+      end)
+  -> ([@stop_split] [@expl:slot ensures] [%#sraw_vec] slot self.ledger index
+  = slot (view_PhysicalRegion self).f0'3 index)

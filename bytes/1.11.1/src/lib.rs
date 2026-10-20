@@ -6,7 +6,7 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(unexpected_cfgs)]
-#![cfg_attr(creusot, recursion_limit = "512")]
+#![cfg_attr(creusot, recursion_limit = "1024")]
 
 #![doc = r##"Provides abstractions for working with bytes.
 
@@ -77,6 +77,9 @@ and `BufMut` are infallible.
 #[allow(unused_extern_crates)]
 extern crate creusot_std;
 
+#[cfg(creusot)]
+use creusot_std::prelude::trusted;
+
 #[allow(unused_extern_crates)]
 extern crate alloc;
 
@@ -95,6 +98,7 @@ mod bytes;
 mod bytes_mut;
 mod capacity_ops;
 mod storage_ops;
+mod vec_storage;
 mod chain_ops;
 mod comparison_ops;
 mod provenance_specs;
@@ -121,6 +125,8 @@ mod serde;
 
 #[inline(never)]
 #[cold]
+// Generic platform boundary: process abort / the no-std fallback never return.
+#[cfg_attr(creusot, trusted)]
 fn abort() -> ! {
     #[cfg(feature = "std")]
     {
@@ -153,7 +159,8 @@ mod cursor_ops;
 /// bytes in the buffer while attempting
 /// to get a value from a [`Buf`] with one
 /// of the `try_get_` methods.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
+#[cfg_attr(not(creusot), derive(PartialEq, Eq))]
 pub struct TryGetError {
     /// The number of bytes necessary to get the value
     pub requested: usize,

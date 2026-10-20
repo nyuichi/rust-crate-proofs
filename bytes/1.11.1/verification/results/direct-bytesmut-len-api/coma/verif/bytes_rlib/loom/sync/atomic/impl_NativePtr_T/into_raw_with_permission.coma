@@ -1,0 +1,71 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 57 12 63 13 *)
+
+(* loom::sync::atomic::NativePtr<T> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sloom = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 58 16 58 20
+let%span sloom'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 51 23 51 56
+let%span sloom'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 60 17 63 13
+let%span sloom'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 52 22 52 50
+let%span sloom'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 53 22 53 70
+let%span sloom'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 54 22 54 77
+let%span sloom'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 55 22 55 75
+let%span sloom'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 56 22 56 37
+let%span sloom'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 48 16 48 23
+
+use creusot.prelude.Any
+use creusot.prelude.Opaque
+
+type t_Atomic_ptr_T
+
+type t_Perm_NativePtr_T
+
+type tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T = { f0: t_Atomic_ptr_T; f1: t_Perm_NativePtr_T }
+
+type t_NativePtr_T = { f0'0: t_Atomic_ptr_T }
+
+predicate inv_Atomic_ptr_T (_1: t_Atomic_ptr_T)
+
+predicate inv_NativePtr_T (_1: t_NativePtr_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_NativePtr_T [inv_NativePtr_T x]. inv_NativePtr_T x = inv_Atomic_ptr_T x.f0'0
+
+function ward_NativePtr_T (self: t_Perm_NativePtr_T) : t_NativePtr_T
+
+predicate inv_tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T [@inline:trivial] (_1: tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T) =
+  inv_Atomic_ptr_T _1.f0
+
+meta "rewrite_def" predicate inv_tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T
+
+function raw_cell_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 47 12 47 61] (self: t_NativePtr_T) : t_Atomic_ptr_T
+ = [%#sloom'7] self.f0'0
+
+function val_NativePtr_T (self: t_Perm_NativePtr_T) : Opaque.ptr
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let into_raw_with_permission_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/loom.rs" 57 12 63 13]
+  (self: t_NativePtr_T) (own: t_Perm_NativePtr_T) (return (x: tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T)) =
+{[@stop_split] [@expl:into_raw_with_permission_T requires] ([@stop_split] [@expl:into_raw_with_permission 'self' type invariant] [%#sloom] inv_NativePtr_T self)
+  /\ ([@stop_split] [@expl:into_raw_with_permission requires] [%#sloom'0] ward_NativePtr_T own = self)}
+  (! bb0
+  [ bb0 = s0 [ s0 = [ &_ret <- { f0 = self.f0'0; f1 = own } ] s1 | s1 = return {_ret} ] ]
+  [ & _ret: tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T = Any.any_l ()
+  | & self: t_NativePtr_T = self
+  | & own: t_Perm_NativePtr_T = own ])
+  [ return (result: tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T) ->
+  {[@stop_split] [@expl:into_raw_with_permission_T ensures] ([@stop_split] [@expl:into_raw_with_permission result type invariant] [%#sloom'1] inv_tup2_Atomic_ptr_T_Ghost_Perm_NativePtr_T result)
+    /\ ([@stop_split] [@expl:into_raw_with_permission ensures #0] [%#sloom'2] result.f0 = raw_cell_T self)
+    /\ ([@stop_split] [@expl:into_raw_with_permission ensures #1] [%#sloom'3] result.f0
+      = raw_cell_T (ward_NativePtr_T own))
+    /\ ([@stop_split] [@expl:into_raw_with_permission ensures #2] [%#sloom'4] val_NativePtr_T result.f1
+      = val_NativePtr_T own)
+    /\ ([@stop_split] [@expl:into_raw_with_permission ensures #3] [%#sloom'5] raw_cell_T (ward_NativePtr_T result.f1)
+      = result.f0)
+    /\ ([@stop_split] [@expl:into_raw_with_permission ensures #4] [%#sloom'6] result.f1 = own)}
+    (! return {result}) ]

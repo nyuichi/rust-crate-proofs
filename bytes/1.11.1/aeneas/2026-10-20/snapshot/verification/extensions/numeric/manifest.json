@@ -1,0 +1,114 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "numeric",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Numeric.saturating_sub_success",
+      "rust_functions": [
+        "bytes::saturating_sub_usize_u64"
+      ],
+      "verified_behavior": "A successful conversion gives an always-successful saturating subtraction with exact natural-number truncated difference.",
+      "assumptions": [
+        "The opaque u64-to-usize conversion returns the supplied converted value; relation to the original u64 requires its conversion contract."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.saturating_sub_unrepresentable",
+      "rust_functions": [
+        "bytes::saturating_sub_usize_u64"
+      ],
+      "verified_behavior": "A conversion error yields zero.",
+      "assumptions": [
+        "The opaque u64-to-usize conversion returns an integer-conversion error."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.min_success",
+      "rust_functions": [
+        "bytes::min_u64_usize"
+      ],
+      "verified_behavior": "A successful conversion yields the minimum of the converted value and the usize bound.",
+      "assumptions": [
+        "The opaque u64-to-usize conversion returns the supplied converted value."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.min_unrepresentable",
+      "rust_functions": [
+        "bytes::min_u64_usize"
+      ],
+      "verified_behavior": "A conversion error yields the usize bound.",
+      "assumptions": [
+        "The opaque conversion returns an integer-conversion error."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.capacity_decode_zero",
+      "rust_functions": [
+        "bytes::bytes_mut::original_capacity_from_repr"
+      ],
+      "verified_behavior": "The zero capacity encoding decodes to zero.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Numeric.capacity_decode_valid",
+      "rust_functions": [
+        "bytes::bytes_mut::original_capacity_from_repr"
+      ],
+      "verified_behavior": "For every encoding 0..7, decoding succeeds and returns zero for 0, otherwise 2^(encoding+9).",
+      "assumptions": [
+        "The encoding value is at most 7."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.sign_extend_full_width",
+      "rust_functions": [
+        "bytes::buf::buf_impl::sign_extend"
+      ],
+      "verified_behavior": "Eight-byte sign extension succeeds and equals the signed 64-bit reinterpretation.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Numeric.sign_extend_bits",
+      "rust_functions": [
+        "bytes::buf::buf_impl::sign_extend"
+      ],
+      "verified_behavior": "For every byte width 1..8, extension succeeds with the exact left-shift/arithmetic-right-shift bitvector result.",
+      "assumptions": [
+        "Byte width is between 1 and 8 inclusive."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.capacity_encode_bounded",
+      "rust_functions": [
+        "bytes::bytes_mut::original_capacity_to_repr"
+      ],
+      "verified_behavior": "For every capacity, encoding succeeds and is at most 7.",
+      "assumptions": [
+        "The Lean platform usize width equals the selected Rust target width of 64 bits."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.sign_extend_low_bytes",
+      "rust_functions": [
+        "bytes::buf::buf_impl::sign_extend"
+      ],
+      "verified_behavior": "For every width1..8, sign extension succeeds and equals truncation to the low nbytes bytes followed by signed extension to64bits.",
+      "assumptions": [
+        "Byte width is between1 and8 inclusive."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Numeric.capacity_encode_exact",
+      "rust_functions": [
+        "bytes::bytes_mut::original_capacity_to_repr"
+      ],
+      "verified_behavior": "For every capacity on the64-bit target, encoding succeeds with min(64-leadingZeros(cap shifted right10),7), the clamped bit length of the shifted capacity.",
+      "assumptions": [
+        "The Lean platform usize width equals the selected Rust target width of64bits."
+      ]
+    }
+  ],
+  "blocked_roots": []
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "cursor",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Cursor.cursor_remaining_is_saturating_sub",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for core::io::cursor::Cursor<T>}::remaining"
+      ],
+      "verified_behavior": "After Cursor::get_ref, AsRef::as_ref, Cursor::position, and u64-to-usize conversion return the supplied values, Buf::remaining returns saturating_sub(slice length, converted position).",
+      "assumptions": [
+        "Cursor::get_ref returns inner",
+        "AsRef::as_ref on inner returns slice s",
+        "Cursor::position returns position",
+        "TryFrom<u64> converts position to positionUsize"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2929-2931",
+      "source_file": "src/buf/buf_impl.rs",
+      "source_span": "src/buf/buf_impl.rs:2929:4-2931:5"
+    },
+    {
+      "theorem": "BytesProofs.Cursor.cursor_remaining_is_zero_after_end",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for core::io::cursor::Cursor<T>}::remaining"
+      ],
+      "verified_behavior": "When the position converts to usize and is at or beyond the referenced slice length, Buf::remaining returns zero.",
+      "assumptions": [
+        "Cursor::get_ref returns inner and AsRef::as_ref returns slice s",
+        "Cursor::position returns position and TryFrom<u64> converts it to positionUsize",
+        "positionUsize is at least Slice::len(s)"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2929-2931",
+      "source_file": "src/buf/buf_impl.rs",
+      "source_span": "src/buf/buf_impl.rs:2929:4-2931:5"
+    },
+    {
+      "theorem": "BytesProofs.Cursor.cursor_remaining_is_zero_when_position_unrepresentable",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for core::io::cursor::Cursor<T>}::remaining"
+      ],
+      "verified_behavior": "When the cursor position cannot be represented as usize, Buf::remaining returns zero.",
+      "assumptions": [
+        "Cursor::get_ref returns inner and AsRef::as_ref returns slice s",
+        "Cursor::position returns position",
+        "TryFrom<u64> for position returns an error"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2929-2931",
+      "source_file": "src/buf/buf_impl.rs",
+      "source_span": "src/buf/buf_impl.rs:2929:4-2931:5"
+    },
+    {
+      "theorem": "BytesProofs.Cursor.cursor_chunk_returns_bounded_suffix",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for core::io::cursor::Cursor<T>}::chunk"
+      ],
+      "verified_behavior": "When the position converts to usize, Buf::chunk returns the referenced slice suffix starting at min(position, slice length); the start is proven in bounds.",
+      "assumptions": [
+        "Cursor::get_ref returns inner and AsRef::as_ref returns slice s",
+        "Cursor::position returns position",
+        "TryFrom<u64> converts position to positionUsize"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2934-2938",
+      "source_file": "src/buf/buf_impl.rs",
+      "source_span": "src/buf/buf_impl.rs:2934:4-2938:5"
+    },
+    {
+      "theorem": "BytesProofs.Cursor.cursor_chunk_is_empty_when_position_unrepresentable",
+      "rust_functions": [
+        "{impl bytes::buf::buf_impl::Buf for core::io::cursor::Cursor<T>}::chunk"
+      ],
+      "verified_behavior": "When the cursor position cannot be represented as usize, Buf::chunk returns the empty suffix at the end of the referenced slice.",
+      "assumptions": [
+        "Cursor::get_ref returns inner and AsRef::as_ref returns slice s",
+        "Cursor::position returns position",
+        "TryFrom<u64> for position returns an error"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2934-2938",
+      "source_file": "src/buf/buf_impl.rs",
+      "source_span": "src/buf/buf_impl.rs:2934:4-2938:5"
+    }
+  ],
+  "blocked_roots": [
+    {
+      "rust_function": "{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::remaining",
+      "source": "src/buf/buf_impl.rs, lines 2891-2893",
+      "reason": "Charon extraction target rejection",
+      "detail": "Direct --start-from patterns for the borrowed-slice impl are rejected by Charon's pattern parser (`error Tag at: '_0 [u8]}::remaining`); the elided-lifetime variant is also rejected (`error Tag at: [u8]}::remaining`). Whole-crate extraction contains the body, but no direct named selector was accepted."
+    },
+    {
+      "rust_function": "{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::chunk",
+      "source": "src/buf/buf_impl.rs, lines 2896-2898",
+      "reason": "Charon extraction target rejection",
+      "detail": "Direct --start-from patterns for the borrowed-slice impl are rejected by Charon's pattern parser (`error Tag at: '_0 [u8]}::chunk`); the elided-lifetime variant is also rejected (`error Tag at: [u8]}::chunk`). Whole-crate extraction contains the body, but no direct named selector was accepted."
+    }
+  ]
+}

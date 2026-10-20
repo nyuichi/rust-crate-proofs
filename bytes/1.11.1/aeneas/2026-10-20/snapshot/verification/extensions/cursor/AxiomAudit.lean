@@ -1,0 +1,7 @@
+import extensions.cursor.Proofs
+
+#print axioms BytesProofs.Cursor.cursor_remaining_is_saturating_sub
+#print axioms BytesProofs.Cursor.cursor_remaining_is_zero_after_end
+#print axioms BytesProofs.Cursor.cursor_remaining_is_zero_when_position_unrepresentable
+#print axioms BytesProofs.Cursor.cursor_chunk_returns_bounded_suffix
+#print axioms BytesProofs.Cursor.cursor_chunk_is_empty_when_position_unrepresentable

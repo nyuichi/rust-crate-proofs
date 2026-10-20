@@ -1,0 +1,36 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "ownership",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Ownership.static_storage_reports_not_unique",
+      "rust_functions": [
+        "bytes::bytes::static_is_unique"
+      ],
+      "verified_behavior": "Static storage always reports false for uniqueness.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Ownership.shared_uniqueness_tests_acquire_observation",
+      "rust_functions": [
+        "bytes::bytes_mut::Shared::is_unique"
+      ],
+      "verified_behavior": "Uniqueness returns true exactly when the supplied successful Acquire load observes count1.",
+      "assumptions": [
+        "Atomic load with Acquire ordering returns the supplied observed count; no ownership or concurrency invariant is proved."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Ownership.shared_unique_iff_observed_count_one",
+      "rust_functions": [
+        "bytes::bytes_mut::Shared::is_unique"
+      ],
+      "verified_behavior": "A successful uniqueness query is true iff its observed reference count equals1.",
+      "assumptions": [
+        "Atomic load with Acquire ordering succeeds with the observed count; this is an observation-level property, not proof of exclusive memory access."
+      ]
+    }
+  ],
+  "blocked_roots": []
+}

@@ -1,0 +1,113 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 108 0 117 1 *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sord = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/ord.rs" 34 8 34 21
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sfmap'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 102 8 102 27
+let%span sfmap'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 62 14 62 70
+let%span sfmap'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 63 14 63 88
+let%span sfmap'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 54 14 54 25
+let%span sref_count_ledger = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 118 18 120 51
+let%span sref_count_ledger'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 98 11 99 54
+let%span sref_count_ledger'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 100 11 100 41
+let%span sref_count_ledger'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 101 11 101 37
+let%span sref_count_ledger'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 102 11 104 69
+let%span sref_count_ledger'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 105 10 107 47
+let%span sref_count_ledger'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 52 8 58 9
+
+use creusot.prelude.Opaque
+use map.Map
+use creusot.prelude.Any
+use int.Int
+
+type t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+type t_Id
+
+type tup3_Id_ptr_u8_Int = { f0: t_Id; f1: Opaque.ptr; f2: int }
+
+type t_RefKind = Mutable | Readonly
+
+type tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'0: tup3_Id_ptr_u8_Int; f1'0: t_RefKind; f2'0: int; f3'0: int }
+
+type t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = { f0'1: tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int }
+
+type t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = None | Some t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function to_mapping_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : Map.map int t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) : t_Option_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+ = [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+predicate active_mutable_contains [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 50 0 50 83] (owners: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (index: int) =
+  [%#sref_count_ledger'5] exists id: int. match get_Int owners id with
+      | Some {f0'1 = {f1'0 = kind; f2'0 = lo; f3'0 = hi}} -> match kind with
+        | Mutable -> lo <= index /\ index < hi
+        | Readonly -> false
+        end
+      | None -> false
+      end
+
+predicate contains_Int [@inline:trivial] (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) =
+  [%#sfmap'0] get_Int self k <> None
+
+meta "rewrite_def" predicate contains_Int
+
+predicate ge_log_Int [@inline:trivial] (self: int) (other: int) = [%#sord] other <= self
+
+meta "rewrite_def" predicate ge_log_Int
+
+function len_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : int
+
+axiom len_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [len_Int self]. [%#sfmap'3] ge_log_Int (len_Int self) 0
+
+function insert_Int (self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (k: int) (v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) : t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int
+
+axiom insert_Int_spec:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int, v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [insert_Int self k v]. [%#sfmap'1] to_mapping_Int (insert_Int self k v)
+    = Map.set (to_mapping_Int self) k (Some v)
+
+axiom insert_Int_spec'0:
+  forall self: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int, k: int, v: t_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int [insert_Int self k v]. [%#sfmap'2] len_Int (insert_Int self k v)
+    = (if contains_Int self k then len_Int self else len_Int self + 1)
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let prove_owner_split_preserves_mutable_coverage [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/ref_count_ledger.rs" 108 0 117 1]
+  (before: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int)
+  (after: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int) (parent_id: int) (child_id: int)
+  (binding: tup3_Id_ptr_u8_Int) (lo: int) (cut: int) (hi: int) (return (x: ())) =
+{[@stop_split] [@expl:prove_owner_split_preserves_mutable_coverage requires] ([@stop_split] [@expl:prove_owner_split_preserves_mutable_coverage requires #0] [%#sref_count_ledger'0] get_Int before parent_id
+    = Some { f0'1 = { f0'0 = binding; f1'0 = Mutable; f2'0 = lo; f3'0 = hi } })
+  /\ ([@stop_split] [@expl:prove_owner_split_preserves_mutable_coverage requires #1] [%#sref_count_ledger'1] not contains_Int before child_id)
+  /\ ([@stop_split] [@expl:prove_owner_split_preserves_mutable_coverage requires #2] [%#sref_count_ledger'2] lo <= cut
+    /\ cut <= hi)
+  /\ ([@stop_split] [@expl:prove_owner_split_preserves_mutable_coverage requires #3] [%#sref_count_ledger'3] after
+  = insert_Int (insert_Int before parent_id { f0'1 = { f0'0 = binding;
+                                                       f1'0 = Mutable;
+                                                       f2'0 = lo;
+                                                       f3'0 = cut } }) child_id { f0'1 = { f0'0 = binding;
+                                                                                           f1'0 = Mutable;
+                                                                                           f2'0 = cut;
+                                                                                           f3'0 = hi } })}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = {[@expl:assertion] [%#sref_count_ledger] forall index: int. active_mutable_contains after index
+        = active_mutable_contains before index}
+      s1
+    | s1 = return {_ret} ] ]
+  [ & _ret: () = Any.any_l ()
+  | & before: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = before
+  | & after: t_FMap_Int_Excl_tup4_tup3_Id_ptr_u8_Int_RefKind_Int_Int = after ])
+  [ return (result: ()) ->
+  {[@stop_split] [@expl:prove_owner_split_preserves_mutable_coverage ensures] [%#sref_count_ledger'4] forall index: int. active_mutable_contains after index
+      = active_mutable_contains before index}
+    (! return {result}) ]

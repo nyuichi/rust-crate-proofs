@@ -1,0 +1,179 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 656 8 656 73 *)
+
+(* ref_count_ops::proof::EventBoundInvariant<T> *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sinvariant = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/invariant.rs" 385 4 385 32
+let%span sinvariant'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/invariant.rs" 383 14 383 67
+let%span sinvariant'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/invariant.rs" 85 8 85 18
+let%span sref_count_ops = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 658 52 658 75
+let%span sref_count_ops'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 658 52 658 88
+let%span sref_count_ops'1 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 657 12 660 13
+let%span sref_count_ops'2 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 656 33 656 37
+let%span sref_count_ops'3 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 656 42 656 73
+let%span sref_count_ops'4 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 650 18 650 67
+let%span sref_count_ops'5 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 651 18 651 68
+let%span sref_count_ops'6 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 652 18 653 42
+let%span sref_count_ops'7 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 654 18 654 51
+let%span sref_count_ops'8 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 655 18 655 88
+let%span sref_count_ops'9 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 643 12 643 31
+let%span sref_count_ops'10 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 455 24 455 67
+let%span sref_count_ops'11 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 459 18 461 61
+let%span sref_count_ops'12 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 463 12 465 60
+let%span sref_count_ops'13 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 667 12 667 48
+let%span sghost = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 199 14 199 29
+let%span sghost'0 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 15 179 16
+let%span sghost'1 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 179 4 181 17
+let%span sghost'2 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 177 14 177 26
+let%span sghost'3 = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost.rs" 112 8 112 18
+
+use creusot.int.UInt64
+use creusot.prelude.Any
+
+type t_AtomicInvariant_EventState_T
+
+type t_EventBoundInvariant_T = { inner: t_AtomicInvariant_EventState_T }
+
+let into_inner_AtomicInvariant_EventState_T (self: t_AtomicInvariant_EventState_T)
+  (return (x: t_AtomicInvariant_EventState_T)) = any
+  [ return (result: t_AtomicInvariant_EventState_T) -> {[@stop_split] [@expl:into_inner ensures] [%#sghost] result
+    = self}
+    (! return {result}) ]
+
+type t_Perm_NativeCounter
+
+type t_T
+
+type t_EventState_T = { owner: t_Perm_NativeCounter; current': t_T }
+
+predicate inv_T (_1: t_T)
+
+predicate inv_EventState_T (_1: t_EventState_T)
+
+axiom inv_axiom [@rewrite]: forall x: t_EventState_T [inv_EventState_T x]. inv_EventState_T x = inv_T x.current'
+
+type t_NativeCounter
+
+type t_Public
+
+type tup2_NativeCounter_Public = { f0: t_NativeCounter; f1: t_Public }
+
+function ward_NativeCounter (self: t_Perm_NativeCounter) : t_NativeCounter
+
+function public_T (self: t_T) : t_Public
+
+function public_EventState_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 454 8 454 39] (self: t_EventState_T) : tup2_NativeCounter_Public
+ = [%#sref_count_ops'10] { f0 = ward_NativeCounter self.owner; f1 = public_T self.current' }
+
+function public_EventState_T'0 (self: t_AtomicInvariant_EventState_T) : tup2_NativeCounter_Public
+
+predicate protocol_T (self: t_T)
+
+function counter_model_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 439 8 439 48] (self: t_T) : t_NativeCounter
+
+predicate agrees_with_value_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 442 8 442 57] (self: t_T) (value: UInt64.t)
+
+function val_NativeCounter (self: t_Perm_NativeCounter) : UInt64.t
+
+predicate protocol_EventState_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 462 8 462 33] (self: t_EventState_T) =
+  [%#sref_count_ops'12] protocol_T self.current'
+  /\ counter_model_T self.current' = ward_NativeCounter self.owner
+  /\ agrees_with_value_T self.current' (val_NativeCounter self.owner)
+
+axiom protocol_EventState_T_spec:
+  forall self: t_EventState_T [protocol_EventState_T self]. [%#sref_count_ops'11] protocol_EventState_T self
+    = (protocol_T self.current'
+    /\ counter_model_T self.current' = ward_NativeCounter self.owner
+    /\ agrees_with_value_T self.current' (val_NativeCounter self.owner))
+
+let into_inner_EventState_T (self: t_AtomicInvariant_EventState_T) (return (x: t_EventState_T)) = any
+  [ return (result: t_EventState_T) ->
+  {[@stop_split] [@expl:into_inner_EventState_T ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sinvariant] inv_EventState_T result)
+    /\ ([@stop_split] [@expl:into_inner ensures] [%#sinvariant'0] public_EventState_T result
+      = public_EventState_T'0 self
+    /\ protocol_EventState_T result)}
+    (! return {result}) ]
+
+type tup2_Perm_NativeCounter_T = { f0'0: t_Perm_NativeCounter; f1'0: t_T }
+
+predicate inv_tup2_Perm_NativeCounter_T [@inline:trivial] (_1: tup2_Perm_NativeCounter_T) = inv_T _1.f1'0
+
+meta "rewrite_def" predicate inv_tup2_Perm_NativeCounter_T
+
+predicate invariant_Ghost_tup2_Perm_NativeCounter_T [@inline:trivial] (self: tup2_Perm_NativeCounter_T) =
+  [%#sghost'3] inv_tup2_Perm_NativeCounter_T self
+
+meta "rewrite_def" predicate invariant_Ghost_tup2_Perm_NativeCounter_T
+
+predicate inv_Ghost_tup2_Perm_NativeCounter_T [@inline:trivial] (_1: tup2_Perm_NativeCounter_T) =
+  invariant_Ghost_tup2_Perm_NativeCounter_T _1
+
+meta "rewrite_def" predicate inv_Ghost_tup2_Perm_NativeCounter_T
+
+let new_tup2_Perm_NativeCounter_T (x: tup2_Perm_NativeCounter_T) (return (x'0: tup2_Perm_NativeCounter_T)) =
+{[@stop_split] [@expl:new 'x' type invariant] [%#sghost'0] inv_tup2_Perm_NativeCounter_T x}
+  any
+  [ return (result: tup2_Perm_NativeCounter_T) ->
+  {[@stop_split] [@expl:new_tup2_Perm_NativeCounter_T ensures] ([@stop_split] [@expl:new result type invariant] [%#sghost'1] inv_Ghost_tup2_Perm_NativeCounter_T result)
+    /\ ([@stop_split] [@expl:new ensures] [%#sghost'2] result = x)}
+    (! return {result}) ]
+
+predicate inv_AtomicInvariant_EventState_T [@inline:trivial] (_1: t_AtomicInvariant_EventState_T) = true
+
+meta "rewrite_def" predicate inv_AtomicInvariant_EventState_T
+
+predicate invariant_ref_AtomicInvariant_EventState_T [@inline:trivial] (self: t_AtomicInvariant_EventState_T) =
+  [%#sinvariant'1] inv_AtomicInvariant_EventState_T self
+
+meta "rewrite_def" predicate invariant_ref_AtomicInvariant_EventState_T
+
+predicate invariant_EventBoundInvariant_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 666 8 666 34] (self: t_EventBoundInvariant_T) =
+  [%#sref_count_ops'13] invariant_ref_AtomicInvariant_EventState_T self.inner
+
+predicate inv_EventBoundInvariant_T (_1: t_EventBoundInvariant_T)
+
+axiom inv_axiom'0 [@rewrite]:
+  forall x: t_EventBoundInvariant_T [inv_EventBoundInvariant_T x]. inv_EventBoundInvariant_T x
+    = invariant_EventBoundInvariant_T x
+
+function public_T'0 [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 642 8 642 64] (self: t_EventBoundInvariant_T) : tup2_NativeCounter_Public
+ = [%#sref_count_ops'9] public_EventState_T'0 self.inner
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+let into_inner_T [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ref_count_ops.rs" 656 8 656 73]
+  (self: t_EventBoundInvariant_T) (return (x: tup2_Perm_NativeCounter_T)) =
+{[@stop_split] [@expl:into_inner 'self' type invariant] [%#sref_count_ops'2] inv_EventBoundInvariant_T self}
+  (! bb0
+  [ bb0 = s0
+    [ s0 = into_inner_AtomicInvariant_EventState_T [%#sref_count_ops] {self.inner}
+        (fun (_x: t_AtomicInvariant_EventState_T) -> [ &_13 <- _x ] s1)
+    | s1 = into_inner_EventState_T [%#sref_count_ops'0] {_13} (fun (_x: t_EventState_T) -> [ &_12 <- _x ] s2)
+    | s2 = [ &owner'0 <- _12.owner ] s3
+    | s3 = [ &current''0 <- _12.current' ] s4
+    | s4 = [ &_9 <- { f0'0 = owner'0; f1'0 = current''0 } ] s5
+    | s5 = new_tup2_Perm_NativeCounter_T [%#sref_count_ops'1] {_9}
+        (fun (_x: tup2_Perm_NativeCounter_T) -> [ &_ret <- _x ] s6)
+    | s6 = return {_ret} ] ]
+  [ & _ret: tup2_Perm_NativeCounter_T = Any.any_l ()
+  | & self: t_EventBoundInvariant_T = self
+  | & _9: tup2_Perm_NativeCounter_T = Any.any_l ()
+  | & owner'0: t_Perm_NativeCounter = Any.any_l ()
+  | & current''0: t_T = Any.any_l ()
+  | & _12: t_EventState_T = Any.any_l ()
+  | & _13: t_AtomicInvariant_EventState_T = Any.any_l () ])
+  [ return (result: tup2_Perm_NativeCounter_T) ->
+  {[@stop_split] [@expl:into_inner_T ensures] ([@stop_split] [@expl:into_inner result type invariant] [%#sref_count_ops'3] inv_Ghost_tup2_Perm_NativeCounter_T result)
+    /\ ([@stop_split] [@expl:into_inner ensures #0] [%#sref_count_ops'4] ward_NativeCounter result.f0'0
+      = (public_T'0 self).f0)
+    /\ ([@stop_split] [@expl:into_inner ensures #1] [%#sref_count_ops'5] public_T result.f1'0 = (public_T'0 self).f1)
+    /\ ([@stop_split] [@expl:into_inner ensures #2] [%#sref_count_ops'6] counter_model_T result.f1'0
+      = ward_NativeCounter result.f0'0)
+    /\ ([@stop_split] [@expl:into_inner ensures #3] [%#sref_count_ops'7] protocol_T result.f1'0)
+    /\ ([@stop_split] [@expl:into_inner ensures #4] [%#sref_count_ops'8] agrees_with_value_T result.f1'0 (val_NativeCounter result.f0'0))}
+    (! return {result}) ]

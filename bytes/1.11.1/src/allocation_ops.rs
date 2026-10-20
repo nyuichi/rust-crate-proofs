@@ -1,5 +1,33 @@
-//! Native physical deallocation shared by ordinary cleanup and the B3 bridge.
-//! This helper has no ownership contract: verified callers enter through B3.
+//! Native physical deallocation shared by ordinary cleanup and verified
+//! generic ownership boundaries.
+
+#[cfg(creusot)]
+use alloc::boxed::Box;
+#[cfg(creusot)]
+use creusot_std::{ghost::perm::Perm, prelude::*};
+
+/// Free an actual Box allocation without running the pointee destructor.
+///
+/// # Safety
+/// In proof builds, `owner` must carry the permission for this exact Box
+/// allocation. The caller must have performed all cleanup required by `T`'s
+/// destructor before bypassing it.
+#[cfg_attr(creusot, trusted)]
+#[cfg_attr(creusot, requires(owner.inner_logic().invariant()))]
+#[cfg_attr(creusot, requires(*owner.ward() == pointer))]
+pub(crate) unsafe fn deallocate_box_without_drop<T>(
+    pointer: *mut T,
+    #[cfg(creusot)] owner: Ghost<Box<Perm<*const T>>>,
+) {
+    #[cfg(creusot)]
+    let _ = owner;
+    #[cfg(not(creusot))]
+    if core::mem::size_of::<T>() != 0 {
+        // SAFETY: the caller supplies the original Box allocation and has
+        // handled any destructor effects before bypassing `T::drop`.
+        unsafe { alloc::alloc::dealloc(pointer.cast(), alloc::alloc::Layout::new::<T>()) };
+    }
+}
 
 /// Release a complete global-allocator byte allocation.
 ///

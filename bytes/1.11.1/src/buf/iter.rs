@@ -104,6 +104,7 @@ impl<T> IntoIter<T> {
     }
 }
 
+#[cfg(not(creusot))]
 impl<T: Buf> Iterator for IntoIter<T> {
     type Item = u8;
 
@@ -124,4 +125,5 @@ impl<T: Buf> Iterator for IntoIter<T> {
     }
 }
 
+#[cfg(not(creusot))]
 impl<T: Buf> ExactSizeIterator for IntoIter<T> {}

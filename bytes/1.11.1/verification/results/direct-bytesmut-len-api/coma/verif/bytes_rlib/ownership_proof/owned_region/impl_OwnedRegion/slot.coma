@@ -1,0 +1,88 @@
+(* #"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62 *)
+
+(* ownership_proof::owned_region::OwnedRegion *)
+
+type namespace_other
+
+type t_Namespace = Namespace_REF_COUNT_EVENT int | Other namespace_other
+
+let%span sowned_region = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 163 14 166 5
+let%span sowned_region'0 = "/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 77 20 77 74
+let%span sfmap = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/logic/fmap.rs" 88 8 88 32
+let%span sresource = "/workspace/bytes-proof-tools/bytes-proof-std-as-bytes-refcount/src/ghost/resource.rs" 59 12 59 22
+
+use creusot.int.UInt8
+use map.Map
+
+type t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+type t_OwnedRegion = { lo: int; hi: int; resource: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+type t_Option_u8 = None | Some UInt8.t
+
+type t_Option_Option_u8 = None'0 | Some'0 t_Option_u8
+
+type t_Excl_Option_u8 = { f0: t_Option_u8 }
+
+type t_Option_Excl_Option_u8 = None'1 | Some'1 t_Excl_Option_u8
+
+type t_FMap_Int_Excl_Option_u8
+
+function to_mapping_Int (self: t_FMap_Int_Excl_Option_u8) : Map.map int t_Option_Excl_Option_u8
+
+function get_Int [@inline:trivial] (self: t_FMap_Int_Excl_Option_u8) (k: int) : t_Option_Excl_Option_u8 =
+  [%#sfmap] Map.get (to_mapping_Int self) k
+
+meta "rewrite_def" function get_Int
+
+type t_Id
+
+type t_Excl_unit = { f0'0: () }
+
+type t_Option_Excl_unit = None'2 | Some'2 t_Excl_unit
+
+type tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = { f0'1: t_Option_Excl_unit; f1'1: t_FMap_Int_Excl_Option_u8 }
+
+type tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 = {
+  f0'2: int;
+  f1'2: int;
+  f2'2: t_Id;
+  f3'2: tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 }
+
+function id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 (self: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) : t_Id
+
+function val_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 (self: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) : tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 [@inline:trivial] (self: t_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8) : tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+ = [%#sresource] val_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self
+
+meta "rewrite_def" function view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+
+function view_OwnedRegion [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 76 4 76 33] (self: t_OwnedRegion) : tup4_Int_Int_Id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8
+ = [%#sowned_region'0] { f0'2 = self.lo;
+                         f1'2 = self.hi;
+                         f2'2 = id_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self.resource;
+                         f3'2 = view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self.resource }
+
+meta "compute_max_steps" 1000000
+
+meta "select_lsinst" "all"
+
+constant self : t_OwnedRegion
+
+constant index : int
+
+function slot [#"/workspace/rust-crate-proofs/bytes/1.11.1/src/ownership_proof/owned_region.rs" 167 4 167 62] (self: t_OwnedRegion) (index: int) : t_Option_Option_u8
+
+goal vc_slot: match get_Int (view_Resource_tup2_Option_Excl_unit_FMap_Int_Excl_Option_u8 self.resource).f1'1 index with
+    | None'1 -> [@stop_split] [@expl:slot ensures] [%#sowned_region] None'0
+    = match get_Int (view_OwnedRegion self).f3'2.f1'1 index with
+      | None'1 -> None'0
+      | Some'1 {f0 = value} -> Some'0 value
+      end
+    | Some'1 {f0 = value} -> [@stop_split] [@expl:slot ensures] [%#sowned_region] Some'0 value
+    = match get_Int (view_OwnedRegion self).f3'2.f1'1 index with
+      | None'1 -> None'0
+      | Some'1 {f0 = value'0} -> Some'0 value'0
+      end
+    end
