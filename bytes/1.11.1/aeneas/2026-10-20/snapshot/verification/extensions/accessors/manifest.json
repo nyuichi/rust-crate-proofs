@@ -1,0 +1,153 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "accessors",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Accessors.bytes_deref_returns_as_slice",
+      "rust_functions": [
+        "{impl core::ops::deref::Deref<[u8]> for bytes::bytes::Bytes}::deref"
+      ],
+      "verified_behavior": "Deref returns the successful Bytes::as_slice result.",
+      "assumptions": [
+        "Bytes::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Accessors.bytes_as_ref_returns_as_slice",
+      "rust_functions": [
+        "{impl core::convert::AsRef<[u8]> for bytes::bytes::Bytes}::as_ref"
+      ],
+      "verified_behavior": "AsRef<[u8]> returns the successful Bytes::as_slice result.",
+      "assumptions": [
+        "Bytes::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Accessors.bytes_borrow_returns_as_slice",
+      "rust_functions": [
+        "{impl core::borrow::Borrow<[u8]> for bytes::bytes::Bytes}::borrow"
+      ],
+      "verified_behavior": "Borrow<[u8]> returns the successful Bytes::as_slice result.",
+      "assumptions": [
+        "Bytes::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Accessors.bytes_mut_as_mut_forwards_slice_and_rebuilder",
+      "rust_functions": [
+        "{impl core::convert::AsMut<[u8]> for bytes::bytes_mut::BytesMut}::as_mut"
+      ],
+      "verified_behavior": "AsMut<[u8]> forwards the mutable slice and reconstruction callback from as_slice_mut.",
+      "assumptions": [
+        "BytesMut::as_slice_mut succeeds with the supplied slice and reconstruction callback."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice_mut",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Accessors.bytes_mut_borrow_returns_as_slice",
+      "rust_functions": [
+        "{impl core::borrow::Borrow<[u8]> for bytes::bytes_mut::BytesMut}::borrow"
+      ],
+      "verified_behavior": "Borrow<[u8]> returns the successful BytesMut::as_slice result through AsRef.",
+      "assumptions": [
+        "BytesMut::as_slice succeeds with the supplied slice."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Accessors.bytes_mut_borrow_mut_forwards_slice_and_rebuilder",
+      "rust_functions": [
+        "{impl core::borrow::BorrowMut<[u8]> for bytes::bytes_mut::BytesMut}::borrow_mut"
+      ],
+      "verified_behavior": "BorrowMut<[u8]> forwards the mutable slice and reconstruction callback from as_slice_mut through AsMut.",
+      "assumptions": [
+        "BytesMut::as_slice_mut succeeds with the supplied slice and reconstruction callback."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice_mut",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Accessors.bytes_mut_deref_mut_forwards_slice_and_rebuilder",
+      "rust_functions": [
+        "{impl core::ops::deref::DerefMut for bytes::bytes_mut::BytesMut}::deref_mut"
+      ],
+      "verified_behavior": "DerefMut forwards the mutable slice and reconstruction callback from as_slice_mut.",
+      "assumptions": [
+        "BytesMut::as_slice_mut succeeds with the supplied slice and reconstruction callback."
+      ],
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice_mut",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    }
+  ],
+  "blocked_roots": [],
+  "dependency_classification": {
+    "standard_logic_axioms": [
+      "Quot.sound",
+      "propext"
+    ],
+    "opaque_type_axioms": [
+      "bytes.Vtable",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "opaque_behavior_axioms": [
+      "bytes.Bytes.as_slice",
+      "bytes_mut.BytesMut.as_slice",
+      "bytes_mut.BytesMut.as_slice_mut"
+    ],
+    "note": "Opaque type axioms declare abstract representation types only. Opaque behavior axioms are translated Rust/library operations with no proved body in this profile. Per-theorem exact axiom dependencies are listed on each proof and rechecked into receipt.json.",
+    "opaque_value_axioms": []
+  }
+}

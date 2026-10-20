@@ -1,0 +1,15 @@
+diff --git a/src/aeneas.rs b/src/aeneas.rs
+index b552432..9672fb8 100644
+--- a/src/aeneas.rs
++++ b/src/aeneas.rs
+@@ -448,7 +448,9 @@ fn execute_inner(
+     }
+     fs::create_dir_all(&translation)?;
+     let mut cmd = Command::new("aeneas");
+-    cmd.args(["-backend", "lean", "-namespace", "ElicitGenerated", "-dest"])
++    cmd.args([
++        "-backend", "lean", "-filter-trait-methods", "-namespace", "ElicitGenerated", "-dest",
++    ])
+         .arg(&translation)
+         .arg(out.join("crate.llbc"));
+     let o = run(&mut cmd)?;

@@ -1,0 +1,17 @@
+--- a/src/extract/Extract.ml
++++ b/src/extract/Extract.ml
+@@ -3401,7 +3401,17 @@ let extract_trait_impl_method_items_aux (ctx : extraction_ctx)
+     let method_generics = fn.binder_generics in
+     let method_llbc_generics = fn.binder_llbc_generics in
+-    let method_explicit_info = fn.binder_explicit_info in
++    (* A trait-impl method fills a field of the trait dictionary. The field's
++       binder visibility comes from the trait declaration, which is the type
++       Lean checks against. Use that signature rather than the bound function's
++       explicitness annotation when printing the field binder. *)
++    let trait_decl = TraitDeclId.Map.find trait_decl_id ctx.trans_trait_decls in
++    let method_decl =
++      List.find
++        (fun (meth : trait_method) -> meth.method_id = method_id)
++        trait_decl.methods
++    in
++    let method_explicit_info = method_decl.signature.explicit_info in

@@ -1,0 +1,360 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "readers",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Readers.has_remaining_returns_positive_iff",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::has_remaining"
+      ],
+      "verified_behavior": "After remaining returns n, the default result is true exactly when n > 0.",
+      "assumptions": [
+        "Buf::remaining returns n for self"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 269-271"
+    },
+    {
+      "theorem": "BytesProofs.Readers.has_remaining_returns_false_iff",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::has_remaining"
+      ],
+      "verified_behavior": "After remaining returns n, the default result is false exactly when n is zero.",
+      "assumptions": [
+        "Buf::remaining returns n for self"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 269-271"
+    },
+    {
+      "theorem": "BytesProofs.Readers.chunks_vectored_empty_preserves_destination",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::chunks_vectored"
+      ],
+      "verified_behavior": "An empty destination yields count zero and returns the same destination.",
+      "assumptions": [
+        "Slice::is_empty reports true for the destination"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 207-218"
+    },
+    {
+      "theorem": "BytesProofs.Readers.chunks_vectored_emits_first_chunk",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::chunks_vectored"
+      ],
+      "verified_behavior": "For a nonempty destination and a buffer with remaining data, the default stores IoSlice::new(chunk) at index zero and returns count one.",
+      "assumptions": [
+        "Buf::has_remaining returns true",
+        "Buf::chunk returns src",
+        "IoSlice::new succeeds",
+        "Slice::update at index zero succeeds"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 207-218"
+    },
+    {
+      "theorem": "BytesProofs.Readers.take_default_constructs_capped_view",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::take"
+      ],
+      "verified_behavior": "The default Take stores the input buffer and the requested limit.",
+      "assumptions": [],
+      "source": "src/buf/buf_impl.rs, lines 2394-2399"
+    },
+    {
+      "theorem": "BytesProofs.Readers.chain_default_constructs_ordered_pair",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::chain"
+      ],
+      "verified_behavior": "The default Chain stores the original buffer first and the next buffer second.",
+      "assumptions": [],
+      "source": "src/buf/buf_impl.rs, lines 2416-2421"
+    },
+    {
+      "theorem": "BytesProofs.Readers.reader_default_forwards_factory",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::reader"
+      ],
+      "verified_behavior": "The default returns the Reader produced by buf::reader::new for the input buffer.",
+      "assumptions": [
+        "buf::reader::new returns reader for self"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2448-2453"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_u8_insufficient_preserves_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_u8"
+      ],
+      "verified_behavior": "If fewer than one byte remains, the default reports requested=1 and the available count and preserves self.",
+      "assumptions": [
+        "Mut0T remaining forwarding returns n",
+        "n < 1"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1204-1214"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_u8_reads_head_and_advances",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_u8"
+      ],
+      "verified_behavior": "With at least one byte, the default returns chunk[0] and the state produced by advancing one byte.",
+      "assumptions": [
+        "Mut0T remaining forwarding returns n and n is not below one",
+        "Mut0T chunk forwarding returns src",
+        "src[0] returns byte",
+        "Buf::advance by one returns self'"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1204-1214"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_i8_insufficient_preserves_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_i8"
+      ],
+      "verified_behavior": "If fewer than one byte remains, the default reports requested=1 and the available count and preserves self.",
+      "assumptions": [
+        "Mut0T remaining forwarding returns n",
+        "n < 1"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1239-1249"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_i8_reads_head_and_advances",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_i8"
+      ],
+      "verified_behavior": "With at least one byte, the default returns the I8 hard cast of chunk[0] and the state produced by advancing one byte.",
+      "assumptions": [
+        "Mut0T remaining forwarding returns n and n is not below one",
+        "Mut0T chunk forwarding returns src",
+        "src[0] returns byte",
+        "UScalar.hcast I8 byte returns value",
+        "Buf::advance by one returns self'"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1239-1249"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_copy_to_slice_insufficient_preserves_inputs",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_copy_to_slice"
+      ],
+      "verified_behavior": "When the available count is smaller than dst.length, the default returns the corresponding TryGetError and preserves the buffer state and destination.",
+      "assumptions": [
+        "Buf::remaining returns n",
+        "n < dst.length"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1161-1179"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_copy_loop_empty_body_preserves_inputs",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_copy_to_slice"
+      ],
+      "source": "src/buf/buf_impl.rs, loop body at lines 1169-1177",
+      "verified_behavior": "Loop-body subclaim: an empty destination terminates immediately, retaining self and composing the identity destination through back. This theorem does not establish the full nonempty loop result.",
+      "assumptions": [
+        "Slice::is_empty reports true for dst"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_copy_loop_nonempty_copies_one_chunk_prefix",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_copy_to_slice"
+      ],
+      "source": "src/buf/buf_impl.rs, loop body at lines 1169-1177",
+      "verified_behavior": "Loop-body subclaim: one nonempty iteration takes min(src.length,dst.length), copies the source prefix into the destination prefix, advances by that count, and returns the remaining destination with composed back functions. This is not an end-to-end loop theorem.",
+      "assumptions": [
+        "Mut0T chunk forwarding returns src",
+        "OrdUsize.min returns cnt",
+        "RangeTo destination index_mut and source index return the stated prefixes",
+        "prefix slice lengths are equal",
+        "RangeFrom index_mut on the updated destination succeeds",
+        "Buf::advance by cnt returns self'"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_copy_to_slice_empty_destination_succeeds",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_copy_to_slice"
+      ],
+      "verified_behavior": "For an empty destination the complete default method succeeds with unit, preserves self, and returns the same empty destination.",
+      "assumptions": [
+        "Buf::remaining returns n",
+        "Slice::is_empty reports true for dst"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1161-1179"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_uint_ne_forwards_native_endian",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_uint_ne"
+      ],
+      "verified_behavior": "The generic native-endian unsigned-width helper returns the result and state from try_get_uint_le.",
+      "assumptions": [
+        "Buf::try_get_uint_le returns result and self'"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2045-2051"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_int_ne_forwards_native_endian",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_int_ne"
+      ],
+      "verified_behavior": "The generic native-endian signed-width helper returns the result and state from try_get_int_le.",
+      "assumptions": [
+        "Buf::try_get_int_le returns result and self'"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2151-2157"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_f32_returns_bitcast_and_inner_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_f32"
+      ],
+      "verified_behavior": "After a successful u32 read and successful from_bits conversion, the default returns the converted F32 and the reader's resulting state.",
+      "assumptions": [
+        "Buf::try_get_u32 returns Ok bits and self'",
+        "core::f32::from_bits returns value"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2184-2186"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_f32_le_returns_bitcast_and_inner_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_f32_le"
+      ],
+      "verified_behavior": "After a successful little-endian u32 read and successful from_bits conversion, the default returns the converted F32 and the reader's resulting state.",
+      "assumptions": [
+        "Buf::try_get_u32_le returns Ok bits and self'",
+        "core::f32::from_bits returns value"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2213-2215"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_f32_ne_returns_bitcast_and_inner_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_f32_ne"
+      ],
+      "verified_behavior": "After a successful native-endian u32 read and successful from_bits conversion, the default returns the converted F32 and the reader's resulting state.",
+      "assumptions": [
+        "Buf::try_get_u32_ne returns Ok bits and self'",
+        "core::f32::from_bits returns value"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2245-2247"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_f64_returns_bitcast_and_inner_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_f64"
+      ],
+      "verified_behavior": "After a successful u64 read and successful from_bits conversion, the default returns the converted F64 and the reader's resulting state.",
+      "assumptions": [
+        "Buf::try_get_u64 returns Ok bits and self'",
+        "core::f64::from_bits returns value"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2274-2276"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_f64_le_returns_bitcast_and_inner_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_f64_le"
+      ],
+      "verified_behavior": "After a successful little-endian u64 read and successful from_bits conversion, the default returns the converted F64 and the reader's resulting state.",
+      "assumptions": [
+        "Buf::try_get_u64_le returns Ok bits and self'",
+        "core::f64::from_bits returns value"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2303-2305"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_get_f64_ne_returns_bitcast_and_inner_state",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_get_f64_ne"
+      ],
+      "verified_behavior": "After a successful native-endian u64 read and successful from_bits conversion, the default returns the converted F64 and the reader's resulting state.",
+      "assumptions": [
+        "Buf::try_get_u64_ne returns Ok bits and self'",
+        "core::f64::from_bits returns value"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 2335-2337"
+    },
+    {
+      "theorem": "BytesProofs.Readers.try_copy_to_slice_copies_model_prefix_under_coherent_callbacks",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_copy_to_slice"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1161-1179",
+      "verified_behavior": "For a destination no longer than the initial modeled buffer view, the complete default succeeds, writes exactly the initial view prefix of destination length, and advances the buffer model by exactly that length. The proof covers fragmented chunks over any number of positive-progress loop iterations under the stated callback laws.",
+      "assumptions": [
+        "Buf::remaining returns n and n equals the model view length; the destination length is at most that view length",
+        "For every nonempty loop destination no longer than the current model view, Mut0T::chunk returns a slice whose bytes are the corresponding prefix of the model view",
+        "The generated minimum, range-prefix and range-suffix operations return the stated slices, with equal destination/source prefix lengths",
+        "Each advance returns self\u2032 whose model view is the previous view dropped by cnt",
+        "Each iteration has positive cnt and destination suffix length plus cnt equals the prior destination length"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Readers.finite_slice_cursor_try_copy_to_slice_prefix",
+      "rust_functions": [
+        "bytes::buf::buf_impl::Buf::try_copy_to_slice"
+      ],
+      "source": "src/buf/buf_impl.rs, lines 1161-1179",
+      "verified_behavior": "For the constructed proof-side finite-slice cursor (remaining=len, one-byte chunk, advance=drop one; unused Buf fields are error stubs), the translated default succeeds when the destination fits the unread slice, returns exactly that prefix, and leaves the corresponding suffix. The one-byte callback law applies on each nonempty loop iteration, so the result covers repeated chunks. This is a Lean model instance, not a proof about any concrete Rust Buf implementation.",
+      "assumptions": [
+        "Destination length is at most the input finite-slice cursor length"
+      ]
+    }
+  ],
+  "blocked_roots": [
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_u16_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_i16_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_u32_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_i32_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_u64_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_i64_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_u128_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::Buf::try_get_i128_ne",
+      "source": "src/buf/buf_impl.rs; existing frozen opaque default",
+      "reason": "This fixed-width default method remains an opaque axiom in the frozen baseline; verifying its body requires changing the fixed opacity policy."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 mut T}::remaining",
+      "source": "src/buf/buf_impl.rs, deref_forward_buf! invocation at line 2882",
+      "reason": "Charon extraction target rejection",
+      "detail": "The documented `'_0` target is unparsable; the generic `&mut _` NamePattern is rejected because only named self types are supported."
+    },
+    {
+      "rust_function": "bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for alloc::boxed::Box<T>}::remaining",
+      "source": "src/buf/buf_impl.rs, deref_forward_buf! invocation at line 2886",
+      "reason": "A targeted Box impl path resolves, but Aeneas extraction fails with unsupported nested mutable-borrow and mixed-recursion errors before producing the forwarding body."
+    }
+  ]
+}

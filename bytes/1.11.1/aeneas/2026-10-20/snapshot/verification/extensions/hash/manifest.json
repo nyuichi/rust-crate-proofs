@@ -1,0 +1,73 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "hash",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Hash.bytes_hash_delegates_to_slice_hash",
+      "rust_functions": [
+        "{impl core::hash::Hash for bytes::bytes::Bytes}::hash"
+      ],
+      "verified_behavior": "Hash hashes the successful Bytes slice view with the supplied hasher and returns the slice hash operation result.",
+      "assumptions": [
+        "Bytes::as_slice succeeds with the supplied slice.",
+        "Slice hashing succeeds with the supplied result."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes.Vtable",
+        "bytes.Bytes.as_slice",
+        "Slice.Insts.CoreHashHash.hash",
+        "U8.Insts.CoreHashHash.hash",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Hash.bytes_mut_hash_delegates_to_slice_hash",
+      "rust_functions": [
+        "{impl core::hash::Hash for bytes::bytes_mut::BytesMut}::hash"
+      ],
+      "verified_behavior": "Hash hashes the successful BytesMut slice view with the supplied hasher and returns the slice hash operation result.",
+      "assumptions": [
+        "BytesMut::as_slice succeeds with the supplied slice.",
+        "Slice hashing succeeds with the supplied result."
+      ],
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "bytes_mut.BytesMut.as_slice",
+        "Slice.Insts.CoreHashHash.hash",
+        "U8.Insts.CoreHashHash.hash",
+        "core.ptr.non_null.NonNull",
+        "core.sync.atomic.Atomic",
+        "core.sync.atomic.private.Align8"
+      ]
+    }
+  ],
+  "blocked_roots": [],
+  "dependency_classification": {
+    "standard_logic_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "opaque_type_axioms": [
+      "bytes.Vtable",
+      "core.ptr.non_null.NonNull",
+      "core.sync.atomic.Atomic",
+      "core.sync.atomic.private.Align8"
+    ],
+    "opaque_behavior_axioms": [
+      "Slice.Insts.CoreHashHash.hash",
+      "U8.Insts.CoreHashHash.hash",
+      "bytes.Bytes.as_slice",
+      "bytes_mut.BytesMut.as_slice"
+    ],
+    "note": "Opaque type axioms declare abstract representation types only. Opaque behavior axioms are translated Rust/library operations with no proved body in this profile. Per-theorem exact axiom dependencies are listed on each proof and rechecked into receipt.json.",
+    "opaque_value_axioms": []
+  }
+}

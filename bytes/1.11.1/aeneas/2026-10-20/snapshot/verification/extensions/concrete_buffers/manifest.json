@@ -1,0 +1,149 @@
+{
+  "schema": "bytes-coverage-extension-v1",
+  "group": "concrete_buffers",
+  "receipt": "receipt.json",
+  "proofs": [
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.vec_remaining_mut_is_isize_max_minus_len",
+      "rust_functions": [
+        "bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::remaining_mut"
+      ],
+      "verified_behavior": "The transparent Vec<u8> BufMut implementation returns the fallible usize subtraction isize::MAX as usize minus the current length, including underflow behavior.",
+      "assumptions": [],
+      "source_file": "src/buf/buf_mut.rs",
+      "source_span": "src/buf/buf_mut.rs:1601:4-1604:5"
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.vec_remaining_mut_exact_amount",
+      "rust_functions": [
+        "bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::remaining_mut"
+      ],
+      "verified_behavior": "When Vec length is at most the cast isize::MAX, remaining_mut succeeds with the exact arithmetic difference.",
+      "assumptions": [
+        "The Vec length is no greater than isize::MAX as usize; outside this precondition the Rust subtraction can fail."
+      ],
+      "source_file": "src/buf/buf_mut.rs",
+      "source_span": "src/buf/buf_mut.rs:1601:4-1604:5"
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_remaining_mut_is_isize_max_minus_len",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::remaining_mut"
+      ],
+      "verified_behavior": "The transparent BytesMut BufMut implementation returns the fallible usize subtraction isize::MAX as usize minus the current length, including underflow behavior.",
+      "assumptions": []
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_remaining_mut_exact_amount",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::remaining_mut"
+      ],
+      "verified_behavior": "When BytesMut length is at most the cast isize::MAX, remaining_mut succeeds with the exact arithmetic difference.",
+      "assumptions": [
+        "The BytesMut length is no greater than isize::MAX as usize; outside this precondition the Rust subtraction can fail."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_put_slice_appends",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::put_slice"
+      ],
+      "verified_behavior": "On a successful opaque extend_from_slice callback, put_slice returns its resulting buffer and appends the exact input slice to any contents model satisfying the callback append law.",
+      "assumptions": [
+        "The contents model satisfies the stated append law for every successful opaque BytesMut::extend_from_slice call.",
+        "The specific extend_from_slice call succeeds with the stated result."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_put_returns_self_for_empty_source",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::put"
+      ],
+      "verified_behavior": "If the source Buf reports no remaining bytes, BytesMut::put returns the original receiver without querying capacity or mutating it.",
+      "assumptions": [
+        "The supplied Buf::has_remaining callback succeeds with false."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_put_with_capacity_delegates_to_loop",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::put"
+      ],
+      "verified_behavior": "For a nonempty source and nonzero initial capacity, put obtains the source remaining count, reserves that amount, and returns the successful put-loop result.",
+      "assumptions": [
+        "The supplied Buf::has_remaining, remaining, BytesMut::capacity, reserve, and put-loop callbacks succeed with the stated values.",
+        "The initial capacity is nonzero."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_put_zero_capacity_reuses_unique_bytes",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::put"
+      ],
+      "verified_behavior": "For a nonempty source and zero-capacity receiver, a successful copy_to_bytes followed by a successful unique Bytes-to-BytesMut conversion returns the converted allocation after dropping the advanced source value.",
+      "assumptions": [
+        "The supplied Buf callbacks report a nonempty source, return the stated remaining count, and copy to the stated Bytes/source pair.",
+        "Dropping the advanced source succeeds.",
+        "Bytes::try_into_mut succeeds with the stated BytesMut."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.bytes_mut_put_zero_capacity_extends_when_bytes_are_shared",
+      "rust_functions": [
+        "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::put"
+      ],
+      "verified_behavior": "For a nonempty source and zero-capacity receiver, when the copied Bytes cannot be uniquely converted, put dereferences the fallback Bytes and returns the result of extending the receiver with that slice.",
+      "assumptions": [
+        "The supplied Buf callbacks report a nonempty source, return the stated remaining count, and copy to the stated Bytes/source pair.",
+        "Dropping the advanced source succeeds.",
+        "Bytes::try_into_mut returns the stated shared fallback Bytes.",
+        "The fallback dereference and opaque BytesMut::extend_from_slice callback succeed with the stated values."
+      ]
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.vec_put_appends_the_source",
+      "rust_functions": [
+        "bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::put"
+      ],
+      "verified_behavior": "Under explicit Buf chunk/advance sequence laws, a successful content-preserving reserve, and a total-size bound of isize::MAX, the actual Vec put loop appends the unread source bytes to Vec::val. Vec::extend_from_slice's U8 append behavior is proved from the Aeneas model.",
+      "assumptions": [
+        "The Buf has_remaining callback agrees with whether the modeled unread byte list is empty.",
+        "On every nonempty source state, the opaque Buf chunk and advance callbacks succeed, produce a nonempty chunk, and split the modeled unread bytes into that chunk plus the next unread suffix.",
+        "The initial Vec length plus modeled source length is at most isize::MAX as usize.",
+        "Buf::remaining succeeds with the stated amount.",
+        "The opaque Vec::reserve callback succeeds and preserves Vec::val."
+      ],
+      "source_file": "src/buf/buf_mut.rs",
+      "source_span": "src/buf/buf_mut.rs:1641:4-1654:5"
+    },
+    {
+      "theorem": "BytesProofs.Extensions.ConcreteBuffers.vec_put_appends_finite_slice_chunks",
+      "rust_functions": [
+        "bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for alloc::vec::Vec<u8>}::put"
+      ],
+      "verified_behavior": "Instantiating the actual translated Vec<u8>::put body with a concrete finite-slice Buf dictionary whose positive-width chunk, remaining, has_remaining, and advance callbacks are all defined from Slice/list operations, Vec::put appends every source byte in order across all chunks.",
+      "assumptions": [
+        "The source is the explicit Lean FiniteChunkedSlice semantic Buf model; this theorem does not claim that model is a particular Rust Buf implementation.",
+        "Chunk width is positive, so each nonempty source state produces a nonempty chunk and the actual loop progresses.",
+        "Initial Vec length plus source slice length is at most isize::MAX as usize.",
+        "The opaque Vec::reserve callback succeeds for the slice length and preserves Vec.val."
+      ],
+      "source_file": "src/buf/buf_mut.rs",
+      "source_span": "src/buf/buf_mut.rs:1641:4-1654:5"
+    }
+  ],
+  "blocked_roots": [
+    {
+      "rust_function": "bytes::bytes_mut::{impl bytes::buf::buf_mut::BufMut for bytes::bytes_mut::BytesMut}::chunk_mut",
+      "reason": "The actual transparent body selects the From<&mut [MaybeUninit<u8>]> conversion, whose generated mutable callback-triple signature fails Lean typechecking (the translated return shape is a pair where Aeneas expects a bare UninitSlice). This is a backend boundary; no implementation or opacity changes were made."
+    },
+    {
+      "rust_function": "bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for &mut [u8]}::remaining_mut",
+      "reason": "The exact impl selector is rejected by Charon\u2019s --start-from parser for slice-reference receiver types (`&mut [u8]` and `&mut [MaybeUninit<u8>]`). This group has no scoped wrapper extraction for these roots, so their actual bodies remain uncovered."
+    },
+    {
+      "rust_function": "bytes::buf::buf_mut::{impl bytes::buf::buf_mut::BufMut for &mut [core::mem::maybe_uninit::MaybeUninit<u8>]}::remaining_mut",
+      "reason": "The exact impl selector is rejected by Charon\u2019s --start-from parser for slice-reference receiver types (`&mut [u8]` and `&mut [MaybeUninit<u8>]`). This group has no scoped wrapper extraction for these roots, so their actual bodies remain uncovered."
+    }
+  ]
+}

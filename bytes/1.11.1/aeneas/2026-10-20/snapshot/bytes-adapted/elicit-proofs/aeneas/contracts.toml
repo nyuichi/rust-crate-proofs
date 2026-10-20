@@ -1,0 +1,97 @@
+schema_version = 1
+
+[contracts."bytes::bytes::impl[cba410c69053e616]::len::Method"]
+ensures = "fun self out => out = self.len"
+theorem = "BytesElicit.bytes_len_returns_stored_length"
+
+[contracts."bytes::bytes_mut::impl[4a43bd41cd51478d]::len::Method"]
+ensures = "fun self out => out = self.len"
+theorem = "BytesElicit.bytes_mut_len_returns_stored_length"
+
+[contracts."bytes::buf::take::new::Function"]
+ensures = "fun inner limit out => out.inner = inner ∧ out.limit = limit"
+theorem = "BytesElicit.take_new_fields"
+
+[contracts."bytes::buf::take::impl[ffcc1bb22eddbeee]::into_inner::Method"]
+ensures = "fun self out => out = self.inner"
+theorem = "BytesElicit.take_into_inner_returns_inner"
+
+[contracts."bytes::buf::take::impl[ffcc1bb22eddbeee]::limit::Method"]
+ensures = "fun self out => out = self.limit"
+theorem = "BytesElicit.take_limit_returns_stored_limit"
+
+[contracts."bytes::buf::take::impl[ffcc1bb22eddbeee]::set_limit::Method"]
+ensures = "fun self lim out => out.inner = self.inner ∧ out.limit = lim"
+theorem = "BytesElicit.take_set_limit_changes_only_limit"
+
+[contracts."bytes::buf::chain::impl[d3de412caf24f872]::new::Method"]
+ensures = "fun a b out => out.a = a ∧ out.b = b"
+theorem = "BytesElicit.chain_new_fields"
+
+[contracts."bytes::buf::chain::impl[d3de412caf24f872]::first_ref::Method"]
+ensures = "fun self out => out = self.a"
+theorem = "BytesElicit.chain_first_ref_returns_first"
+
+[contracts."bytes::buf::chain::impl[d3de412caf24f872]::first_mut::Method"]
+ensures = "fun self out => out.1 = self.a ∧ ∀ replacement, (out.2 replacement).a = replacement ∧ (out.2 replacement).b = self.b"
+theorem = "BytesElicit.chain_first_mut_replaces_first"
+
+[contracts."bytes::buf::chain::impl[d3de412caf24f872]::last_ref::Method"]
+ensures = "fun self out => out = self.b"
+theorem = "BytesElicit.chain_last_ref_returns_second"
+
+[contracts."bytes::buf::chain::impl[d3de412caf24f872]::last_mut::Method"]
+ensures = "fun self out => out.1 = self.b ∧ ∀ replacement, (out.2 replacement).a = self.a ∧ (out.2 replacement).b = replacement"
+theorem = "BytesElicit.chain_last_mut_replaces_second"
+
+[contracts."bytes::buf::chain::impl[d3de412caf24f872]::into_inner::Method"]
+ensures = "fun self out => out.1 = self.a ∧ out.2 = self.b"
+theorem = "BytesElicit.chain_into_inner_returns_fields"
+
+[contracts."bytes::buf::take::impl[ffcc1bb22eddbeee]::get_ref::Method"]
+ensures = "fun self out => out = self.inner"
+theorem = "BytesElicit.take_get_ref_returns_inner"
+
+[contracts."bytes::buf::take::impl[ffcc1bb22eddbeee]::get_mut::Method"]
+ensures = "fun self out => out.1 = self.inner ∧ ∀ replacement, (out.2 replacement).inner = replacement ∧ (out.2 replacement).limit = self.limit"
+theorem = "BytesElicit.take_get_mut_replaces_inner_only"
+
+[contracts."bytes::buf::limit::new::Function"]
+ensures = "fun inner limit out => out.inner = inner ∧ out.limit = limit"
+theorem = "BytesElicit.limit_new_fields"
+
+[contracts."bytes::buf::limit::impl[0ff0577eccf01216]::get_ref::Method"]
+ensures = "fun self out => out = self.inner"
+theorem = "BytesElicit.limit_get_ref_returns_inner"
+
+[contracts."bytes::buf::limit::impl[0ff0577eccf01216]::get_mut::Method"]
+ensures = "fun self out => out.1 = self.inner ∧ ∀ replacement, (out.2 replacement).inner = replacement ∧ (out.2 replacement).limit = self.limit"
+theorem = "BytesElicit.limit_get_mut_replaces_inner_only"
+
+[contracts."bytes::buf::limit::impl[0ff0577eccf01216]::limit::Method"]
+ensures = "fun self out => out = self.limit"
+theorem = "BytesElicit.limit_returns_stored_limit"
+
+[contracts."bytes::buf::limit::impl[0ff0577eccf01216]::set_limit::Method"]
+ensures = "fun self lim out => out.inner = self.inner ∧ out.limit = lim"
+theorem = "BytesElicit.limit_set_limit_changes_only_limit"
+
+[contracts."bytes::buf::limit::impl[0ff0577eccf01216]::into_inner::Method"]
+ensures = "fun self out => out = self.inner"
+theorem = "BytesElicit.limit_into_inner_returns_inner"
+
+[contracts."bytes::buf::iter::impl[b50d620704643e09]::new::Method"]
+ensures = "fun inner out => out.inner = inner"
+theorem = "BytesElicit.into_iter_new_field"
+
+[contracts."bytes::buf::iter::impl[b50d620704643e09]::get_ref::Method"]
+ensures = "fun self out => out = self.inner"
+theorem = "BytesElicit.into_iter_get_ref_returns_inner"
+
+[contracts."bytes::buf::iter::impl[b50d620704643e09]::get_mut::Method"]
+ensures = "fun self out => out.1 = self.inner ∧ ∀ replacement, (out.2 replacement).inner = replacement"
+theorem = "BytesElicit.into_iter_get_mut_replaces_inner"
+
+[contracts."bytes::buf::iter::impl[b50d620704643e09]::into_inner::Method"]
+ensures = "fun self out => out = self.inner"
+theorem = "BytesElicit.into_iter_into_inner_returns_inner"

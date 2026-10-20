@@ -1,0 +1,102 @@
+{
+  "target": "bytes 1.11.1",
+  "translation": {
+    "tool": "Aeneas",
+    "revision": "e62dd83d",
+    "module": "../Generated.lean",
+    "lean_version": "4.35.0",
+    "input": "adapted bytes source translated with the pinned Aeneas revision"
+  },
+  "proof_file": "Proofs.lean",
+  "verification_command": "source ../env.sh && lake env lean basic/Proofs.lean",
+  "status": "kernel checked",
+  "scope": {
+    "inputs": "Each theorem is universally quantified over every value of the corresponding generated Lean structure.",
+    "behavioral_contracts": [],
+    "explicit_assumptions": [],
+    "claim_boundary": "Properties are proved about the transparent Aeneas-translated function bodies; no Rust-to-Lean compiler correctness theorem is included."
+  },
+  "properties": [
+    {
+      "theorem": "BytesProofs.Basic.bytes_len_returns_stored_length",
+      "rust_function": "bytes::Bytes::len",
+      "source": "src/bytes.rs:299-301",
+      "specification": "For every self, Bytes.len self = ok self.len.",
+      "proof": "rfl",
+      "print_axioms": ["propext", "Quot.sound", "bytes.bytes.Vtable", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_is_empty_returns_length_test",
+      "rust_function": "bytes::Bytes::is_empty",
+      "source": "src/bytes.rs:314-316",
+      "specification": "For every self, Bytes.is_empty self = ok (decide (self.len = 0)).",
+      "proof": "rfl",
+      "print_axioms": ["propext", "Classical.choice", "Quot.sound", "bytes.bytes.Vtable", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_is_empty_iff_length_zero",
+      "rust_function": "bytes::Bytes::is_empty",
+      "source": "src/bytes.rs:314-316",
+      "specification": "For every self, Bytes.is_empty self = ok true iff self.len = 0.",
+      "proof": "simp [translated function]",
+      "print_axioms": ["propext", "Classical.choice", "Quot.sound", "bytes.bytes.Vtable", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_is_empty_iff_len_returns_zero",
+      "rust_function": "bytes::Bytes::{is_empty,len}",
+      "source": "src/bytes.rs:299-301,314-316",
+      "specification": "For every self, Bytes.is_empty self = ok true iff Bytes.len self = ok 0.",
+      "proof": "simp [translated functions]",
+      "print_axioms": ["propext", "Classical.choice", "Quot.sound", "bytes.bytes.Vtable", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_mut_len_returns_stored_length",
+      "rust_function": "bytes::BytesMut::len",
+      "source": "src/bytes_mut.rs:186-188",
+      "specification": "For every self, BytesMut.len self = ok self.len.",
+      "proof": "rfl",
+      "print_axioms": ["propext", "Quot.sound", "bytes.core.ptr.non_null.NonNull", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_mut_capacity_returns_stored_capacity",
+      "rust_function": "bytes::BytesMut::capacity",
+      "source": "src/bytes_mut.rs:216-218",
+      "specification": "For every self, BytesMut.capacity self = ok self.cap.",
+      "proof": "rfl",
+      "print_axioms": ["propext", "Quot.sound", "bytes.core.ptr.non_null.NonNull", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_mut_is_empty_returns_length_test",
+      "rust_function": "bytes::BytesMut::is_empty",
+      "source": "src/bytes_mut.rs:201-203",
+      "specification": "For every self, BytesMut.is_empty self = ok (decide (self.len = 0)).",
+      "proof": "rfl",
+      "print_axioms": ["propext", "Classical.choice", "Quot.sound", "bytes.core.ptr.non_null.NonNull", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_mut_is_empty_iff_length_zero",
+      "rust_function": "bytes::BytesMut::is_empty",
+      "source": "src/bytes_mut.rs:201-203",
+      "specification": "For every self, BytesMut.is_empty self = ok true iff self.len = 0.",
+      "proof": "simp [translated function]",
+      "print_axioms": ["propext", "Classical.choice", "Quot.sound", "bytes.core.ptr.non_null.NonNull", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    },
+    {
+      "theorem": "BytesProofs.Basic.bytes_mut_is_empty_iff_len_returns_zero",
+      "rust_function": "bytes::BytesMut::{is_empty,len}",
+      "source": "src/bytes_mut.rs:186-188,201-203",
+      "specification": "For every self, BytesMut.is_empty self = ok true iff BytesMut.len self = ok 0.",
+      "proof": "simp [translated functions]",
+      "print_axioms": ["propext", "Classical.choice", "Quot.sound", "bytes.core.ptr.non_null.NonNull", "bytes.core.sync.atomic.Atomic", "bytes.core.sync.atomic.private.Align8"]
+    }
+  ],
+  "opaque_type_dependencies": {
+    "generated_model_types": [
+      "bytes.bytes.Vtable",
+      "bytes.core.ptr.non_null.NonNull",
+      "bytes.core.sync.atomic.Atomic",
+      "bytes.core.sync.atomic.private.Align8"
+    ],
+    "interpretation": "These axioms declare abstract field types used by the generated input structures. No behavioral method contract or function-body axiom occurs in the audited theorem dependencies."
+  }
+}

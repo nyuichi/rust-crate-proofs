@@ -1,0 +1,44 @@
+{
+  "roots": [
+    "bytes_borrowed_iter_harness::bytes_ref_iter",
+    "bytes_borrowed_iter_harness::bytesmut_ref_iter"
+  ],
+  "root_count": 2,
+  "include": [
+    "bytes"
+  ],
+  "opaque_pattern_count": 209,
+  "opaque_profile": "exact verification/opaque-baseline.json pattern set",
+  "charon_command": [
+    "charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--format=json",
+    "--no-dedup-serialized-ast",
+    "--dest-file",
+    "verification/extensions/borrowed_iter/borrowed_iter.llbc",
+    "--include",
+    "bytes",
+    "--",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "x86_64-unknown-linux-gnu"
+  ],
+  "aeneas_command": [
+    "aeneas",
+    "-backend",
+    "lean",
+    "-dest",
+    "verification/extensions/borrowed_iter/lean",
+    "-filter-trait-methods",
+    "verification/extensions/borrowed_iter/borrowed_iter.llbc"
+  ],
+  "raw_generated": "verification/extensions/borrowed_iter/lean/BorrowedIter.lean",
+  "raw_sha256": "5fd8e27da871ee5b3f6f7d01c7076ecb5ba9220a11a197ee40e27e53245e97b5",
+  "raw_llbc": "verification/extensions/borrowed_iter/borrowed_iter.llbc",
+  "raw_llbc_sha256": "d4914628e8345ffe6f8433a78c5bf7b8cbd2a426b13a9e5862e48edc9467afa6",
+  "augmentation": "Add only `public import FloatTypes` after the generated Aeneas import; no generated body is edited."
+}
