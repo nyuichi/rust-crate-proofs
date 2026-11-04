@@ -55,9 +55,13 @@ cargo proofs publish --manifest-path ../Cargo.toml --dry-run
 cargo proofs publish --manifest-path ../Cargo.toml
 ```
 
-`cargo-proofs` 0.4.1 was locally configured to trust the environment's proxy CA;
-[the one-line patch](evidence/cargo-proofs-environment-ca.patch) preserves TLS
-verification and changes neither proof collection nor the axiom audit.
+`cargo-proofs` 0.4.1 uses two compatibility patches:
+[environment CA trust](evidence/cargo-proofs-environment-ca.patch), preserving
+TLS verification, and [an audit-local variable rename](evidence/cargo-proofs-audit-compat.patch)
+from `name` to `theorem_name` to avoid a Lean 4.35 parser conflict. The latter
+matches the official upstream audit at commit
+[`74acff732c94bc23142913cd03d398b40648fc27`](https://github.com/proofs-rs/proofs-rs/blob/74acff732c94bc23142913cd03d398b40648fc27/cli/src/aeneas.rs).
+The theorem-existence checks and the allowed-axiom policy are unchanged.
 
 The trusted compiler/translation/model/kernel boundary is described in
 `proofs.toml`. No derived standard-trait implementations occur in this crate;
