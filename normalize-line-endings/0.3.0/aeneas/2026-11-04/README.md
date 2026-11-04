@@ -14,16 +14,31 @@ resumption after `None`, are outside this end-to-end guarantee.
 The root `src/lib.rs` is the unchanged published source. The pinned Aeneas
 translator cannot handle its character-pattern switches, so extraction uses
 `translation-source/src/lib.rs`, which replaces three character patterns with
-equality guards. An independent source review found matching conditions, state
-updates, return values, and iterator calls. This equivalence was **not
-machine-proved**: the formal guarantee applies to the adapted extraction and
-does not independently establish the same guarantee for the release.
+equality guards. Kani now checks the actual original and adapted `next` bodies
+for one-step equivalence: returned value, adapter state, callback count, and
+remaining modeled iterator state agree for both prior-state flags and every
+possible pair of `Option<char>` replies. Callback updates to a modeled `u64`
+state are also arbitrary. This includes non-fused reply sequences.
+
+The two-reply bound covers the maximum calls made by one `next`; it is not a
+bound on input string length. This supplementary check is limited to
+non-panicking callback traces. It does not prove generic contextual equivalence
+for every Rust iterator, its panics or divergence, or an entire execution
+history. The end-to-end Aeneas theorem remains a proof of the adapted extraction
+under the total fused list iterator model, rather than a direct extraction proof
+of the unmodified release.
+
+Existing optimized-MIR options did not remove the original unsupported switch.
+An [isolated investigation](evidence/original-mir-options/README.md) also
+records a successful external IR-normalization experiment. That new pass is
+unverified and is not used by the published proof.
 
 ## Evidence
 
 - [Published source and archive provenance](evidence/UPSTREAM.md).
 - [Complete adaptation patch](evidence/char-pattern-to-guard.patch) and
   [independent manual review](evidence/ADAPTATION-REVIEW.md).
+- [Kani source-equivalence harness, limits, and results](evidence/kani-equivalence/README.md).
 - [Generated bodies](proofs/Generated/NormalizeLineEndings.lean) and
   [translation manifest](proofs/Generated/translation.json).
 - [Public theorem and body refinement](proofs/Proofs.lean), supported by the

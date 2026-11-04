@@ -18,9 +18,13 @@ An independent manual source review checked the following:
   the same condition as the original guard.
 - The correspondence also preserves calls and state for non-fused iterators.
 
-This is a manual equivalence review, not a machine-checked equivalence theorem.
-The Lean body proofs apply to the adapted extraction. They do not independently
-establish equivalence with the original crates.io implementation.
+This review itself is manual. The later
+[Kani equivalence harness](kani-equivalence/README.md) checks the original and
+adapted bodies for one-step equality under a non-panicking two-reply iterator
+trace model. It does not establish generic contextual equivalence for arbitrary
+Rust iterator implementations. The Lean body proofs still apply to the adapted
+extraction; the original character switches remain unsupported by the pinned
+translator.
 
 The root `src/lib.rs` remains byte-for-byte equal to the published source.
 Its SHA-256 is `1ae29ba0393192db102a26bf8db05c15ed05adc7c4474ad1bde05ef2bc937225`.
