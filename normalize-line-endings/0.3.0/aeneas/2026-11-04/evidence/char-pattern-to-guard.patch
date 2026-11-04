@@ -1,0 +1,24 @@
+--- src/lib.rs	2026-11-04 13:57:40.930428714 +0000
++++ translation-source/src/lib.rs	2026-11-04 14:11:32.232284404 +0000
+@@ -41,10 +41,10 @@
+     type Item = char;
+     fn next(&mut self) -> Option<char> {
+         match self.iter.next() {
+-            Some('\n') if self.prev_was_cr => {
++            Some(c) if c == '\n' && self.prev_was_cr => {
+                 self.prev_was_cr = false;
+                 match self.iter.next() {
+-                    Some('\r') => {
++                    Some(c) if c == '\r' => {
+                         self.prev_was_cr = true;
+                         Some('\n')
+                     }
+@@ -54,7 +54,7 @@
+                     }
+                 }
+             }
+-            Some('\r') => {
++            Some(c) if c == '\r' => {
+                 self.prev_was_cr = true;
+                 Some('\n')
+             }
