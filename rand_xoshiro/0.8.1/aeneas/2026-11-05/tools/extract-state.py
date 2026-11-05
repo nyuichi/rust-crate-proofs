@@ -8,7 +8,7 @@ for mode in ['default','serde']:
  for x in roots:args+=['--start-from',x]
  if mode=='serde':args+=['--','--features','serde']
  with (out/'charon.log').open('w') as log:subprocess.run(args,check=True,env=dict(os.environ,CARGO_NET_OFFLINE='true'),stdout=log,stderr=subprocess.STDOUT)
- with (out/'aeneas.log').open('w') as log:subprocess.run(['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(out/'generated'),str(out/'split_mix_state.llbc')],check=True,stdout=log,stderr=subprocess.STDOUT)
+ with (out/'aeneas.log').open('w') as log:subprocess.run(['aeneas','-backend','lean','-emit-json','-namespace','SplitMixStateModel','-split-files','-abort-on-error','-dest',str(out/'generated'),str(out/'split_mix_state.llbc')],check=True,stdout=log,stderr=subprocess.STDOUT)
  assert not json.loads((out/'split_mix_state.llbc').read_text())['has_errors']
  assert not re.search(r'\b(sorry|axiom)\b','\n'.join(p.read_text() for p in (out/'generated').glob('*.lean')))
 rows=[]

@@ -18,7 +18,7 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
-namespace rand_xoshiro
+namespace SplitMixStateModel
 
 /-- [rand_xoshiro::splitmix64::SplitMix64]
     Source: 'src/splitmix64.rs', lines 26:0-28:1
@@ -26,4 +26,4 @@ namespace rand_xoshiro
 structure splitmix64.SplitMix64 where
   x : Std.U64
 
-end rand_xoshiro
+end SplitMixStateModel

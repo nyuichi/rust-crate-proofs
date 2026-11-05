@@ -1,6 +1,6 @@
 import SplitMixState.Funs
 open Aeneas Aeneas.Std Result Std.WP
-open rand_xoshiro
+open SplitMixStateModel
 namespace StateProofs
 theorem splitmix_state_spec (s : splitmix64.SplitMix64) :
     s.state ⦃ bytes => bytes.val = s.x.bv.toLEBytes.map (@UScalar.mk UScalarTy.U8) ⦄ := by

@@ -20,6 +20,7 @@ python3 tools/extract-state.py | tee evidence/state-extraction.log
 sha256sum --check evidence/state-generated-before.sha256
 if rg -n '\b(sorry|axiom)\b' proofs --glob '*.lean' --glob '!**/.lake/**'; then exit 1; fi
 (cd proofs; lake build; lake env lean Proofs.lean; lake env lean WrapperProofs.lean; lake env lean SeedProofs.lean; lake env lean StateProofs.lean) 2>&1 | tee evidence/verification.log
+(cd proofs; printf 'import Proofs\nimport WrapperProofs\nimport SeedProofs\nimport StateProofs\n' | lake env lean --stdin) 2>&1 | tee evidence/simultaneous-import.log
 python3 - <<'AUDIT'
 import re,tomllib
 s=open('evidence/verification.log').read()
