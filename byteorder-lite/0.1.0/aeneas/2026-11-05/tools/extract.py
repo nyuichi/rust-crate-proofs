@@ -104,3 +104,14 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/native-identity/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/native-identity/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/provide-native-no-model.py'],cwd=p,check=True)
+
+(p/'evidence/u48').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder_lite','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/u48')]
+(p/'evidence/u48/charon-command.json').write_text(json.dumps(cmd,indent=2))
+u48_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/u48/rustflags.json').write_text(json.dumps({'RUSTFLAGS':u48_flags}))
+with (p/'evidence/u48/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/u48-selector',env=dict(os.environ,RUSTFLAGS=u48_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/ByteorderLiteU48Roots'),str(p/'evidence/u48/byteorder_lite_u48_roots.llbc')]
+(p/'evidence/u48/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/u48/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-u48.py'],cwd=p,check=True)

@@ -42,3 +42,6 @@ lean_lib ByteorderLite
 lean_lib NativeIdentityProofs
 
 lean_lib NativeFloatIdentityProofs
+
+lean_lib ByteorderLiteU48Roots
+lean_lib U48Proofs

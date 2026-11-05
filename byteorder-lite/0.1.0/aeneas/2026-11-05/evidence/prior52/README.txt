@@ -1,0 +1,1 @@
+Historical editorial note inherited from frozen candidate52. Its verification.log reference describes that prior snapshot, not the current candidate60. The current whole verification is evidence/verification.log and current mappings are proofs.toml.

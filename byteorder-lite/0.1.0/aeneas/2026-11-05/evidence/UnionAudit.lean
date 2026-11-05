@@ -9,6 +9,7 @@ import SignedVariableContracts
 import SignedReadProofs
 import NativeIdentityProofs
 import NativeFloatIdentityProofs
+import U48Proofs
 #print axioms Proofs.be_write_u16_contract
 #print axioms Proofs.be_write_u32_contract
 #print axioms Proofs.be_write_u64_contract
@@ -61,3 +62,11 @@ import NativeFloatIdentityProofs
 #print axioms NativeIdentityProofs.le_from_slice_i128_identity
 #print axioms NativeFloatIdentityProofs.le_from_slice_f32_bits_identity
 #print axioms NativeFloatIdentityProofs.le_from_slice_f64_bits_identity
+#print axioms U48Proofs.be_read_u48_final
+#print axioms U48Proofs.be_write_u48_plain
+#print axioms U48Proofs.be_read_i48_final
+#print axioms U48Proofs.be_write_i48_final
+#print axioms U48Proofs.le_read_u48_final
+#print axioms U48Proofs.le_write_u48_plain
+#print axioms U48Proofs.le_read_i48_final
+#print axioms U48Proofs.le_write_i48_final
