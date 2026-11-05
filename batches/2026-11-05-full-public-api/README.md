@@ -6,15 +6,15 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Single strict-inventory entry point
 
-[All13 strict source inventories and current413 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
+[All13 strict source inventories and current415 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
 
 ## Current public results
 
-**Thirteen reports contain 413 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 415 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
-| ascii 1.1.0 | [28 / 6](https://proofs.rs/report/28) | 49 |
+| ascii 1.1.0 | [28 / 7](https://proofs.rs/report/28) | 51 |
 | base16ct 1.0.0 | [31 / 3](https://proofs.rs/report/31) | 3 |
 | bit_field 0.10.3 | [34 / 5](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |
