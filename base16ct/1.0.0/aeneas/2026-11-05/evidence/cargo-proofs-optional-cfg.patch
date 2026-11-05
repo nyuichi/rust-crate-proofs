@@ -1,0 +1,30 @@
+--- a/src/scan.rs
++++ b/src/scan.rs
+@@ -158,6 +158,8 @@
+                         | "aeneas"
+                         | "test"
+                         | "doctest"
++                        | "miri"
++                        | "docsrs"
+                         | "unix"
+                         | "windows"
+                         | "debug_assertions"
+@@ -1592,6 +1594,18 @@
+     }
+ 
+     #[test]
++    fn standard_optional_cfg_predicates_follow_recorded_cfg() {
++        let (_d, mut p) = project("pub fn f() {}");
++        for name in ["doctest", "miri", "docsrs"] {
++            let meta = syn::parse_str::<Meta>(name).unwrap();
++            assert!(!predicate(&meta, &p).unwrap(), "{name}");
++            p.cfg.insert(name.into());
++            assert!(predicate(&meta, &p).unwrap(), "{name}");
++            p.cfg.remove(name);
++        }
++        assert!(predicate(&syn::parse_str::<Meta>("unrecognized_build_mode").unwrap(), &p).is_err());
++    }
++    #[test]
+     fn root_rand_core_identity_reexport_is_not_an_alias_cycle() {
+         let (_d, p) = project("pub use rand_core; use rand_core::TryRng; pub struct S; impl TryRng for S { fn try_next_u32(&mut self) -> u32 { 0 } }");
+         let found = public_contracts(&p, false, CreusotTarget::All).unwrap();

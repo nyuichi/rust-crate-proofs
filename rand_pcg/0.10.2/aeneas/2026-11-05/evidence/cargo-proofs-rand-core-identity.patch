@@ -1,0 +1,46 @@
+--- a/src/scan.rs
++++ b/src/scan.rs
+@@ -1108,6 +1108,17 @@
+                 .collect();
+             ensure!(aliases.len() <= 1, "Ambiguous import {first}");
+             if let Some(i) = aliases.first() {
++                // rand_pcg/rand_xoshiro publicly reexport their external
++                // rand_core dependency under its unchanged root name. This is
++                // an external-crate identity binding, not an alias cycle. Keep
++                // the exception limited to this verified crate/root spelling;
++                // arbitrary identity imports and real cycles still fail.
++                if i.public && i.module.is_empty() && i.alias == "rand_core"
++                    && i.target.as_slice() == ["rand_core"]
++                {
++                    return Ok(std::iter::once("rand_core".to_owned())
++                        .chain(rest[1..].iter().cloned()).collect::<Vec<_>>().join("::"));
++                }
+                 let target = self.resolve(&i.target, &i.module, depth + 1)?;
+                 return Ok(std::iter::once(target)
+                     .chain(rest[1..].iter().cloned())
+@@ -1581,6 +1592,25 @@
+     }
+ 
+     #[test]
++    fn root_rand_core_identity_reexport_is_not_an_alias_cycle() {
++        let (_d, p) = project("pub use rand_core; use rand_core::TryRng; pub struct S; impl TryRng for S { fn try_next_u32(&mut self) -> u32 { 0 } }");
++        let found = public_contracts(&p, false, CreusotTarget::All).unwrap();
++        assert_eq!(found.len(), 1);
++        assert!(found[0].api_paths.contains(&"<demo::S as rand_core::TryRng>::try_next_u32".into()));
++        assert!(found[0].api_paths.contains(&"<demo::S as TryRng>::try_next_u32".into()));
++    }
++    #[test]
++    fn rand_core_identity_exception_does_not_accept_arbitrary_alias_cycles() {
++        for source in [
++            "pub use custom; use custom::T; pub struct S; impl T for S { fn f() {} }",
++            "pub use b as a; pub use a as b; use a::T; pub struct S; impl T for S { fn f() {} }",
++            "pub mod nested { pub use rand_core; use rand_core::TryRng; pub struct S; impl TryRng for S { fn f() {} } }",
++        ] {
++            let (_d, p) = project(source);
++            assert!(public_contracts(&p, false, CreusotTarget::All).unwrap_err().to_string().contains("Cyclic"));
++        }
++    }
++    #[test]
+     fn standard_trait_catalog_aliases_are_explicit_and_limited() {
+         let c = creusot_contracts("use core::default::Default; pub struct S; impl Default for S { #[ensures(true)] fn default() -> Self { S } }", CreusotTarget::Annotated);
+         assert_eq!(
