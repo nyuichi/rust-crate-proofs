@@ -1,0 +1,3 @@
+# Source-only filtering evidence
+
+The nineteen-case classification self-check and exact append-only errata distinguish compiler sidecars/build caches from retained Rust/C/Lean source, MIR, LLVM and LLBC evidence. Original122 and103 manifests remain immutable. Public subsets excluded their20 and16 compiler sidecars respectively; the inaccurate zero-sidecar flags are not silently rewritten. This helper evidence adds no theorem, API contract, fresh run or verification guarantee and changes no published source/run pins. Public13-report total remains424 scoped machine contracts, not full API completion. Python bytecode caches are excluded from this documentation copy.
