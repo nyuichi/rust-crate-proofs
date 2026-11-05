@@ -69,3 +69,14 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/native-identity/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/native-identity/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/provide-native-no-model.py'],cwd=p,check=True)
+
+(p/'evidence/read-pure').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/read-pure')]
+(p/'evidence/read-pure/charon-command.json').write_text(json.dumps(cmd,indent=2))
+read_pure_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/read-pure/rustflags.json').write_text(json.dumps({'RUSTFLAGS':read_pure_flags}))
+with (p/'evidence/read-pure/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/read-pure-selector',env=dict(os.environ,RUSTFLAGS=read_pure_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/ByteorderReadPureRoots'),str(p/'evidence/read-pure/byteorder_read_pure_roots.llbc')]
+(p/'evidence/read-pure/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/read-pure/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-read-pure.py'],cwd=p,check=True)

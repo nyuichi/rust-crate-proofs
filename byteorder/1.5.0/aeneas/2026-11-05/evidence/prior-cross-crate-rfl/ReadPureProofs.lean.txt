@@ -1,0 +1,62 @@
+import ByteorderReadPureRoots.Funs
+import U48Proofs
+import SignedReadProofs
+open Aeneas Aeneas.Std Result Std.WP
+namespace ReadPureProofs
+theorem be_read_u48_body (buf : Slice U8) : byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_u48 buf = byteorder_lite_u48_roots.byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_u48 buf := by rfl
+theorem be_read_u48_contract (buf : Slice U8) :
+ ((6 ≤ buf.length) → byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_u48 buf ⦃ r => r.val = (BitVec.fromBEBytes ((buf.val.take 6).map U8.bv)).toNat ∧ r.val < 2^48 ⦄) ∧
+ (buf.length < 6 → byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_u48 buf = .fail .assertionFailure) := by
+ simpa only [be_read_u48_body] using U48Proofs.be_read_u48_final buf
+theorem be_read_int_body (buf : Slice U8) (count : Usize) : byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_int buf count = signed_read_roots.byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_int buf count := by rfl
+theorem be_read_int_contract (buf : Slice U8) (count : Usize) :
+    ((1 ≤ count.val ∧ count.val ≤ 8 ∧ count.val ≤ buf.length) →
+      byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_int buf count
+        ⦃ r => r.val = (BitVec.fromBEBytes ((buf.val.take count.val).map U8.bv)).toInt ⦄) ∧
+    (¬ (1 ≤ count.val ∧ count.val ≤ 8 ∧ count.val ≤ buf.length) →
+      byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_int buf count = .fail .assertionFailure) := by
+ simpa only [be_read_int_body] using SignedReadProofs.be_read_int_contract buf count
+theorem be_read_i24_body (buf : Slice U8) : byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_i24 buf = signed_read_roots.byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_i24 buf := by rfl
+theorem be_read_i24_contract (buf : Slice U8) :
+    ((3 ≤ buf.length) → byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_i24 buf
+      ⦃ r => r.val = (BitVec.fromBEBytes ((buf.val.take 3).map U8.bv)).toInt ⦄) ∧
+    (buf.length < 3 → byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_i24 buf = .fail .assertionFailure) := by
+ simpa only [be_read_i24_body] using SignedReadProofs.be_read_i24_contract buf
+theorem be_read_i48_body (buf : Slice U8) : byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_i48 buf = byteorder_lite_u48_roots.byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_i48 buf := by rfl
+theorem be_read_i48_contract (buf : Slice U8) :
+ ((6 ≤ buf.length) → byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_i48 buf ⦃ r => r.val = (BitVec.fromBEBytes ((buf.val.take 6).map U8.bv)).toInt ⦄) ∧
+ (buf.length < 6 → byteorder_read_pure_roots.byteorder.BigEndian.Insts.ByteorderByteOrder.read_i48 buf = .fail .assertionFailure) := by
+ simpa only [be_read_i48_body] using U48Proofs.be_read_i48_final buf
+theorem le_read_u48_body (buf : Slice U8) : byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u48 buf = byteorder_lite_u48_roots.byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_u48 buf := by rfl
+theorem le_read_u48_contract (buf : Slice U8) :
+ ((6 ≤ buf.length) → byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u48 buf ⦃ r => r.val = (BitVec.fromLEBytes ((buf.val.take 6).map U8.bv)).toNat ∧ r.val < 2^48 ⦄) ∧
+ (buf.length < 6 → byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u48 buf = .fail .assertionFailure) := by
+ simpa only [le_read_u48_body] using U48Proofs.le_read_u48_final buf
+theorem le_read_int_body (buf : Slice U8) (count : Usize) : byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_int buf count = signed_read_roots.byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_int buf count := by rfl
+theorem le_read_int_contract (buf : Slice U8) (count : Usize) :
+    ((1 ≤ count.val ∧ count.val ≤ 8 ∧ count.val ≤ buf.length) →
+      byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_int buf count
+        ⦃ r => r.val = (BitVec.fromLEBytes ((buf.val.take count.val).map U8.bv)).toInt ⦄) ∧
+    (¬ (1 ≤ count.val ∧ count.val ≤ 8 ∧ count.val ≤ buf.length) →
+      byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_int buf count = .fail .assertionFailure) := by
+ simpa only [le_read_int_body] using SignedReadProofs.le_read_int_contract buf count
+theorem le_read_i24_body (buf : Slice U8) : byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_i24 buf = signed_read_roots.byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_i24 buf := by rfl
+theorem le_read_i24_contract (buf : Slice U8) :
+    ((3 ≤ buf.length) → byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_i24 buf
+      ⦃ r => r.val = (BitVec.fromLEBytes ((buf.val.take 3).map U8.bv)).toInt ⦄) ∧
+    (buf.length < 3 → byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_i24 buf = .fail .assertionFailure) := by
+ simpa only [le_read_i24_body] using SignedReadProofs.le_read_i24_contract buf
+theorem le_read_i48_body (buf : Slice U8) : byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_i48 buf = byteorder_lite_u48_roots.byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_i48 buf := by rfl
+theorem le_read_i48_contract (buf : Slice U8) :
+ ((6 ≤ buf.length) → byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_i48 buf ⦃ r => r.val = (BitVec.fromLEBytes ((buf.val.take 6).map U8.bv)).toInt ⦄) ∧
+ (buf.length < 6 → byteorder_read_pure_roots.byteorder.LittleEndian.Insts.ByteorderByteOrder.read_i48 buf = .fail .assertionFailure) := by
+ simpa only [le_read_i48_body] using U48Proofs.le_read_i48_final buf
+end ReadPureProofs
+#print axioms ReadPureProofs.be_read_u48_contract
+#print axioms ReadPureProofs.be_read_int_contract
+#print axioms ReadPureProofs.be_read_i24_contract
+#print axioms ReadPureProofs.be_read_i48_contract
+#print axioms ReadPureProofs.le_read_u48_contract
+#print axioms ReadPureProofs.le_read_int_contract
+#print axioms ReadPureProofs.le_read_i24_contract
+#print axioms ReadPureProofs.le_read_i48_contract

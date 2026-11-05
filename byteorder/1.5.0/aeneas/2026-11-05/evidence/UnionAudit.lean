@@ -4,6 +4,8 @@ import FloatProofs
 import ReadVariableProofs
 import U24Exact24
 import NativeIdentityProofs
+import ByteRead48Proofs
+import ByteSignedReadProofs
 #print axioms Proofs.be_write_u16_contract
 #print axioms Proofs.be_write_u32_contract
 #print axioms Proofs.be_write_u64_contract
@@ -36,3 +38,11 @@ import NativeIdentityProofs
 #print axioms NativeIdentityProofs.le_from_slice_u32_identity
 #print axioms NativeIdentityProofs.le_from_slice_u64_identity
 #print axioms NativeIdentityProofs.le_from_slice_u128_identity
+#print axioms ByteRead48Proofs.be_read_u48_contract
+#print axioms ByteSignedReadProofs.be_read_int_contract
+#print axioms ByteSignedReadProofs.be_read_i24_contract
+#print axioms ByteRead48Proofs.be_read_i48_contract
+#print axioms ByteRead48Proofs.le_read_u48_contract
+#print axioms ByteSignedReadProofs.le_read_int_contract
+#print axioms ByteSignedReadProofs.le_read_i24_contract
+#print axioms ByteRead48Proofs.le_read_i48_contract

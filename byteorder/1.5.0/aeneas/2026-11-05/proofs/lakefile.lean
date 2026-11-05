@@ -22,3 +22,9 @@ lean_lib U24Exact24
 
 lean_lib Byteorder
 lean_lib NativeIdentityProofs
+
+lean_lib ByteorderReadPureRoots
+lean_lib ByteReadDecodeMath
+lean_lib ByteReadSupport
+lean_lib ByteSignedReadProofs
+lean_lib ByteRead48Proofs

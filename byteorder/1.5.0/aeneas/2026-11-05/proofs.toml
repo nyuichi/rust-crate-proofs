@@ -195,9 +195,57 @@ module = "NativeIdentityProofs"
 theorem = "NativeIdentityProofs.le_from_slice_u128_identity"
 precondition = "Every well-typed mutable u128 slice, including empty slices and arbitrary values, on x86_64 little-endian/default features/debug extraction. The original provided method leaves the entire slice unchanged and returns normally. Signed default wrappers, floating conversion methods, opposite-endian methods and other targets are not covered by this result. Generated actual bodies use zero external calls and require zero external definitions."
 
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::read_u48"
+module = "ByteRead48Proofs"
+theorem = "ByteRead48Proofs.be_read_u48_contract"
+precondition = "All byte slices; six or more bytes return exact six-byte unsigned endian decode below 2^48, shorter slices fail assertion."
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::read_int"
+module = "ByteSignedReadProofs"
+theorem = "ByteSignedReadProofs.be_read_int_contract"
+precondition = "All byte slices and usize counts; counts1..8 and enough input return exact selected-width signed two-complement prefix decode; all failed guards yield assertion failure before sign extension."
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::read_i24"
+module = "ByteSignedReadProofs"
+theorem = "ByteSignedReadProofs.be_read_i24_contract"
+precondition = "All byte slices; three or more bytes return exact signed two-complement24bit endian decode, shorter slices fail assertion."
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::read_i48"
+module = "ByteRead48Proofs"
+theorem = "ByteRead48Proofs.be_read_i48_contract"
+precondition = "All byte slices; six or more bytes return exact signed two-complement48bit endian decode, shorter slices fail assertion."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::read_u48"
+module = "ByteRead48Proofs"
+theorem = "ByteRead48Proofs.le_read_u48_contract"
+precondition = "All byte slices; six or more bytes return exact six-byte unsigned endian decode below 2^48, shorter slices fail assertion."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::read_int"
+module = "ByteSignedReadProofs"
+theorem = "ByteSignedReadProofs.le_read_int_contract"
+precondition = "All byte slices and usize counts; counts1..8 and enough input return exact selected-width signed two-complement prefix decode; all failed guards yield assertion failure before sign extension."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::read_i24"
+module = "ByteSignedReadProofs"
+theorem = "ByteSignedReadProofs.le_read_i24_contract"
+precondition = "All byte slices; three or more bytes return exact signed two-complement24bit endian decode, shorter slices fail assertion."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::read_i48"
+module = "ByteRead48Proofs"
+theorem = "ByteRead48Proofs.le_read_i48_contract"
+precondition = "All byte slices; six or more bytes return exact signed two-complement48bit endian decode, shorter slices fail assertion."
+
 [report]
 title = "Exact endian writes and selected prefix reads, with failure contracts"
-explanation = "byteorder 1.5.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endian order and preserve trailing bytes when the output is long enough; shorter buffers panic before writing. Float proofs quantify over every 32/64-bit representation, including NaN payloads and signed zeros, under explicit bit-pattern and std to_bits models. No floating arithmetic is modeled. BE/LE read_u24 additionally returns the exact unsigned24 prefix decode below2^24, and asserts on shorter input. LittleEndian from_slice_u16/u32/u64/u128 additionally leave every slice unchanged on the verified little-endian target, including empty slices and arbitrary unsigned values. The two handwritten Default methods always panic. Four unsigned variable-width readers decode the exact selected prefix under their complete byte-count/input-length guard, and assert otherwise.  Separate Kani checks compare the original BE/LE write_uint/write_uint128 methods with byteorder-lite for all fitting unsigned values and valid byte counts, arbitrary initial 32-byte arrays, and slice lengths from the byte count through 32. Both complete buffers agree and suffix bytes are preserved; four harnesses complete with 456 checks and no failures."
-limitations = "This covers 20 selected writer methods, six unsigned readers, four native-target unsigned identity conversions, and two handwritten Default methods, not all public APIs. Fixed 16/32/64/128-bit reads, signed readers, variable-width writers, other bulk and in-place conversions, I/O extensions, other targets and release extraction remain unproved. The float result establishes bit serialization only: floating arithmetic, comparisons, rounding, numeric accuracy, NaN arithmetic and signaling behavior are not modeled. Kani public-writer buffer lengths are fixed at 6 and 10; arbitrary valid slice lengths are quantified separately by the Lean theorems. The signed from_slice defaults contain unsafe slice reinterpretation and are not covered; the floating conversions and opposite-endian/other-target paths are also unproved. The byteorder-lite eight-method result is not assumed transferable across versions. Panic messages and unwinding side effects are not specified. The separate variable-width writer comparison is limited to normal-success inputs and the 32-byte allocation shape. It does not establish failing inputs, arbitrary lengths/allocations, or independent memory safety. It adds no Aeneas API claims."
+explanation = "byteorder 1.5.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endian order and preserve trailing bytes when the output is long enough; shorter buffers panic before writing. Float proofs quantify over every 32/64-bit representation, including NaN payloads and signed zeros, under explicit bit-pattern and std to_bits models. No floating arithmetic is modeled. BE/LE read_u24 additionally returns the exact unsigned24 prefix decode below2^24, and asserts on shorter input. LittleEndian from_slice_u16/u32/u64/u128 additionally leave every slice unchanged on the verified little-endian target, including empty slices and arbitrary unsigned values. The two handwritten Default methods always panic. Four unsigned variable-width readers decode the exact selected prefix under their complete byte-count/input-length guard, and assert otherwise.  Eight additional original concrete reader defaults are verified: BE/LE read_u48 returns the exact six-byte unsigned decode below 2^48; read_int, read_i24 and read_i48 return the selected-width two-complement signed decode. General signed counts must be1..8 with sufficient input; fixed readers need three or six bytes. Failed input/count guards return assertion failure before sign extension. Their original full read_uint callees are connected by definitional equality to the existing byteorder general-reader proofs; the actual original extend_sign body is proved directly with separately named pure bit-vector lemmas, without new models or Lite proof imports. Separate Kani checks compare the original BE/LE write_uint/write_uint128 methods with byteorder-lite for all fitting unsigned values and valid byte counts, arbitrary initial 32-byte arrays, and slice lengths from the byte count through 32. Both complete buffers agree and suffix bytes are preserved; four harnesses complete with 456 checks and no failures."
+limitations = "This covers 20 selected writer methods, eight unsigned and six signed readers, four native-target unsigned identity conversions, and two handwritten Default methods, not all public APIs. Fixed 16/32/64/128-bit reads, remaining signed 128-bit readers, variable-width writers, other bulk and in-place conversions, I/O extensions, other targets and release extraction remain unproved. The float result establishes bit serialization only: floating arithmetic, comparisons, rounding, numeric accuracy, NaN arithmetic and signaling behavior are not modeled. Kani public-writer buffer lengths are fixed at 6 and 10; arbitrary valid slice lengths are quantified separately by the Lean theorems. The signed from_slice defaults contain unsafe slice reinterpretation and are not covered; the floating conversions and opposite-endian/other-target paths are also unproved. The byteorder-lite eight-method result is not assumed transferable across versions. Panic messages and unwinding side effects are not specified. The separate variable-width writer comparison is limited to normal-success inputs and the 32-byte allocation shape. It does not establish failing inputs, arbitrary lengths/allocations, or independent memory safety. It adds no Aeneas API claims."
 trusted_assumptions = "F32/F64 are explicit 32/64-bit logical patterns; two executable std to_bits models preserve those patterns as unsigned words, with checked Lean value-preservation lemmas. Guards require original writer bodies and allow no other float operation. Kani checks std bit identity for every pattern and actual released writers with 6/10-byte buffers. Connecting these Rust checks to the Lean representation is reviewed, not mechanized; Rust nightlies differ. Official translation/standard integer and slice models, Lean, and Kani/CBMC are trusted. The four original native conversion bodies make no external calls after official target-branch translation. Five unused declarations remain in the unchanged, unimported template; the provider supplies zero definitions. Guards require exact identity bodies and zero external use. Mapped audits permit only propext, Classical.choice and Quot.sound."
 environment = "Archive-identical Rust/Cargo.toml; x86_64 default features, debug extraction. Rust nightly-2026-09-17, Charon08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean4.35.0. Kani0.68.0/CBMC6.11.0/Rust nightly-2026-08-21: six harnesses, 276 checks, no failures per crate. Separate variable-width writer bridge: Kani0.68.0, Rust nightly-2026-08-21 versus Aeneas nightly-2026-09-17; four harnesses/456 checks, unwind34; evidence/kani-variable-writer-bridge."
