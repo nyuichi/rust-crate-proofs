@@ -14,3 +14,6 @@ lean_lib SliceProofs
 lean_lib ErrorProjectionProofs
 
 lean_lib VectorIdentityProofs
+
+lean_lib BorrowViewProofs
+lean_lib StringBorrowViewProofs

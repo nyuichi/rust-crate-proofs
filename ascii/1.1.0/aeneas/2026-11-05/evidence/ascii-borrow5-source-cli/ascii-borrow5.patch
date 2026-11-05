@@ -1,0 +1,917 @@
+--- a/src/ascii_vec.rs
++++ b/src/ascii_vec.rs
+@@ -14,6 +14,7 @@
+     process::Command,
+ };
+ const DATA: &str = include_str!("ascii_vec_scope.json");
++const DATA46: &str = include_str!("ascii_borrow_scope46.json");
+ fn scope() -> Result<Value> {
+     Ok(serde_json::from_str(DATA)?)
+ }
+@@ -212,6 +213,87 @@
+     }
+     Ok(found)
+ }
++fn borrow_contracts(project: &Project, fixed: &Value) -> Result<Vec<scan::Contract>> {
++    let package = project.manifest.parent().context("Missing package")?;
++    let bindings = fixed["borrow_bindings"].as_array().context("Missing fixed borrow bindings")?;
++    let requested = bindings.iter().map(|b| b["proof"]["api"].as_str().unwrap().to_owned()).collect();
++    let found = scan::ascii_borrow_public_contracts(project, &requested)?;
++    ensure!(found.len() == 5, "Expected five ASCII borrow bodies");
++    for binding in bindings {
++        let file = binding["file"].as_str().unwrap();
++        let path = inside(package, Path::new(file))?;
++        let parsed = syn::parse_file(&fs::read_to_string(&path)?)?;
++        let expected_imports = syn::parse_file(fixed["borrow_imports"][file].as_str().context("Missing fixed borrow imports")?)?;
++        let uses = |f: &syn::File| f.items.iter().filter_map(|i| if let syn::Item::Use(u) = i { Some(u.to_token_stream().to_string()) } else { None }).collect::<Vec<_>>();
++        ensure!(uses(&parsed) == uses(&expected_imports), "ASCII borrow original import chain changed");
++        let key = binding["proof"]["api"].as_str().unwrap();
++        let matches: Vec<_> = found
++            .iter()
++            .filter(|c| c.api_paths.contains(&key.to_owned()))
++            .collect();
++        ensure!(
++            matches.len() == 1,
++            "Typed ASCII callable must resolve exactly once: {key}"
++        );
++        let c = matches[0];
++        ensure!(
++            c.file.canonicalize()? == path
++                && Some(c.first_line as u64) == binding["first_line"].as_u64()
++                && Some(c.last_line as u64) == binding["last_line"].as_u64(),
++            "Typed ASCII original body source span mismatch"
++        );
++        let expected: syn::ImplItemFn = syn::parse_str(binding["method_source"].as_str().unwrap())?;
++        let actual: Vec<_> = parsed
++            .items
++            .iter()
++            .filter_map(|i| {
++                if let syn::Item::Impl(i) = i {
++                    Some(i)
++                } else {
++                    None
++                }
++            })
++            .flat_map(|i| {
++                i.items.iter().filter_map(move |m| {
++                    if let syn::ImplItem::Fn(f) = m {
++                        Some((i, f))
++                    } else {
++                        None
++                    }
++                })
++            })
++            .filter(|(_, f)| {
++                f.sig.ident == expected.sig.ident && f.span().start().line == c.first_line
++            })
++            .collect();
++        ensure!(
++            actual.len() == 1,
++            "Typed ASCII original method/header ambiguous"
++        );
++        let (implementation, actual) = actual[0];
++        ensure!(
++            implementation.generics.params.is_empty()
++                && implementation.generics.where_clause.is_none()
++                && implementation.unsafety.is_none()
++                && implementation.defaultness.is_none(),
++            "Typed ASCII impl generic/predicate/safety header changed"
++        );
++        ensure!(
++            actual.sig.unsafety.is_some() == binding["unsafe"].as_bool().unwrap(),
++            "Typed ASCII unsafe header mismatch"
++        );
++        ensure!(
++            actual.sig.to_token_stream().to_string() == expected.sig.to_token_stream().to_string(),
++            "Typed ASCII receiver/return/generic signature mismatch"
++        );
++        ensure!(
++            actual.block.to_token_stream().to_string()
++                == expected.block.to_token_stream().to_string(),
++            "Typed ASCII original body closure changed"
++        );
++    }
++    Ok(found)
++}
+ pub(crate) fn discover(project: &Project, tool: &Tool) -> Result<Vec<scan::Contract>> {
+     ensure!(
+         project.name == "ascii" && project.version == "1.1.0",
+@@ -230,7 +312,13 @@
+         project.root_source.canonicalize()? == inside(&package, Path::new("src/lib.rs"))?,
+         "Typed ASCII library root mismatch"
+     );
+-    let fixed = scope()?;
++    // Only two compiled audited snapshots; manifest data cannot define a new scope.
++    let manifest_path = inside(&package, tool.ascii_vec_source_bindings.as_deref().context("Missing typed ASCII opt-in")?)?;
++    let manifest: Value = serde_json::from_slice(&fs::read(manifest_path)?)?;
++    let digest = manifest["fixed_scope_sha256"].as_str().context("Missing fixed ASCII scope digest")?;
++    let (fixed, data, borrow) = if digest == sha(DATA) { (scope()?, DATA, false) }
++        else if digest == sha(DATA46) { (serde_json::from_str::<Value>(DATA46)?, DATA46, true) }
++        else { anyhow::bail!("Unknown compiled ASCII source snapshot") };
+     closed_inputs(&package, &fixed)?;
+     ensure!(
+         sha(fs::read(inside(
+@@ -255,19 +343,21 @@
+             .context("Missing typed ASCII opt-in")?,
+     )?;
+     let manifest: Value = serde_json::from_slice(&fs::read(path)?)?;
+-    let expected = json!({"schema":1,"crate":"ascii","version":"1.1.0","kind":"local_typed_impl","local_declaration":true,"fixed_scope_sha256":sha(DATA),"keys":fixed["bindings"].as_array().unwrap().iter().map(|b|b["proof"]["api"].clone()).collect::<Vec<_>>()});
++    let expected = json!({"schema":1,"crate":"ascii","version":"1.1.0","kind":"local_typed_impl","local_declaration":true,"fixed_scope_sha256":sha(data),"keys":fixed["bindings"].as_array().unwrap().iter().chain(fixed["borrow_bindings"].as_array().into_iter().flatten()).map(|b|b["proof"]["api"].clone()).collect::<Vec<_>>()});
+     ensure!(
+         manifest == expected,
+         "Typed ASCII finite manifest/scope/keys mismatch"
+     );
+     ensure!(
+         tool.version == fixed["aeneas_version"]
+-            && serde_json::to_value(&tool.proofs)? == fixed["proofs41"],
+-        "Typed ASCII requires exact audited41 mappings/theorems/preconditions"
++            && serde_json::to_value(&tool.proofs)? == fixed[if borrow { "proofs46" } else { "proofs41" }],
++        "Typed ASCII requires exact audited snapshot mappings/theorems/preconditions"
+     );
+     // First establish typed body identity; outer source hashes cannot mask semantic
+     // owner/trait/safety/body failures in focused mutation tests.
+-    let found = semantic_contracts(project)?;
++    let mut found = semantic_contracts(project)?;
++    if borrow { found.extend(borrow_contracts(project, &fixed)?); }
++    let selected: BTreeSet<String> = found.iter().flat_map(|c|c.api_paths.iter().filter(|k| fixed["bindings"].as_array().unwrap().iter().chain(fixed["borrow_bindings"].as_array().into_iter().flatten()).any(|b| b["proof"]["api"].as_str() == Some(k.as_str()))).cloned()).collect();
+     map_files(&package, &fixed["source_files"])?;
+     map_files(&package, &fixed["proof_files"])?;
+     map_files(&package, &fixed["evidence_files"])?;
+@@ -291,14 +381,14 @@
+         .map(String::from)
+         .collect();
+     ensure!(cfg == project.cfg, "Typed ASCII target cfg mismatch");
+-    eprintln!("Typed ASCII source gate: four actual original typed bodies; fixed41 original source/proof closure; old37 scanner mode retained");
++    eprintln!("Typed ASCII source gate: {} actual original typed bodies; compiled fixed{} source/proof closure; old37 scanner mode retained", found.len(), if borrow {46} else {41});
+     Ok(found
+         .into_iter()
+         .map(|mut c| {
+             let k = c
+                 .api_paths
+                 .iter()
+-                .find(|k| keys().unwrap().contains(*k))
++                .find(|k| selected.contains(*k))
+                 .unwrap()
+                 .clone();
+             c.api_paths = vec![k];
+@@ -330,6 +420,36 @@
+             cfg: BTreeSet::new(),
+         };
+         (dir, p)
++    }
++    #[test]
++    #[ignore = "Original-source finite borrow-five semantic matrix; no compiler/server"]
++    fn borrow_five_inner_source_mutations() {
++        let (_dir, p) = fixture();
++        let fixed: Value = serde_json::from_str(DATA46).unwrap();
++        assert_eq!(borrow_contracts(&p, &fixed).unwrap().len(), 5);
++        let cases = [
++            ("src/ascii_str.rs", "slice-u8", "impl AsRef<[AsciiChar]> for AsciiStr", "impl AsRef<[u8]> for AsciiStr"),
++            ("src/ascii_str.rs", "owner-string", "impl AsRef<[AsciiChar]> for AsciiStr", "impl AsRef<[AsciiChar]> for AsciiString"),
++            ("src/ascii_str.rs", "target-vec", "impl AsRef<[AsciiChar]> for AsciiStr", "impl AsRef<Vec<AsciiChar>> for AsciiStr"),
++            ("src/ascii_str.rs", "self-target", "impl AsRef<AsciiStr> for AsciiStr", "impl AsRef<AsciiString> for AsciiStr"),
++            ("src/ascii_str.rs", "mutable-receiver", "fn as_mut(&mut self) -> &mut [AsciiChar]", "fn as_mut(&self) -> &mut [AsciiChar]"),
++            ("src/ascii_str.rs", "borrow-body", "fn as_mut(&mut self) -> &mut [AsciiChar] {\n        &mut self.slice", "fn as_mut(&mut self) -> &mut [AsciiChar] {\n        &mut self.other"),
++            ("src/ascii_str.rs", "extra-bound", "impl AsMut<[AsciiChar]> for AsciiStr {", "impl AsMut<[AsciiChar]> for AsciiStr where AsciiStr: Clone {"),
++            ("src/ascii_string.rs", "string-slice-u8", "impl AsMut<[AsciiChar]> for AsciiString", "impl AsMut<[u8]> for AsciiString"),
++            ("src/ascii_string.rs", "string-owner-vec", "impl AsRef<[AsciiChar]> for AsciiString", "impl AsRef<[AsciiChar]> for Vec<AsciiChar>"),
++            ("src/ascii_string.rs", "writeback-body", "fn as_mut(&mut self) -> &mut [AsciiChar] {\n        &mut self.vec", "fn as_mut(&mut self) -> &mut [AsciiChar] {\n        &mut self.other"),
++            ("src/ascii_string.rs", "unsafe-header", "fn as_ref(&self) -> &[AsciiChar]", "unsafe fn as_ref(&self) -> &[AsciiChar]"),
++        ];
++        for (file, name, before, after) in cases {
++            let path = p.manifest.parent().unwrap().join(file);
++            let original = fs::read_to_string(&path).unwrap();
++            assert!(original.contains(before), "Missing fixture {name}");
++            fs::write(&path, original.replacen(before, after, 1)).unwrap();
++            assert!(borrow_contracts(&p, &fixed).is_err(), "Accepted borrow mutation {name}");
++            fs::write(&path, original).unwrap();
++            eprintln!("borrow-semantic-rejected:{name}");
++        }
++        assert_eq!(borrow_contracts(&p, &fixed).unwrap().len(), 5);
+     }
+     #[test]
+     #[ignore = "Original-source semantic matrix; no compiler/server"]
+@@ -433,10 +553,14 @@
+     #[test]
+     #[ignore = "Private local Git recorded-source/cfg/symlink tests; no server or Lean build"]
+     fn recorded_source_and_closure_controls() {
+-        let base = std::path::PathBuf::from(std::env::var("PROOFS_ASCII41_ROOT").unwrap());
++        captured_case(std::path::PathBuf::from(std::env::var("PROOFS_ASCII41_ROOT").unwrap()), scope().unwrap(), 41);
++        if let Ok(base) = std::env::var("PROOFS_ASCII46_ROOT") {
++            captured_case(base.into(), serde_json::from_str(DATA46).unwrap(), 46);
++        }
++    }
++    fn captured_case(base: std::path::PathBuf, fixed: Value, expected_count: usize) {
+         let dir = tempfile::tempdir().unwrap();
+         let root = dir.path();
+-        let fixed = scope().unwrap();
+         let mut names: BTreeSet<String> = fixed["source_files"]
+             .as_object()
+             .unwrap()
+@@ -460,7 +584,7 @@
+         let project = Project::load(&args).unwrap();
+         let mut config = project.config().unwrap();
+         let original = crate::aeneas::discover(&project, &config.tool).unwrap();
+-        assert_eq!(original.len(), 41);
++        assert_eq!(original.len(), expected_count);
+         // Real unlisted control/source inputs must be rejected even when inert.
+         for (name, body) in [
+             ("build.rs", "fn main() {}"),
+@@ -524,7 +648,7 @@
+         let captured =
+             crate::external_blanket::discover_recorded(&project, &args, &config.tool, &record)
+                 .unwrap();
+-        assert_eq!(captured.len(), 41);
++        assert_eq!(captured.len(), expected_count);
+         assert_eq!(
+             original.iter().map(|c| &c.api_paths).collect::<Vec<_>>(),
+             captured.iter().map(|c| &c.api_paths).collect::<Vec<_>>()
+@@ -596,6 +720,6 @@
+             crate::external_blanket::discover_recorded(&project, &args, &config.tool, &record)
+                 .is_err()
+         );
+-        eprintln!("Captured ASCII41 immutable commit succeeds after metadata HEAD advance/live source edit; wrong config/source/symlink/commit rejected; worktree cleanup and extra source/control/theorem/data closure checked");
+-    }
+-}
++        eprintln!("Captured ASCII{expected_count} immutable commit succeeds after metadata HEAD advance/live source edit; wrong config/source/symlink/commit rejected; worktree cleanup and extra source/control/theorem/data closure checked");
++    }
++}
+--- a/src/scan.rs
++++ b/src/scan.rs
+@@ -401,6 +401,22 @@
+         "<alloc::vec::Vec<ascii::AsciiChar> as ascii::IntoAsciiString>::into_ascii_string_unchecked",
+     ].into_iter().map(String::from).collect();
+     ensure!(requested == &allowed, "Typed ASCII source discovery requires exactly the audited four canonical keys");
++    public_contracts_inner_mode(project, false, CreusotTarget::All, Some(requested), true)
++}
++
++/// Separate finite borrow-five source group; the Vec-four entry remains unchanged.
++pub(crate) fn ascii_borrow_public_contracts(project: &Project, requested: &BTreeSet<String>) -> Result<Vec<Contract>> {
++    ensure!(project.name == "ascii" && project.version == "1.1.0", "Unsupported ASCII borrow source scope");
++    let manifest: toml::Value = toml::from_str(&std::fs::read_to_string(&project.manifest)?)?;
++    ensure!(manifest.get("package").and_then(|p| p.get("edition")).and_then(toml::Value::as_str).unwrap_or("2015") == "2015", "ASCII borrow root-use resolution requires edition 2015");
++    let allowed: BTreeSet<String> = [
++        "<ascii::AsciiStr as AsRef<[ascii::AsciiChar]>>::as_ref",
++        "<ascii::AsciiStr as AsMut<[ascii::AsciiChar]>>::as_mut",
++        "<ascii::AsciiStr as AsRef<ascii::AsciiStr>>::as_ref",
++        "<ascii::AsciiString as AsRef<[ascii::AsciiChar]>>::as_ref",
++        "<ascii::AsciiString as AsMut<[ascii::AsciiChar]>>::as_mut",
++    ].into_iter().map(String::from).collect();
++    ensure!(requested == &allowed, "ASCII borrow source discovery requires exactly the audited five canonical keys");
+     public_contracts_inner_mode(project, false, CreusotTarget::All, Some(requested), true)
+ }
+ 
+--- a/src/ascii_borrow_scope46.json
++++ b/src/ascii_borrow_scope46.json
+@@ -0,0 +1,651 @@
++{
++  "schema": 1,
++  "crate": "ascii",
++  "version": "1.1.0",
++  "edition": "2015",
++  "target": "x86_64-unknown-linux-gnu",
++  "features": [
++    "alloc",
++    "default",
++    "std"
++  ],
++  "aeneas_version": "be86ab0f1989d04944292b345b24c435be3ad10a",
++  "source_files": {
++    "Cargo.toml": "466554aebd51e2ff3da0e3b2160c9c77785701812d65f2bbeda5d2d0b3fc0c9e",
++    "Cargo.lock": "86ad3ce8a77f83704b4a7c2bba69e621b3f28611660c3e60d9c01d7d9b45dcaf",
++    "src/ascii_char.rs": "8c4bdedd3bc07387baddbea23cff6a5abd469884f2fe274c6f6a03c00110b549",
++    "src/ascii_str.rs": "464c156b2a9f8183e8f472df6b6b34ea8406c19cab85112475669585a607efff",
++    "src/ascii_string.rs": "0cc46f26623721221c0635f17951cd2c40ae1aed4a2e08c333802117ebd94640",
++    "src/free_functions.rs": "efebe83e30b05d2394f5f491254e868f8b2837029c39159756eda599199c27b8",
++    "src/lib.rs": "3f0640d3cb0fd274c7ddd60efc7ab09e633b7ce726ef366fcf468b784be451dc",
++    "src/serialization/ascii_char.rs": "09328995f6691f55be8be016e886cfb390eabe0a002057a41f2e6e029ca5588a",
++    "src/serialization/ascii_str.rs": "2dea9ba3d101fa42c09645c2889dc02f16ed2a05409f0d2212b8fc75f2e2fe8b",
++    "src/serialization/ascii_string.rs": "342f74d9f367f8450ba9f6c8b76022dc04c9af6bd038dc5e4fc99882b7e978c5",
++    "src/serialization/mod.rs": "0f92b7e47156ea3b86ef0c6131c749862fc3b3922e9d16ee22264324fed9a56f",
++    ".cargo_vcs_info.json": "7dc279d6cc614afd157d09eaf63f0249a590d99bd3659976740a48e19b51c783",
++    ".github/workflows/ci.yml": "26ca0180639f06c994852c2e6f6c10edbee283d9aa173de9d1a0fde1c50f0d96",
++    ".gitignore": "c1e953ee360e77de57f7b02f1b7880bd6a3dc22d1a69e953c2ac2c52cc52d247",
++    "Cargo.toml.orig": "5199ce15775aa1d2a706f6d2d3a45339fa6ce79fa50b263949cdd023392a3650",
++    "LICENSE-APACHE": "fabba0cb7d00a4b3211fdc13699223ab2d22f88678ccd608494cf2b332b903e9",
++    "LICENSE-MIT": "7e4b8a17b118d3d7fd7a362a4b6563e0bd98b098a24c4c7f07dd22042091a847",
++    "README.md": "c229f6bd9fb52731479c5e1d321b53ef7eb9bb33105b0052870620107add1425",
++    "RELEASES.md": "81ec9d5ed1268c499e5a7e4d9d7bbf7469f2e3ddeede45ad62ed5128f700f818",
++    "tests.rs": "58cff9cd5607746c9334fd07f73bac9db3fd97034232b1a4751024666d3f1657"
++  },
++  "proof_files": {
++    "proofs/BorrowViewProofs.lean": "cd17c25a003a11bfde5fde7ffecd29d6c57fa8a3da64a3680d27e38a7776baa2",
++    "proofs/DigitProofs.lean": "b3057dda5a416dfd12294ef34181c23f62f22008334839dec720c5ef9b6149a4",
++    "proofs/ErrorProjectionProofs.lean": "608c16edae9a8018ba4cf2915d9a683e6262d17c663788e8e43f18f514860007",
++    "proofs/Generated/Ascii.lean": "b5b872f3d1e0a734973531563761feb1e58f6906119938eef75f5ede68dcbddb",
++    "proofs/Proofs.lean": "366f905b02b579190b2977ea179a8d11df61fd92638c7b15316ae65e10975aaf",
++    "proofs/SliceProofs.lean": "960acd3a71a0458f69e8d026640fd00f47772c5fbdec5428a5c7035fb9b92bde",
++    "proofs/StringBorrowViewProofs.lean": "7b69fd1a15d8a457e662a3d245a23f1e4e12c63c311472bab934ad4cd3270bf5",
++    "proofs/StringProofs.lean": "b419fd1063e4343e4dbba41eacf21033a79cd23f8382b8425c852d63b9170b24",
++    "proofs/VectorIdentityProofs.lean": "fa780fadb9bbea897bb15bcee13dc625e433f1c48d5228732a41f6035b17f7f4",
++    "proofs/lake-manifest.json": "d57e9bf875dab4ff54c323bc802a7b88abee1ff90621eb98fcd47e1276bdd657",
++    "proofs/lakefile.lean": "15cd9b2450da218dcfc0adc9ef17a0112b45da04fb80737d518280900af7e255",
++    "proofs/lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c"
++  },
++  "evidence_files": {
++    "evidence/typed-vector-union-binding.json": "bc7f6790ff9494e6789c08e93b81b80efb1183d855558dae5c3d998d2b3a7e7e",
++    "evidence/ascii.llbc": "2b8eb3abc56c27e07747142a7f05e5a20360c88e9d5ba2abcad5c326c186e5ad",
++    "evidence/borrow-union-guard.json": "edf122df97198174c08f7fd3d689edeecd12ab6191a6a4a74eee2c3feff2413b"
++  },
++  "bindings": [
++    {
++      "proof": {
++        "api": "<ascii::AsciiString as From<alloc::vec::Vec<ascii::AsciiChar>>>::from",
++        "module": "VectorIdentityProofs",
++        "theorem": "VectorIdentityProofs.from_vector_exact",
++        "precondition": "Only the original default-allocator Vec<ascii::AsciiChar> implementation: every valid typed ASCII vector within the official sequence model; exact stored vector/sequence identity and normal return. Not Vec<u8>, arbitrary Vec<T>, raw-byte validation, allocator/capacity/address guarantees or any other impl."
++      },
++      "runtime_identity": "ascii::ascii_string::{impl core::convert::From<alloc::vec::Vec<ascii::ascii_char::AsciiChar>> for ascii::ascii_string::AsciiString}::from",
++      "generated_symbol": "ascii.ascii_string.AsciiString.Insts.CoreConvertFromVecAsciiChar.from",
++      "file": "src/ascii_string.rs",
++      "first_line": 488,
++      "last_line": 491,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn from(vec: Vec<AsciiChar>) -> Self {\n        AsciiString { vec }\n    }",
++      "extracted_source": {
++        "def_id": 87,
++        "lean_name": "ascii.ascii_string.AsciiString.Insts.CoreConvertFromVecAsciiChar.from",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_string::{impl core::convert::From<alloc::vec::Vec<ascii::ascii_char::AsciiChar>> for ascii::ascii_string::AsciiString}::from",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_string.rs",
++          "begin_line": 489,
++          "end_line": 491
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<alloc::vec::Vec<ascii::AsciiChar> as From<ascii::AsciiString>>::from",
++        "module": "VectorIdentityProofs",
++        "theorem": "VectorIdentityProofs.into_vector_exact",
++        "precondition": "Only the original From<ascii::AsciiString> for default-allocator Vec<ascii::AsciiChar>: every valid typed string returns its exact stored vector/sequence normally. Not Vec<u8> or another From impl; physical allocation identity and capacity are not modeled."
++      },
++      "runtime_identity": "ascii::ascii_string::{impl core::convert::From<ascii::ascii_string::AsciiString> for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::from",
++      "generated_symbol": "ascii.alloc.vec.VecAsciiChar.Insts.CoreConvertFromAsciiString.from",
++      "file": "src/ascii_string.rs",
++      "first_line": 518,
++      "last_line": 520,
++      "unsafe": false,
++      "method_source": "    fn from(s: AsciiString) -> Vec<AsciiChar> {\n        s.vec\n    }",
++      "extracted_source": {
++        "def_id": 66,
++        "lean_name": "ascii.alloc.vec.VecAsciiChar.Insts.CoreConvertFromAsciiString.from",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_string::{impl core::convert::From<ascii::ascii_string::AsciiString> for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::from",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_string.rs",
++          "begin_line": 518,
++          "end_line": 520
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<alloc::vec::Vec<ascii::AsciiChar> as ascii::IntoAsciiString>::into_ascii_string",
++        "module": "VectorIdentityProofs",
++        "theorem": "VectorIdentityProofs.checked_exact",
++        "precondition": "Only the original default-allocator Vec<ascii::AsciiChar> implementation: every valid typed ASCII vector within the official sequence model; exact stored vector/sequence identity and normal return. Not Vec<u8>, arbitrary Vec<T>, raw-byte validation, allocator/capacity/address guarantees or any other impl."
++      },
++      "runtime_identity": "ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string",
++      "generated_symbol": "ascii.alloc.vec.VecAsciiChar.Insts.AsciiAscii_stringIntoAsciiString.into_ascii_string",
++      "file": "src/ascii_string.rs",
++      "first_line": 818,
++      "last_line": 821,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn into_ascii_string(self) -> Result<AsciiString, FromAsciiError<Self>> {\n        Ok(AsciiString::from(self))\n    }",
++      "extracted_source": {
++        "def_id": 48,
++        "lean_name": "ascii.alloc.vec.VecAsciiChar.Insts.AsciiAscii_stringIntoAsciiString.into_ascii_string",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_string.rs",
++          "begin_line": 819,
++          "end_line": 821
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<alloc::vec::Vec<ascii::AsciiChar> as ascii::IntoAsciiString>::into_ascii_string_unchecked",
++        "module": "VectorIdentityProofs",
++        "theorem": "VectorIdentityProofs.unchecked_exact",
++        "precondition": "Only the original default-allocator Vec<ascii::AsciiChar> implementation: every valid typed ASCII vector within the official sequence model; exact stored vector/sequence identity and normal return. Not Vec<u8>, arbitrary Vec<T>, raw-byte validation, allocator/capacity/address guarantees or any other impl."
++      },
++      "runtime_identity": "ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string_unchecked",
++      "generated_symbol": "ascii.alloc.vec.VecAsciiChar.Insts.AsciiAscii_stringIntoAsciiString.into_ascii_string_unchecked",
++      "file": "src/ascii_string.rs",
++      "first_line": 814,
++      "last_line": 817,
++      "unsafe": true,
++      "method_source": "    #[inline]\n    unsafe fn into_ascii_string_unchecked(self) -> AsciiString {\n        AsciiString::from(self)\n    }",
++      "extracted_source": {
++        "def_id": 50,
++        "lean_name": "ascii.alloc.vec.VecAsciiChar.Insts.AsciiAscii_stringIntoAsciiString.into_ascii_string_unchecked",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string_unchecked",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_string.rs",
++          "begin_line": 815,
++          "end_line": 817
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    }
++  ],
++  "ascii_string_imports": "use alloc::borrow::{Borrow, BorrowMut, Cow, ToOwned};\nuse alloc::fmt;\nuse alloc::string::String;\nuse alloc::vec::Vec;\nuse alloc::boxed::Box;\nuse alloc::rc::Rc;\nuse alloc::sync::Arc;\n#[cfg(feature = \"std\")]\nuse core::any::Any;\nuse core::iter::FromIterator;\nuse core::mem;\nuse core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut};\nuse core::str::FromStr;\n#[cfg(feature = \"std\")]\nuse std::error::Error;\n#[cfg(feature = \"std\")]\nuse std::ffi::{CStr, CString};\n\nuse ascii_char::AsciiChar;\nuse ascii_str::{AsAsciiStr, AsAsciiStrError, AsciiStr};\n\n",
++  "archive_files": {
++    ".cargo_vcs_info.json": "7dc279d6cc614afd157d09eaf63f0249a590d99bd3659976740a48e19b51c783",
++    ".github/workflows/ci.yml": "26ca0180639f06c994852c2e6f6c10edbee283d9aa173de9d1a0fde1c50f0d96",
++    ".gitignore": "c1e953ee360e77de57f7b02f1b7880bd6a3dc22d1a69e953c2ac2c52cc52d247",
++    "Cargo.toml": "466554aebd51e2ff3da0e3b2160c9c77785701812d65f2bbeda5d2d0b3fc0c9e",
++    "Cargo.toml.orig": "5199ce15775aa1d2a706f6d2d3a45339fa6ce79fa50b263949cdd023392a3650",
++    "LICENSE-APACHE": "fabba0cb7d00a4b3211fdc13699223ab2d22f88678ccd608494cf2b332b903e9",
++    "LICENSE-MIT": "7e4b8a17b118d3d7fd7a362a4b6563e0bd98b098a24c4c7f07dd22042091a847",
++    "README.md": "c229f6bd9fb52731479c5e1d321b53ef7eb9bb33105b0052870620107add1425",
++    "RELEASES.md": "81ec9d5ed1268c499e5a7e4d9d7bbf7469f2e3ddeede45ad62ed5128f700f818",
++    "src/ascii_char.rs": "8c4bdedd3bc07387baddbea23cff6a5abd469884f2fe274c6f6a03c00110b549",
++    "src/ascii_str.rs": "464c156b2a9f8183e8f472df6b6b34ea8406c19cab85112475669585a607efff",
++    "src/ascii_string.rs": "0cc46f26623721221c0635f17951cd2c40ae1aed4a2e08c333802117ebd94640",
++    "src/free_functions.rs": "efebe83e30b05d2394f5f491254e868f8b2837029c39159756eda599199c27b8",
++    "src/lib.rs": "3f0640d3cb0fd274c7ddd60efc7ab09e633b7ce726ef366fcf468b784be451dc",
++    "src/serialization/ascii_char.rs": "09328995f6691f55be8be016e886cfb390eabe0a002057a41f2e6e029ca5588a",
++    "src/serialization/ascii_str.rs": "2dea9ba3d101fa42c09645c2889dc02f16ed2a05409f0d2212b8fc75f2e2fe8b",
++    "src/serialization/ascii_string.rs": "342f74d9f367f8450ba9f6c8b76022dc04c9af6bd038dc5e4fc99882b7e978c5",
++    "src/serialization/mod.rs": "0f92b7e47156ea3b86ef0c6131c749862fc3b3922e9d16ee22264324fed9a56f",
++    "tests.rs": "58cff9cd5607746c9334fd07f73bac9db3fd97034232b1a4751024666d3f1657"
++  },
++  "archive_sha256": "d92bec98840b8f03a5ff5413de5293bfcd8bf96467cf5452609f939ec6f5de16",
++  "proofs46": [
++    {
++      "api": "AsciiChar::is_ascii_blank",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_blank_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_digit",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_digit_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_whitespace",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_whitespace_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_control",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_control_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_alphabetic",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_alphabetic_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_alphanumeric",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_alphanumeric_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_graphic",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_graphic_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_printable",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_printable_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_lowercase",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_lowercase_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_uppercase",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_uppercase_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_hexdigit",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_hexdigit_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::as_byte",
++      "module": "Proofs",
++      "theorem": "Proofs.as_byte_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::eq_ignore_ascii_case",
++      "module": "Proofs",
++      "theorem": "Proofs.eq_ignore_ascii_case_spec",
++      "precondition": "Every pair of valid AsciiChar variants; default features on x86_64."
++    },
++    {
++      "api": "<ascii::AsciiChar as ascii::ToAsciiChar>::to_ascii_char",
++      "module": "Proofs",
++      "theorem": "Proofs.to_ascii_char_identity_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64. This covers only the AsciiChar implementation of ToAsciiChar."
++    },
++    {
++      "api": "<ascii::AsciiChar as ascii::ToAsciiChar>::to_ascii_char_unchecked",
++      "module": "Proofs",
++      "theorem": "Proofs.to_ascii_char_unchecked_identity_spec",
++      "precondition": "Every valid AsciiChar variant; default features on x86_64. This unsafe method's specific AsciiChar implementation is identity; invalid enum representations and other ToAsciiChar implementations are excluded."
++    },
++    {
++      "api": "AsciiChar::is_alphabetic",
++      "module": "Proofs",
++      "theorem": "Proofs.is_alphabetic_spec",
++      "precondition": "All valid AsciiChar values and, for is_digit, every u32 radix including normal-return and panic domains; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_alphanumeric",
++      "module": "Proofs",
++      "theorem": "Proofs.is_alphanumeric_spec",
++      "precondition": "All valid AsciiChar values and, for is_digit, every u32 radix including normal-return and panic domains; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_lowercase",
++      "module": "Proofs",
++      "theorem": "Proofs.is_lowercase_spec",
++      "precondition": "All valid AsciiChar values and, for is_digit, every u32 radix including normal-return and panic domains; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_uppercase",
++      "module": "Proofs",
++      "theorem": "Proofs.is_uppercase_spec",
++      "precondition": "All valid AsciiChar values and, for is_digit, every u32 radix including normal-return and panic domains; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_whitespace",
++      "module": "Proofs",
++      "theorem": "Proofs.is_whitespace_spec",
++      "precondition": "All valid AsciiChar values and, for is_digit, every u32 radix including normal-return and panic domains; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_digit",
++      "module": "Proofs",
++      "theorem": "Proofs.is_digit_spec",
++      "precondition": "All valid AsciiChar values and, for is_digit, every u32 radix including normal-return and panic domains; default features on x86_64."
++    },
++    {
++      "api": "AsciiChar::is_ascii_punctuation",
++      "module": "Proofs",
++      "theorem": "Proofs.is_ascii_punctuation_spec",
++      "precondition": "Every valid AsciiChar; true exactly for ASCII punctuation intervals 33-47,58-64,91-96,123-126. Default features, x86_64."
++    },
++    {
++      "api": "<ascii::AsciiChar as Default>::default",
++      "module": "Proofs",
++      "theorem": "Proofs.default_spec",
++      "precondition": "No arguments; returns AsciiChar::Null. Default features, x86_64."
++    },
++    {
++      "api": "AsAsciiStrError::valid_up_to",
++      "module": "Proofs",
++      "theorem": "Proofs.valid_up_to_spec",
++      "precondition": "Every stored usize error index; returns the stored index. This getter theorem does not validate the error-producing operation. Default features, x86_64."
++    },
++    {
++      "api": "AsciiString::new",
++      "module": "StringProofs",
++      "theorem": "StringProofs.new_spec",
++      "precondition": "Every valid generated AsciiString/AsciiChar; default features x86_64. Vec model abstracts capacity, allocation and OOM. push covers exact append for model length below usizeMAX and model maximumSizeExceeded at usizeMAX; this is not a physical Rust allocation/panic guarantee."
++    },
++    {
++      "api": "AsciiString::len",
++      "module": "StringProofs",
++      "theorem": "StringProofs.len_spec",
++      "precondition": "Every valid generated AsciiString/AsciiChar; default features x86_64. Vec model abstracts capacity, allocation and OOM. push covers exact append for model length below usizeMAX and model maximumSizeExceeded at usizeMAX; this is not a physical Rust allocation/panic guarantee."
++    },
++    {
++      "api": "AsciiString::is_empty",
++      "module": "StringProofs",
++      "theorem": "StringProofs.is_empty_spec",
++      "precondition": "Every valid generated AsciiString/AsciiChar; default features x86_64. Vec model abstracts capacity, allocation and OOM. push covers exact append for model length below usizeMAX and model maximumSizeExceeded at usizeMAX; this is not a physical Rust allocation/panic guarantee."
++    },
++    {
++      "api": "AsciiString::push",
++      "module": "StringProofs",
++      "theorem": "StringProofs.push_full_spec",
++      "precondition": "Every valid generated AsciiString/AsciiChar; default features x86_64. Vec model abstracts capacity, allocation and OOM. push covers exact append for model length below usizeMAX and model maximumSizeExceeded at usizeMAX; this is not a physical Rust allocation/panic guarantee."
++    },
++    {
++      "api": "AsciiStr::as_slice",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.as_slice_spec",
++      "precondition": "Every valid generated AsciiStr, all representable lengths; default features x86_64. Mutable-view writeback is stated for valid same-length replacement slices. Reference guarantees use Aeneas value/backward-function semantics; no independent memory-address/aliasing/lifetime proof or slice-resizing guarantee."
++    },
++    {
++      "api": "AsciiStr::as_mut_slice",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.as_mut_slice_spec",
++      "precondition": "Every valid generated AsciiStr, all representable lengths; default features x86_64. Mutable-view writeback is stated for valid same-length replacement slices. Reference guarantees use Aeneas value/backward-function semantics; no independent memory-address/aliasing/lifetime proof or slice-resizing guarantee."
++    },
++    {
++      "api": "AsciiStr::len",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.len_spec",
++      "precondition": "Every valid generated AsciiStr, all representable lengths; default features x86_64. Mutable-view writeback is stated for valid same-length replacement slices. Reference guarantees use Aeneas value/backward-function semantics; no independent memory-address/aliasing/lifetime proof or slice-resizing guarantee."
++    },
++    {
++      "api": "AsciiStr::is_empty",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.is_empty_spec",
++      "precondition": "Every valid generated AsciiStr, all representable lengths; default features x86_64. Mutable-view writeback is stated for valid same-length replacement slices. Reference guarantees use Aeneas value/backward-function semantics; no independent memory-address/aliasing/lifetime proof or slice-resizing guarantee."
++    },
++    {
++      "api": "<ascii::AsciiStr as ascii::AsAsciiStr>::as_ascii_str",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.as_ascii_str_identity_spec",
++      "precondition": "Only this original implementation for an already valid AsciiStr receiver, all modeled lengths; default features x86_64. No byte/str validation or other implementation is claimed. Mutable backward writeback is restricted to valid same-length replacements; no resizing/pointer/lifetime/aliasing proof."
++    },
++    {
++      "api": "<ascii::AsciiStr as ascii::AsAsciiStr>::as_ascii_str_unchecked",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.as_ascii_str_unchecked_identity_spec",
++      "precondition": "Only this original implementation for an already valid AsciiStr receiver, all modeled lengths; default features x86_64. No byte/str validation or other implementation is claimed. Mutable backward writeback is restricted to valid same-length replacements; no resizing/pointer/lifetime/aliasing proof."
++    },
++    {
++      "api": "<ascii::AsciiStr as ascii::AsMutAsciiStr>::as_mut_ascii_str_unchecked",
++      "module": "SliceProofs",
++      "theorem": "SliceProofs.as_mut_ascii_str_unchecked_identity_spec",
++      "precondition": "Only this original implementation for an already valid AsciiStr receiver, all modeled lengths; default features x86_64. No byte/str validation or other implementation is claimed. Mutable backward writeback is restricted to valid same-length replacements; no resizing/pointer/lifetime/aliasing proof."
++    },
++    {
++      "api": "FromAsciiError::ascii_error",
++      "module": "ErrorProjectionProofs",
++      "theorem": "ErrorProjectionProofs.ascii_error_exact",
++      "precondition": "Every original FromAsciiError<O>, for every Rust owner type O without Clone/Copy constraints; returns normally with the stored error field unchanged. Does not establish any validation property of the stored index."
++    },
++    {
++      "api": "FromAsciiError::into_source",
++      "module": "ErrorProjectionProofs",
++      "theorem": "ErrorProjectionProofs.into_source_exact",
++      "precondition": "Every original FromAsciiError<O>, for every Rust owner type O without Clone/Copy constraints; consumes the error object and returns its stored original owner exactly, with no conversion or validation."
++    },
++    {
++      "api": "<ascii::AsciiString as From<alloc::vec::Vec<ascii::AsciiChar>>>::from",
++      "module": "VectorIdentityProofs",
++      "theorem": "VectorIdentityProofs.from_vector_exact",
++      "precondition": "Only the original default-allocator Vec<ascii::AsciiChar> implementation: every valid typed ASCII vector within the official sequence model; exact stored vector/sequence identity and normal return. Not Vec<u8>, arbitrary Vec<T>, raw-byte validation, allocator/capacity/address guarantees or any other impl."
++    },
++    {
++      "api": "<alloc::vec::Vec<ascii::AsciiChar> as From<ascii::AsciiString>>::from",
++      "module": "VectorIdentityProofs",
++      "theorem": "VectorIdentityProofs.into_vector_exact",
++      "precondition": "Only the original From<ascii::AsciiString> for default-allocator Vec<ascii::AsciiChar>: every valid typed string returns its exact stored vector/sequence normally. Not Vec<u8> or another From impl; physical allocation identity and capacity are not modeled."
++    },
++    {
++      "api": "<alloc::vec::Vec<ascii::AsciiChar> as ascii::IntoAsciiString>::into_ascii_string",
++      "module": "VectorIdentityProofs",
++      "theorem": "VectorIdentityProofs.checked_exact",
++      "precondition": "Only the original default-allocator Vec<ascii::AsciiChar> implementation: every valid typed ASCII vector within the official sequence model; exact stored vector/sequence identity and normal return. Not Vec<u8>, arbitrary Vec<T>, raw-byte validation, allocator/capacity/address guarantees or any other impl."
++    },
++    {
++      "api": "<alloc::vec::Vec<ascii::AsciiChar> as ascii::IntoAsciiString>::into_ascii_string_unchecked",
++      "module": "VectorIdentityProofs",
++      "theorem": "VectorIdentityProofs.unchecked_exact",
++      "precondition": "Only the original default-allocator Vec<ascii::AsciiChar> implementation: every valid typed ASCII vector within the official sequence model; exact stored vector/sequence identity and normal return. Not Vec<u8>, arbitrary Vec<T>, raw-byte validation, allocator/capacity/address guarantees or any other impl."
++    },
++    {
++      "api": "<ascii::AsciiStr as AsRef<[ascii::AsciiChar]>>::as_ref",
++      "module": "BorrowViewProofs",
++      "theorem": "BorrowViewProofs.as_ref_slice_exact",
++      "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++    },
++    {
++      "api": "<ascii::AsciiStr as AsMut<[ascii::AsciiChar]>>::as_mut",
++      "module": "BorrowViewProofs",
++      "theorem": "BorrowViewProofs.as_mut_slice_contract",
++      "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++    },
++    {
++      "api": "<ascii::AsciiStr as AsRef<ascii::AsciiStr>>::as_ref",
++      "module": "BorrowViewProofs",
++      "theorem": "BorrowViewProofs.as_ref_self_exact",
++      "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++    },
++    {
++      "api": "<ascii::AsciiString as AsRef<[ascii::AsciiChar]>>::as_ref",
++      "module": "StringBorrowViewProofs",
++      "theorem": "StringBorrowViewProofs.as_ref_slice_exact",
++      "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++    },
++    {
++      "api": "<ascii::AsciiString as AsMut<[ascii::AsciiChar]>>::as_mut",
++      "module": "StringBorrowViewProofs",
++      "theorem": "StringBorrowViewProofs.as_mut_slice_contract",
++      "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++    }
++  ],
++  "borrow_imports": {
++    "src/ascii_string.rs": "use alloc::borrow::{Borrow, BorrowMut, Cow, ToOwned};\nuse alloc::fmt;\nuse alloc::string::String;\nuse alloc::vec::Vec;\nuse alloc::boxed::Box;\nuse alloc::rc::Rc;\nuse alloc::sync::Arc;\n#[cfg(feature = \"std\")]\nuse core::any::Any;\nuse core::iter::FromIterator;\nuse core::mem;\nuse core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut};\nuse core::str::FromStr;\n#[cfg(feature = \"std\")]\nuse std::error::Error;\n#[cfg(feature = \"std\")]\nuse std::ffi::{CStr, CString};\n\nuse ascii_char::AsciiChar;\nuse ascii_str::{AsAsciiStr, AsAsciiStrError, AsciiStr};\n\n",
++    "src/ascii_str.rs": "#[cfg(feature = \"alloc\")]\nuse alloc::borrow::ToOwned;\n#[cfg(feature = \"alloc\")]\nuse alloc::boxed::Box;\nuse core::fmt;\nuse core::ops::{Index, IndexMut};\nuse core::ops::{Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive};\nuse core::slice::{self, Iter, IterMut, SliceIndex};\n#[cfg(feature = \"std\")]\nuse std::error::Error;\n#[cfg(feature = \"std\")]\nuse std::ffi::CStr;\n\nuse ascii_char::AsciiChar;\n#[cfg(feature = \"alloc\")]\nuse ascii_string::AsciiString;\n\n"
++  },
++  "borrow_bindings": [
++    {
++      "proof": {
++        "api": "<ascii::AsciiStr as AsRef<[ascii::AsciiChar]>>::as_ref",
++        "module": "BorrowViewProofs",
++        "theorem": "BorrowViewProofs.as_ref_slice_exact",
++        "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++      },
++      "runtime_identity": "ascii::ascii_str::{impl core::convert::AsRef<[ascii::ascii_char::AsciiChar]> for ascii::ascii_str::AsciiStr}::as_ref",
++      "generated_symbol": "ascii.ascii_str.AsciiStr.Insts.CoreConvertAsRefSliceAsciiChar.as_ref",
++      "file": "src/ascii_str.rs",
++      "first_line": 375,
++      "last_line": 378,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn as_ref(&self) -> &[AsciiChar] {\n        &self.slice\n    }",
++      "extracted_source": {
++        "def_id": 69,
++        "lean_name": "ascii.ascii_str.AsciiStr.Insts.CoreConvertAsRefSliceAsciiChar.as_ref",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_str::{impl core::convert::AsRef<[ascii::ascii_char::AsciiChar]> for ascii::ascii_str::AsciiStr}::as_ref",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_str.rs",
++          "begin_line": 376,
++          "end_line": 378
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<ascii::AsciiStr as AsMut<[ascii::AsciiChar]>>::as_mut",
++        "module": "BorrowViewProofs",
++        "theorem": "BorrowViewProofs.as_mut_slice_contract",
++        "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++      },
++      "runtime_identity": "ascii::ascii_str::{impl core::convert::AsMut<[ascii::ascii_char::AsciiChar]> for ascii::ascii_str::AsciiStr}::as_mut",
++      "generated_symbol": "ascii.ascii_str.AsciiStr.Insts.CoreConvertAsMutSliceAsciiChar.as_mut",
++      "file": "src/ascii_str.rs",
++      "first_line": 381,
++      "last_line": 384,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn as_mut(&mut self) -> &mut [AsciiChar] {\n        &mut self.slice\n    }",
++      "extracted_source": {
++        "def_id": 71,
++        "lean_name": "ascii.ascii_str.AsciiStr.Insts.CoreConvertAsMutSliceAsciiChar.as_mut",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_str::{impl core::convert::AsMut<[ascii::ascii_char::AsciiChar]> for ascii::ascii_str::AsciiStr}::as_mut",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_str.rs",
++          "begin_line": 382,
++          "end_line": 384
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<ascii::AsciiStr as AsRef<ascii::AsciiStr>>::as_ref",
++        "module": "BorrowViewProofs",
++        "theorem": "BorrowViewProofs.as_ref_self_exact",
++        "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++      },
++      "runtime_identity": "ascii::ascii_str::{impl core::convert::AsRef<ascii::ascii_str::AsciiStr> for ascii::ascii_str::AsciiStr}::as_ref",
++      "generated_symbol": "ascii.ascii_str.AsciiStr.Insts.CoreConvertAsRefAsciiStr.as_ref",
++      "file": "src/ascii_str.rs",
++      "first_line": 417,
++      "last_line": 420,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn as_ref(&self) -> &AsciiStr {\n        self\n    }",
++      "extracted_source": {
++        "def_id": 70,
++        "lean_name": "ascii.ascii_str.AsciiStr.Insts.CoreConvertAsRefAsciiStr.as_ref",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_str::{impl core::convert::AsRef<ascii::ascii_str::AsciiStr> for ascii::ascii_str::AsciiStr}::as_ref",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_str.rs",
++          "begin_line": 418,
++          "end_line": 420
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<ascii::AsciiString as AsRef<[ascii::AsciiChar]>>::as_ref",
++        "module": "StringBorrowViewProofs",
++        "theorem": "StringBorrowViewProofs.as_ref_slice_exact",
++        "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++      },
++      "runtime_identity": "ascii::ascii_string::{impl core::convert::AsRef<[ascii::ascii_char::AsciiChar]> for ascii::ascii_string::AsciiString}::as_ref",
++      "generated_symbol": "ascii.ascii_string.AsciiString.Insts.CoreConvertAsRefSliceAsciiChar.as_ref",
++      "file": "src/ascii_string.rs",
++      "first_line": 601,
++      "last_line": 604,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn as_ref(&self) -> &[AsciiChar] {\n        &self.vec\n    }",
++      "extracted_source": {
++        "def_id": 74,
++        "lean_name": "ascii.ascii_string.AsciiString.Insts.CoreConvertAsRefSliceAsciiChar.as_ref",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_string::{impl core::convert::AsRef<[ascii::ascii_char::AsciiChar]> for ascii::ascii_string::AsciiString}::as_ref",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_string.rs",
++          "begin_line": 602,
++          "end_line": 604
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    },
++    {
++      "proof": {
++        "api": "<ascii::AsciiString as AsMut<[ascii::AsciiChar]>>::as_mut",
++        "module": "StringBorrowViewProofs",
++        "theorem": "StringBorrowViewProofs.as_mut_slice_contract",
++        "precondition": "Only this exact original typed receiver and trait argument, default features x86_64; every valid typed ASCII sequence. Shared view preserves element sequence and length; mutable view also writes every valid same-length replacement back exactly. No physical address, capacity, allocator, lifetime, aliasing or OOM guarantee; no other AsRef/AsMut impl."
++      },
++      "runtime_identity": "ascii::ascii_string::{impl core::convert::AsMut<[ascii::ascii_char::AsciiChar]> for ascii::ascii_string::AsciiString}::as_mut",
++      "generated_symbol": "ascii.ascii_string.AsciiString.Insts.CoreConvertAsMutSliceAsciiChar.as_mut",
++      "file": "src/ascii_string.rs",
++      "first_line": 629,
++      "last_line": 632,
++      "unsafe": false,
++      "method_source": "    #[inline]\n    fn as_mut(&mut self) -> &mut [AsciiChar] {\n        &mut self.vec\n    }",
++      "extracted_source": {
++        "def_id": 78,
++        "lean_name": "ascii.ascii_string.AsciiString.Insts.CoreConvertAsMutSliceAsciiChar.as_mut",
++        "lean_file": "Ascii.lean",
++        "rust_name": "ascii::ascii_string::{impl core::convert::AsMut<[ascii::ascii_char::AsciiChar]> for ascii::ascii_string::AsciiString}::as_mut",
++        "is_local": true,
++        "source": {
++          "file": "src/ascii_string.rs",
++          "begin_line": 630,
++          "end_line": 632
++        },
++        "is_opaque": false,
++        "can_fail": true,
++        "can_diverge": false,
++        "is_rec": false,
++        "reducible": false
++      }
++    }
++  ]
++}

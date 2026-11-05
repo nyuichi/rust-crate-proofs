@@ -1,0 +1,1 @@
+Formal46 producer freeze is preserved elsewhere. This editorial copy retains public41 identities and adds five canonical Rust keys; the writer must add known46 opt-in manifests and pass all source/legacy/negative/independent gates before publisher integration, fresh verification or publication. Unknown-snapshot bypass is prohibited.

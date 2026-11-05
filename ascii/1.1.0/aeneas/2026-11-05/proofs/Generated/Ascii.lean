@@ -602,6 +602,31 @@ def ascii_str.AsciiStr.is_empty (self : ascii_str.AsciiStr) : Result Bool := do
   let i ← ascii_str.AsciiStr.len self
   ok (i = 0#usize)
 
+/-- [ascii::ascii_str::{impl core::convert::AsRef<[ascii::ascii_char::AsciiChar]> for ascii::ascii_str::AsciiStr}::as_ref]:
+    Source: 'src/ascii_str.rs', lines 376:4-378:5
+    Visibility: public -/
+def ascii_str.AsciiStr.Insts.CoreConvertAsRefSliceAsciiChar.as_ref
+  (self : ascii_str.AsciiStr) : Result (Slice ascii_char.AsciiChar) := do
+  ok self.slice
+
+/-- [ascii::ascii_str::{impl core::convert::AsMut<[ascii::ascii_char::AsciiChar]> for ascii::ascii_str::AsciiStr}::as_mut]:
+    Source: 'src/ascii_str.rs', lines 382:4-384:5
+    Visibility: public -/
+def ascii_str.AsciiStr.Insts.CoreConvertAsMutSliceAsciiChar.as_mut
+  (self : ascii_str.AsciiStr) :
+  Result ((Slice ascii_char.AsciiChar) × (Slice ascii_char.AsciiChar →
+    ascii_str.AsciiStr))
+  := do
+  let back := fun s => ({ slice := s } : ascii_str.AsciiStr)
+  ok (self.slice, back)
+
+/-- [ascii::ascii_str::{impl core::convert::AsRef<ascii::ascii_str::AsciiStr> for ascii::ascii_str::AsciiStr}::as_ref]:
+    Source: 'src/ascii_str.rs', lines 418:4-420:5
+    Visibility: public -/
+def ascii_str.AsciiStr.Insts.CoreConvertAsRefAsciiStr.as_ref
+  (self : ascii_str.AsciiStr) : Result ascii_str.AsciiStr := do
+  ok self
+
 /-- [ascii::ascii_str::AsAsciiStrError]
     Source: 'src/ascii_str.rs', lines 807:0-807:34
     Visibility: public -/
@@ -696,6 +721,28 @@ def alloc.vec.VecAsciiChar.Insts.CoreConvertFromAsciiString.from
   Result (alloc.vec.Vec ascii_char.AsciiChar)
   := do
   ok s.vec
+
+/-- [ascii::ascii_string::{impl core::convert::AsRef<[ascii::ascii_char::AsciiChar]> for ascii::ascii_string::AsciiString}::as_ref]:
+    Source: 'src/ascii_string.rs', lines 602:4-604:5
+    Visibility: public -/
+def ascii_string.AsciiString.Insts.CoreConvertAsRefSliceAsciiChar.as_ref
+  (self : ascii_string.AsciiString) : Result (Slice ascii_char.AsciiChar) := do
+  ok (alloc.vec.Vec.deref self.vec)
+
+/-- [ascii::ascii_string::{impl core::convert::AsMut<[ascii::ascii_char::AsciiChar]> for ascii::ascii_string::AsciiString}::as_mut]:
+    Source: 'src/ascii_string.rs', lines 630:4-632:5
+    Visibility: public -/
+def ascii_string.AsciiString.Insts.CoreConvertAsMutSliceAsciiChar.as_mut
+  (self : ascii_string.AsciiString) :
+  Result ((Slice ascii_char.AsciiChar) × (Slice ascii_char.AsciiChar →
+    ascii_string.AsciiString))
+  := do
+  let (s, deref_mut_back) ← lift (alloc.vec.Vec.deref_mut self.vec)
+  let back :=
+    fun s1 =>
+      let v := deref_mut_back s1
+      ({ vec := v } : ascii_string.AsciiString)
+  ok (s, back)
 
 /-- [ascii::ascii_string::FromAsciiError]
     Source: 'src/ascii_string.rs', lines 754:0-757:1

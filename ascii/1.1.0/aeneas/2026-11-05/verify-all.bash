@@ -25,7 +25,7 @@ sha256sum proofs/Generated/{Ascii.lean,translation.json} > evidence/generated-be
 python3 tools/extract.py
 sha256sum --check evidence/generated-before.sha256
 if rg -n '\bsorry\b|\baxiom\b' proofs --glob '*.lean' --glob '!**/.lake/**'; then exit 1; fi
-(cd proofs; for proof_module in DigitProofs StringProofs SliceProofs Proofs ErrorProjectionProofs VectorIdentityProofs; do lake build +"$proof_module"; done) 2>&1 | tee evidence/verification.log
+(cd proofs; for proof_module in DigitProofs StringProofs SliceProofs Proofs ErrorProjectionProofs VectorIdentityProofs BorrowViewProofs StringBorrowViewProofs; do lake build +"$proof_module"; done) 2>&1 | tee evidence/verification.log
 python3 - <<'INNER'
 from pathlib import Path
 import re
@@ -35,5 +35,6 @@ for n,a in rows:assert set(a.split(', '))<={'propext','Classical.choice','Quot.s
 print('Prior thirty-five API theorems and audited casefold/push helpers passed; exact all41 machine audit follows')
 INNER
 
+python3 tools/check-borrow-union.py
 python3 tools/check-source-only.py
 python3 tools/audit-all.py . evidence/machine-claims-audit

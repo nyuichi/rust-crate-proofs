@@ -1,7 +1,9 @@
 import Lean
+import BorrowViewProofs
 import ErrorProjectionProofs
 import Proofs
 import SliceProofs
+import StringBorrowViewProofs
 import StringProofs
 import VectorIdentityProofs
 open Lean Elab Command
@@ -456,3 +458,58 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in VectorIdentityProofs.unchecked_exact: {ax}"
   liftIO <| IO.println "proofs.rs:checked:VectorIdentityProofs.unchecked_exact"
+
+run_cmd do
+  let theorem_name := `BorrowViewProofs.as_ref_slice_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: BorrowViewProofs.as_ref_slice_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in BorrowViewProofs.as_ref_slice_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:BorrowViewProofs.as_ref_slice_exact"
+
+run_cmd do
+  let theorem_name := `BorrowViewProofs.as_mut_slice_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: BorrowViewProofs.as_mut_slice_contract"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in BorrowViewProofs.as_mut_slice_contract: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:BorrowViewProofs.as_mut_slice_contract"
+
+run_cmd do
+  let theorem_name := `BorrowViewProofs.as_ref_self_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: BorrowViewProofs.as_ref_self_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in BorrowViewProofs.as_ref_self_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:BorrowViewProofs.as_ref_self_exact"
+
+run_cmd do
+  let theorem_name := `StringBorrowViewProofs.as_ref_slice_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: StringBorrowViewProofs.as_ref_slice_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in StringBorrowViewProofs.as_ref_slice_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:StringBorrowViewProofs.as_ref_slice_exact"
+
+run_cmd do
+  let theorem_name := `StringBorrowViewProofs.as_mut_slice_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: StringBorrowViewProofs.as_mut_slice_contract"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in StringBorrowViewProofs.as_mut_slice_contract: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:StringBorrowViewProofs.as_mut_slice_contract"

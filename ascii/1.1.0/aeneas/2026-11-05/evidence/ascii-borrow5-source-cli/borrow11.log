@@ -1,0 +1,38 @@
+warning: methods `prepare` and `resolve` are never used
+   --> src/api.rs:130:12
+    |
+ 34 | impl Api {
+    | -------- methods in this implementation
+...
+130 |     pub fn prepare(&self, name: &str, version: &str) -> Result<()> {
+    |            ^^^^^^^
+...
+182 |     pub fn resolve(&self, name: &str, version: &str, paths: &[String]) -> Result<(String, String)> {
+    |            ^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `cargo-proofs` (bin "cargo-proofs" test) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.10s
+     Running unittests src/main.rs (target/release/build/cargo-proofs/3e650ec645896899/out/cargo_proofs-3e650ec645896899)
+
+running 1 test
+borrow-semantic-rejected:slice-u8
+borrow-semantic-rejected:owner-string
+borrow-semantic-rejected:target-vec
+borrow-semantic-rejected:self-target
+borrow-semantic-rejected:mutable-receiver
+
+thread 'ascii_vec::tests::borrow_five_inner_source_mutations' (456184) panicked at src/ascii_vec.rs:448:13:
+Accepted borrow mutation borrow-body
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test ascii_vec::tests::borrow_five_inner_source_mutations ... FAILED
+
+failures:
+
+failures:
+    ascii_vec::tests::borrow_five_inner_source_mutations
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 81 filtered out; finished in 0.20s
+
+error: test failed, to rerun pass `--bin cargo-proofs`
