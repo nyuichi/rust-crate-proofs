@@ -1,0 +1,32 @@
+   Compiling cargo-proofs v0.4.1 (/workspace/cargo-proofs-local)
+warning: methods `prepare` and `resolve` are never used
+   --> src/api.rs:130:12
+    |
+ 34 | impl Api {
+    | -------- methods in this implementation
+...
+130 |     pub fn prepare(&self, name: &str, version: &str) -> Result<()> {
+    |            ^^^^^^^
+...
+182 |     pub fn resolve(&self, name: &str, version: &str, paths: &[String]) -> Result<(String, String)> {
+    |            ^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `cargo-proofs` (bin "cargo-proofs" test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.54s
+     Running unittests src/main.rs (target/debug/build/cargo-proofs/337abed5ee7e500d/out/cargo_proofs-337abed5ee7e500d)
+
+running 4 tests
+test external_blanket::tests::exact_scope_and_keys ... ok
+test external_blanket::tests::reject_scope_dependency_features_and_erasure ... ok
+18 semantic mutation negatives rejected; original 25-chain document passes
+test external_blanket::semantic_tests::reject_forged_compiler_chains ... ok
+Validated external_blanket_specialization: local_declaration=false; 25 exact public keys, 50 regenerated compiler observations (default/serde), original source and proved generated bodies unchanged
+69 original source callables discovered; default25+serde25 externally regenerated with exact singleton FQ keys
+Validated external_blanket_specialization: local_declaration=false; 25 exact public keys, 50 regenerated compiler observations (default/serde), original source and proved generated bodies unchanged
+Publication recorded-commit source capture succeeds after metadata-only HEAD advance and mutated live source; config/captured-source/commit/symlink substitutions rejected; worktree cleanup checked
+test external_blanket::compiler_tests::real_fifty_observations ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 73 filtered out; finished in 32.34s
+

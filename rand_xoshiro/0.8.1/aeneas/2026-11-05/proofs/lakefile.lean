@@ -22,3 +22,7 @@ lean_lib SplitMixState where
 @[default_target] lean_lib SerializerLoopProofs
 lean_lib Serializers where
  roots := #[`Serializers.Types, `Serializers.FunsExternal, `Serializers.Funs]
+
+@[default_target] lean_lib RngProofs
+lean_lib XoshiroRngApiRoots where
+ roots := #[`XoshiroRngApiRoots.Types, `XoshiroRngApiRoots.Funs]

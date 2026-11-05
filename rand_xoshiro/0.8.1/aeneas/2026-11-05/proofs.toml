@@ -1,4 +1,5 @@
 [tool]
+external_blanket_observations = "evidence/external-blanket-observations.json"
 name = "aeneas"
 version = "be86ab0f1989d04944292b345b24c435be3ad10a"
 lean_dir = "proofs"
@@ -185,10 +186,10 @@ precondition = "Every internal u64 state including zero; default or serde featur
 
 [report]
 title = "Exact xoshiro outputs and complete little-endian state serialization"
-explanation = "For rand_xoshiro 0.8.1, the unchanged native word-generating method of each of its fifteen generators returns Ok of the specified output scrambler and performs the exact documented word-state transition. Coverage includes SplitMix64, both xoroshiro64 variants, all three xoroshiro128 variants, and all three variants of each xoshiro128, xoshiro256 and xoshiro512 family. For 32-bit-word engines the native method is try_next_u32; for 64-bit-word engines it is try_next_u64. SplitMix64::try_next_u32 is also proved independently, including its distinct Mix4 output formula, among the direct body proofs. Each theorem covers arbitrary internal words, including all-zero states, and establishes normal termination in the Aeneas model. Array-state representation theorems establish that the four-word and eight-word inputs cover every valid fixed-length engine state. Exact output formulas and resulting fields are defined independently of the generated Rust body in the output*/next* specifications. The selected original bodies have byte-identical official Aeneas translations under the default and serde feature configurations, so these body guarantees apply to both configurations; this does not verify the serde trait implementations. Nine further 32-bit APIs are verified through exact forwarding selectors whose calls to the unchanged original API are inlined by the Rust compiler: all three xoroshiro128, all three xoshiro256 and all three xoshiro512 variants. These establish the same state transition as their 64-bit method, with low 32 output bits for xoroshiro128++ and xoroshiro128**, and high 32 bits for the other seven variants. The selector source, typed receiver/return correspondence, target, original method inline scopes and absence of unknown externals are guarded. Default and serde selected programs are byte-identical. Four additional direct body proofs cover Seed512: Default initializes all 64 bytes to zero; AsRef exposes exactly the stored bytes; AsMut exposes those bytes and writes back every legal 64-byte replacement unchanged; iter initializes the standard slice-iterator model over those same bytes at position zero. SplitMix64::state is additionally proved to return exactly the eight little-endian bytes of its complete internal u64 state, for every state including zero. All fifteen generators\u2019 state methods are now covered: each returns the complete fixed-length little-endian bytes of every stored unsigned word in field order, for arbitrary internal word patterns including all-zero. Fourteen additional serializers bring the registered total to forty-four: thirty-five direct original bodies and nine compiler-inlined calls. The eight-word serializers also have a decreasing-measure proof that the original enumerate loop terminates after visiting each word. These are serialization results, not serde trait implementation proofs. Independent original-source Kani evidence additionally checks all fifteen from_seed APIs over their full fixed-size byte-seed domains, including the all-zero fallback, and all fifteen state serializers over every valid internal word pattern, including states that seeds may not reach. Default and serde configurations each pass fifteen seed harnesses/6014 checks and fifteen state harnesses/8024 checks. Five separate composition harnesses per configuration (892 checks) cover the remaining 32-bit-engine try_next_u64 operations against independent two-step little-endian output/poststate formulas. These ordinary Kani harnesses are separate tool guarantees, not extra Aeneas machine claims or a mechanized cross-tool equivalence; overlapping serializers are not counted twice. Read-only observers occur only as exact suffixes in generated measurement copies, with original production bytes preserved."
+explanation = "For rand_xoshiro 0.8.1 on x86_64 with default or serde features, 69 scoped contracts specify exact outputs and state updates for every internal word pattern, including zero states. Thirty-five direct original-body contracts cover native outputs, all fifteen little-endian state serializers, and Seed512 zero initialization, byte views, legal fixed-length mutable writeback and iterator initialization. Nine compiler-inlined original calls cover 64-to-32-bit projections: xoroshiro128++ and xoroshiro128** use low output bits; the other seven use high bits. Twenty-five further compiler-inlined calls cover the external rand_core 0.10.1 blanket Rng::next_u32/next_u64 specializations, preserving the exact original forwarding behavior and full resulting state. These are external trait specializations, not local declarations. The original selected translations agree under default and serde features; serde implementations themselves are not proved. Eleven two/four-word serializers use the explicitly bounded U32/U64 primitive layout dictionaries; three eight-word serializers prove termination of the original serialization loop. Separate Kani seed/state/composition results remain supplementary evidence, not additional Aeneas claims."
 trusted_assumptions = "The Rust compiler, official Charon/Aeneas translation, official Aeneas array/scalar models and Lean kernel are trusted. No source adaptations or local helper axioms are used. Eleven newly covered two/four-word state serializers use a custom executable size_of model with explicit layout evidence only for U32=4 and U64=8 bytes. The original generated Types/Funs remain byte-for-byte official outputs. The Lean evidence class is open; this packet supplies exactly these two primitive instances and guards all eleven generated calls and their frozen elaborated instance bindings. Bool and array types have no supplied evidence and are rejected. This is not a universal type-layout theorem. The three eight-word serializers do not call size_of. Archived independent Kani layout checks confirm the Rust u32/u64 sizes under nightly-2026-08-21; Aeneas extraction uses nightly-2026-09-17. ABI agreement across those compilers and correspondence of Rust layout to the Lean evidence remains an explicit, non-mechanical model bridge. All API and supplementary direct/selector theorems have dependency audits permitting only propext, Classical.choice and Quot.sound. Standard shifts, rotations, wrapping arithmetic and array operations use official Aeneas models, rather than body proofs of Rust std implementations. The nine selector proofs additionally rely on Rust compiler inlining of the exact original API call; retained MIR scopes identify each original TryRng method and Rng wrapper. The selector does not replace or assume an opaque original API: generated native callees are body-proved and no unknown external definitions remain. Seed512 byte-view and iterator initialization proofs use the official array-to-slice and slice-iterator models. The mutable reference model specifies write-back of the fixed-length referent; resizing that referent is not a legal returned-slice operation in safe Rust."
-limitations = "Forty-four registered APIs are covered: thirty-five direct original bodies and nine compiler-inlined calls, under default or serde features on x86_64-unknown-linux-gnu. The eleven two/four-word state serialization guarantees depend on the explicit primitive layout model and its documented compiler/model boundary. The five 32-bit-engine try_next_u64 compositions, buffer filling, seed construction, jump/long_jump, Seed512 formatting and external iterator operations, manual Debug, serde and inherited/default/external blanket methods remain outside these registered Aeneas claims. Separate Kani seed/state/composition evidence is supplementary and not an Aeneas claim. All-zero states are included in the formulas; ordinary seed reachability, period, distribution, independence and cryptographic security are not established. Other targets and untested dependency feature combinations are not covered."
-environment = "Original crates.io rand_xoshiro 0.8.1 Rust sources and Cargo.toml, archive-compared unchanged. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all sixteen original bodies, with macro-expanded transitions. Original tests, regeneration hashes, integrated build and transitive theorem audits are retained in evidence. Separate all-features (serde) extraction is retained in evidence/serde; generated Lean is byte-identical to the default extraction. For the nine selection-only forwarding callers, official Charon optimized MIR with mir-opt-level=4 and +Inline is used, with duplicate-defaulted-methods and remove-unused-self-clauses. Original dependency bodies retain dependency MIR. No original Rust source or Cargo manifest is changed. Path remapping affects provenance spelling only. A third official targeted extraction covers the four Seed512 bodies; default and serde generated Types/Funs are byte-identical and have no unknown externals. The additional fifteen-serializer original-root extraction is non-monomorphized, uses the official distinct XoshiroSerializationModel namespace, and has byte-identical default/serde Types/Funs. Fourteen claims are added; existing SplitMix64::state is retained without duplicate registration. Full LLBC traversal and all generated modules restrict custom size_of uses to five U32 and six U64 calls per configuration; the only custom external template declaration is size_of. All six claim modules are simultaneously imported and all theorem dependencies audited."
+limitations = "The 69 mapped contracts comprise 35 direct bodies and 34 compiler-inlined original calls, including exactly 25 external blanket specializations. The five 32-bit-engine try_next_u64 compositions and corresponding external Rng::next_u64 specializations remain outside these Aeneas claims. Seed construction, buffer filling, jump/long_jump, Debug/formatting, serde implementations and other inherited/default/blanket methods are not completed. Seed512 iterator initialization does not prove iterator operation bodies. Serializer layout dictionaries cover only the frozen U32/U64 use closure; arbitrary type layout is not established. Separate Kani seed/state/composition evidence has its own documented compiler and domain boundaries. No seed reachability, period, distribution, independence or cryptographic property follows from these transition formulas. Other targets and feature/dependency combinations are not covered."
+environment = "Original crates.io rand_xoshiro 0.8.1 Rust sources and Cargo.toml, archive-compared unchanged. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all sixteen original bodies, with macro-expanded transitions. Original tests, regeneration hashes, integrated build and transitive theorem audits are retained in evidence. Separate all-features (serde) extraction is retained in evidence/serde; generated Lean is byte-identical to the default extraction. For the nine selection-only forwarding callers, official Charon optimized MIR with mir-opt-level=4 and +Inline is used, with duplicate-defaulted-methods and remove-unused-self-clauses. Original dependency bodies retain dependency MIR. No original Rust source or Cargo manifest is changed. Path remapping affects provenance spelling only. A third official targeted extraction covers the four Seed512 bodies; default and serde generated Types/Funs are byte-identical and have no unknown externals. The additional fifteen-serializer original-root extraction is non-monomorphized, uses the official distinct XoshiroSerializationModel namespace, and has byte-identical default/serde Types/Funs. Fourteen claims are added; existing SplitMix64::state is retained without duplicate registration. Full LLBC traversal and all generated modules restrict custom size_of uses to five U32 and six U64 calls per configuration; the only custom external template declaration is size_of. All six claim modules are simultaneously imported and all theorem dependencies audited. External blanket opt-in: exact25 rand_core0.10.1 specializations, checksum-pinned source closure, CLI-owned independent compiler capture in default and serde configurations; exact singleton observations. CLI032640e536faffa600f4345b14cc51b40d827c322745d286b225858d84612d68."
 
 [[tool.proofs]]
 api = "Xoroshiro128Plus::state"
@@ -273,3 +274,153 @@ api = "Xoshiro512StarStar::state"
 module = "SerializerLoopProofs"
 theorem = "SerializerProofs.Xoshiro512StarStar_state_spec"
 precondition = "Every internal unsigned-word state, including all-zero, on x86_64; default or serde features. Exact fixed-length little-endian serialization. The eleven two/four-word methods use explicit U32/U64 layout evidence; the three eight-word methods do not call size_of."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::SplitMix64 as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.SplitMix64_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::SplitMix64 as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.SplitMix64_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro128Plus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro128Plus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro128Plus as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro128Plus_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro128PlusPlus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro128PlusPlus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro128PlusPlus as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro128PlusPlus_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro128StarStar as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro128StarStar_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro128StarStar as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro128StarStar_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro64Star as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro64Star_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoroshiro64StarStar as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoroshiro64StarStar_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro128Plus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro128Plus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro128PlusPlus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro128PlusPlus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro128StarStar as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro128StarStar_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro256Plus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro256Plus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro256Plus as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro256Plus_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro256PlusPlus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro256PlusPlus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro256PlusPlus as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro256PlusPlus_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro256StarStar as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro256StarStar_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro256StarStar as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro256StarStar_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro512Plus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro512Plus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro512Plus as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro512Plus_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro512PlusPlus as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro512PlusPlus_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro512PlusPlus as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro512PlusPlus_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro512StarStar as rand_core::Rng>::next_u32"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro512StarStar_rng_32_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
+
+[[tool.proofs]]
+api = "<rand_xoshiro::Xoshiro512StarStar as rand_core::Rng>::next_u64"
+module = "RngProofs"
+theorem = "RngProofs.Xoshiro512StarStar_rng_64_spec"
+precondition = "Every internal word state, including all-zero states; default or serde features on x86_64. Compiler-inlined original rand_core 0.10.1 blanket Rng call with all native callees independently proved."
