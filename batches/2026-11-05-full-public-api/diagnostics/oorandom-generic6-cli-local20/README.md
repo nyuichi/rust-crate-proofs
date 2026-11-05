@@ -1,5 +1,7 @@
 # Oorandom finite generic-six source-binding CLI formalization
 
+Current lifecycle status is in CURRENT-STATUS.json. Historical source/test/build snapshots retain their recording-stage wording; they do not override the newer status.
+
 This packet supports the user’s13-crate public-API verification and proofs publication task. Publishing the necessary narrowly scoped CLI compatibility source on this dedicated proofs branch is inferred from that task scope; there is no separate explicit approval of this exact new patch, and the earlier8c patch approval is not reused as approval for it.
 
 The currently public Oorandom report remains revision5 with14 machine contracts, source05ba2bd2b5cea0aa9740fde500433f6ff83e94cb and global417 contracts. The20-contract candidate and release source are not yet installed, freshly recorded or publicly claimed by this documentation. No ASCII53 code/data is included. The previous installed51 CLI bfbc and immutable rollback packet are preserved.
