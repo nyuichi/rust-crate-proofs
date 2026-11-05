@@ -94,6 +94,28 @@ def Either.Insts.CoreIterTraitsIteratorIterator.next
     let (o, inner1) ← coreitertraitsiteratorIteratorInst1.next inner
     ok (o, Either.Right inner1)
 
+/-- [either::iterator::{impl core::iter::traits::double_ended::DoubleEndedIterator<Clause0_Clause0_Item> for either::Either<L, R>}::next_back]:
+    Source: 'src/iterator.rs', lines 183:4-185:5
+    Visibility: public -/
+def Either.Insts.CoreIterTraitsDouble_endedDoubleEndedIterator.next_back
+  {L : Type _} {R : Type _} {Clause0_Clause0_Item : Type _}
+  (coreitertraitsdouble_endedDoubleEndedIteratorInst :
+  core.iter.traits.double_ended.DoubleEndedIterator L Clause0_Clause0_Item)
+  (coreitertraitsdouble_endedDoubleEndedIteratorInst1 :
+  core.iter.traits.double_ended.DoubleEndedIterator R Clause0_Clause0_Item)
+  (self : Either L R) :
+  Result ((Option Clause0_Clause0_Item) × (Either L R))
+  := do
+  match self with
+  | Either.Left inner =>
+    let (o, inner1) ←
+      coreitertraitsdouble_endedDoubleEndedIteratorInst.next_back inner
+    ok (o, Either.Left inner1)
+  | Either.Right inner =>
+    let (o, inner1) ←
+      coreitertraitsdouble_endedDoubleEndedIteratorInst1.next_back inner
+    ok (o, Either.Right inner1)
+
 /-- [either::Either::Left]:
     Source: 'src/lib.rs', lines 51:4-51:11 -/
 def Either.Left.constructor
