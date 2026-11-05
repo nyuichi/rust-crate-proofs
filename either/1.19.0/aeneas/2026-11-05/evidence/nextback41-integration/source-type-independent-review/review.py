@@ -1,0 +1,31 @@
+from pathlib import Path
+import json,hashlib,tomllib,re,tarfile,subprocess,os
+p=Path('/workspace/full-api/enum/either/nextback41-candidate');pub=Path('/workspace/publish-full-api/either/1.19.0/aeneas/2026-11-05');old=Path('/workspace/full-api/enum/either/iterator40-integrated/either/1.19.0/aeneas/2026-11-05');out=Path(__file__).resolve().parent;sha=lambda b:hashlib.sha256(b).hexdigest();m=json.loads((p/'FREEZE-MANIFEST.json').read_text());assert len(m)==157
+assert sha((p/'FREEZE-MANIFEST.json').read_bytes())=='a25c2c045722ef1493d57e4c27261359ca12d7c6c419d9ac60ecc22144c399cf'
+for r,h in m.items():assert (p/r).is_file() and sha((p/r).read_bytes())==h,r
+bad=[r for r in m if any(x in Path(r).parts for x in ['target','.lake','__pycache__']) or re.search(r'\.(olean|ilean|ir|pyc|rlib|rmeta|o)(\.|$)',r) or (p/r).read_bytes()[:5]==b'olean'];assert not bad
+pubdiff=[r for r,h in m.items() if not (pub/r).is_file() or sha((pub/r).read_bytes())!=h];assert set(pubdiff)<={'proofs.toml','proofs/lakefile.lean','evidence/reference4/REBUILD.md','evidence/reference4/integration.json'},pubdiff
+prior=tomllib.loads((old/'proofs.toml').read_text())['tool']['proofs'];new=tomllib.loads((p/'proofs.toml').read_text())['tool']['proofs'];integrated=tomllib.loads((pub/'proofs.toml').read_text());assert len(prior)==40 and len(new)==41 and prior==new[:40] and integrated['tool']['proofs']==new
+modules=['Proofs','CallbackProofs','IntoEitherProofs','ResultProofs','DefaultProofs','BothProofs','MapInspectProofs','IteratorProofs'];assert all((old/'proofs'/f'{n}.lean').read_bytes()==(p/'proofs'/f'{n}.lean').read_bytes() for n in modules)
+arrays=[]
+for line in (p/'evidence/scanner41.log').read_text().splitlines():
+ try:r=json.loads(line)
+ except ValueError:continue
+ if isinstance(r,list) and all(isinstance(s,str) for s in r):arrays.append(r)
+assert len(arrays)==41 and all(sum(r['api'] in a for a in arrays)==1 for r in new)
+log=(p/'evidence/all126-audit.log').read_text();audits=re.findall(r"'([^']+)' depends on axioms: \[([^]]*)\]",log);assert len(audits)==126 and len({n for n,a in audits})==126 and all(set(a.split(', '))<={'propext','Classical.choice','Quot.sound'} for n,a in audits)
+source=(p/'proofs/NextBackProofs.lean').read_text();assert len(re.findall(r'^theorem ',source,re.M))==3;assert new[-1]['theorem']=='NextBackProofs.next_back_spec' and new[-1]['module']=='NextBackProofs'
+generated=(p/'proofs/Generated/Either.lean').read_text();assert generated.count('inductive Either ')==1
+start=generated.index('def Either.Insts.CoreIterTraitsDouble_endedDoubleEndedIterator.next_back');end=generated.index('\n/--',start);body=generated[start:end];assert body.count('.next_back inner')==2 and 'Either.Left inner1' in body and 'Either.Right inner1' in body and not any(w in body for w in ['size_hint','nth_back','rfold','rfind','try_rfold'])
+with tarfile.open(p/'evidence/upstream.crate') as t:
+ for f in [p/'Cargo.toml',*sorted((p/'src').rglob('*.rs'))]:assert f.read_bytes()==t.extractfile('either-1.19.0/'+str(f.relative_to(p))).read()
+tests=(p/'evidence/original-tests41.log').read_text();assert '61 passed; 0 failed' in tests and 'test result: ok.' in tests
+regen=(p/'evidence/ordered-regeneration41-hash.log').read_text();assert 'proofs/Generated/Either.lean: OK' in regen and 'proofs/Generated/translation.json: OK' in regen
+lake=(pub/'proofs/lakefile.lean').read_text();assert 'needs := #[.facet (.module `ReferenceSupplementProofs) `leanArts]' in lake and 'lean_lib NextBackProofs' in lake
+small=(pub/'evidence/reference4/exact41-cli-targets.log').read_text();assert 'Build completed successfully (1807 jobs)' in small
+for n in ['shared_copied','shared_cloned_left','shared_cloned_right','mut_copied','mut_cloned_left','mut_cloned_right']:assert f"'ReferenceSupplementProofs.{n}' depends on axioms:" in small
+for n in ['left','right','next_back_spec']:assert f"'NextBackProofs.{n}' depends on axioms:" in small
+assert 'collide' in integrated['report']['limitations'] and 'separate Lean module environments' in integrated['report']['limitations']
+cp=(pub/'proofs/PrimaryCoimport.lean').read_text();assert 'import NextBackProofs' in cp and 'ReferenceSupplement' not in cp
+staged=subprocess.check_output(['git','-C','/workspace/publish-full-api','diff','--cached','--name-only','--','either/1.19.0/aeneas/2026-11-05'],text=True,env={**os.environ,'GIT_OPTIONAL_LOCKS':'0'}).splitlines();assert not [f for f in staged if any(w in Path(f).parts for w in ['target','.lake','__pycache__']) or re.search(r'\.(olean|ilean|ir|pyc|rlib|rmeta|o)(\.|$)',f)]
+result={'status':'PASS','blocking_findings':[],'review_mode':'read-only source/type/evidence; no build, solver, original/generated/model/CLI or cache edits','producer_manifest_sha256':sha((p/'FREEZE-MANIFEST.json').read_bytes()),'producer_frozen_files':157,'producer_all_hashes_match':True,'integrated_root':str(pub),'permitted_integrated_differences':pubdiff,'old40_all_mapping_rows_including_preconditions_exact':True,'old8_proof_modules_unchanged':True,'primary_API_count':41,'new_primary_API':new[-1],'new_theorems_total':3,'new_theorem_count_distinction':'one mapped next_back_spec plus two branch helpers left/right; not three extra APIs or three helpers in addition to primary','unique_standard3_audits':126,'simultaneous_primary_modules':9,'scanner_literal_typed_keys_exact_one_each':True,'original_source_archive_match':True,'original_unit_and61doc_test_evidence':'PASS','ordered_Lean_and_translation_regeneration':'PASS','shared_primary_generated_Either_type':'one','supplement_reference4':'six theorem audits in separately compiled library via explicit Lake facet dependency; not simultaneous model import, not41primary mappings','recorded_exact_CLI_target_small_build':'PASS1807jobs with six reference and three NextBack axiom markers','frozen_and_staged_compiled_cache_excluded':True,'staged_artifact_files':len(staged),'fresh41':'not run by reviewer; publisher next gate','integrated_current_key_hashes':{r:sha((pub/r).read_bytes()) for r in ['proofs.toml','proofs/lakefile.lean','proofs/NextBackProofs.lean','proofs/Generated/Either.lean','proofs/Generated/translation.json','proofs/PrimaryCoimport.lean']}};(out/'FINAL-REVIEW.json').write_text(json.dumps(result,indent=2)+'\n');print('PASS',len(m),'frozen files,41old-prefix/exactsource,126standard3,9primarymodules; no blockers')
