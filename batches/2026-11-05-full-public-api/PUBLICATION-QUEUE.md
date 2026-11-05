@@ -1,6 +1,6 @@
 # Current publication queue
 
-Thirteen public reports contain426 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
+Thirteen public reports contain427 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
 
 | Completed update | Primary mapped contracts | Supplemental scope |
 |---|---:|---|
@@ -30,3 +30,5 @@ BitField report34 revision7 is published: four unsigned Range<usize> get/set pai
 Xorshift report24 revision8 is published with584 public-seed-image and656 concrete serde-wire scalar delegation checks. Actual Rng/TryRng outputs and final states agree within the two recorded domains. Primary1, its precondition and prior supplements remain unchanged; arbitrary Deserializer, independent recurrence and seed_from_u64 proofs remain open. Historical preparation statements are superseded by the immutable final successful status.
 
 Base16 report31 revision5 is published with two HexDisplay tuple data operations and three kernel theorems: construction, field projection and roundtrip preserve every modeled byte-slice view. These are not function cards or formatting/physical-alias guarantees. Primary3/Error58/Display1910/codec1484 retain all earlier conditions.
+
+Either report27 revision10 is published with44 primary mappings, preserving the old43 exact IDs/positions/preconditions and adding only shared-reference iter. The higher-ranked dictionaries have equal Item and separate returned iterator types; callback Result delegation is conditional, with physical alias/lifetime/Drop/global-effect guarantees outside the proof. The formal run records141 primary/helper audits plus6 reference4 audits. Mutable iter_mut remains unsupported.
