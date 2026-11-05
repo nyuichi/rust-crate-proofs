@@ -6,11 +6,11 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Single strict-inventory entry point
 
-[All13 strict source inventories and current417 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
+[All13 strict source inventories and current423 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
 
 ## Current public results
 
-**Thirteen reports contain 417 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 423 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
@@ -23,7 +23,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 | endian-type 0.2.0 | [26 / 2](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [23 / 3](https://proofs.rs/report/23) | 14 |
 | normalize-line-endings 0.3.0 | [21 / 5](https://proofs.rs/report/21) | 1 |
-| oorandom 11.1.5 | [25 / 5](https://proofs.rs/report/25) | 14 |
+| oorandom 11.1.5 | [25 / 6](https://proofs.rs/report/25) | 20 |
 | rand_pcg 0.10.2 | [29 / 5](https://proofs.rs/report/29) | 25 |
 | rand_xorshift 0.5.0 | [24 / 7](https://proofs.rs/report/24) | 1 |
 | rand_xoshiro 0.8.1 | [30 / 3](https://proofs.rs/report/30) | 69 |
@@ -118,4 +118,4 @@ ASCII report28 revision5 now publishes46 mappings; the current13-report total is
 
 ## Oorandom observed API32 and remaining pointer limits
 
-[The32-row reconciliation](diagnostics/oorandom-api32-reconciliation/README.md) separates14 primary mappings, two floating-point supplements and sixteen external entries with conditional or restricted evidence. It is not full API completion. [Official pointer-model investigation](diagnostics/oorandom-clone-pointer-options/RESULTS.md) retains the object-bits8 failure and source-only PointerGenerator proposal: arbitrary valid clone destination sizes, placement and provenance remain unproved. Six generic conversion families have conditional body proofs but production source binding remains pending. These source-only docs change no public report/source/run or the417 mapped-contract total.
+[The preserved32-row reconciliation](diagnostics/oorandom-api32-reconciliation/README.md) and [revision6 current addendum](diagnostics/oorandom-api32-reconciliation/CURRENT-ADDENDUM.md) separate20 primary mappings (fourteen local plus six conditional external core families), float2 and external10 restricted observations. Generic6 finite compiler-owned binding is now published; its bounds/callback/Error/custom-export trust remain explicit. This is not full API completion. [Pointer-model investigation](diagnostics/oorandom-clone-pointer-options/RESULTS.md) retains object-bits8 failure and the source-only PointerGenerator proposal; arbitrary valid clone destination sizes, placement and provenance remain unproved. Original ledger hashes and historical counts are preserved. Current public total is423.

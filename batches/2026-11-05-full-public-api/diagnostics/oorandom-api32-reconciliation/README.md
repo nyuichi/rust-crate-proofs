@@ -1,3 +1,5 @@
+Current publication status is in [revision6 addendum](CURRENT-ADDENDUM.md); the following text describes the preserved14-contract documentation checkpoint.
+
 # Oorandom observed API32 and remaining boundaries
 
 [The32-row ledger](LEDGER32.md) reconciles46 observed default x86_64 callable entries minus14 standard-derived entries. Three configuration observations are not three distinct API sets. The14 published machine contracts are the twelve integer/state APIs and two exact range-trace contracts. Float2 and external16 have separate contracts or qualified evidence; this does not establish full API completion.
