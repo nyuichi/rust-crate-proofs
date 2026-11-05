@@ -6,11 +6,11 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Single strict-inventory entry point
 
-[All13 strict source inventories and current427 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
+[All13 strict source inventories and current428 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
 
 ## Current public results
 
-**Thirteen reports contain 427 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 428 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
@@ -19,7 +19,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 | bit_field 0.10.3 | [34 / 8](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |
 | byteorder-lite 0.1.0 | [33 / 5](https://proofs.rs/report/33) | 64 |
-| either 1.19.0 | [27 / 10](https://proofs.rs/report/27) | 44 |
+| either 1.19.0 | [27 / 11](https://proofs.rs/report/27) | 45 |
 | endian-type 0.2.0 | [26 / 3](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [23 / 5](https://proofs.rs/report/23) | 14 |
 | normalize-line-endings 0.3.0 | [21 / 5](https://proofs.rs/report/21) | 1 |

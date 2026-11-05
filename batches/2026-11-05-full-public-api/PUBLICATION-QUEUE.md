@@ -1,12 +1,12 @@
 # Current publication queue
 
-Thirteen public reports contain427 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
+Thirteen public reports contain428 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
 
 | Completed update | Primary mapped contracts | Supplemental scope |
 |---|---:|---|
 | ASCII report28 rev9 |51|Original scalar35 plus Error2/staticDefault1 Kani evidence; earlier evidence retained|
 | PCG report29 rev6 |25|MCGserde592, PCG32composition81, externalRng158+393; constructor-image domains distinct from arbitrary serde wire states|
-| Either report27 rev10 |44|next_back, two conversions and shared iter add4 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
+| Either report27 rev11 |45|next_back, two conversions, shared iter and shared factor_iter add5 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
 | BitField report34 rev8 |27|RangeFull24 plus five unsigned Range get/set pairs and platform64 usize getter;178 independent audits; usize setter/generic RangeBounds remain unproved|
 | Xoshiro report30 rev4 |69|Seed512 public tuple construction/all64 input bytes and full64-byte replacement through actual AsMut;84Kani checks; existing views are not recounted|
 | NoHash report23 rev5 |14|Four compiler-inlined caller API families across four configurations: prior13 declarations plus newwrite_str4 equals17 unique audits; Kani900 remains separate/narrower|
@@ -38,3 +38,5 @@ Either report27 revision10 is published with44 primary mappings, preserving the 
 BitField report34 revision8 adds the independent u128 checked Range<usize> get/set workspace to the existing five environments. All178 audits are mandatory in the formal run. Primary27/RangeFull24 remain unchanged, new Kani runs0, and signed/generic/unchecked-profile/usize-setter/physical-memory guarantees remain outside the result.
 
 Xorshift report24 revision9 includes From/Borrow/BorrowMut<Self> logical identities for every represented four-word value including zero. Primary1/Wrapping3/all previous Kani evidence remain unchanged. Corrected actual-compiler09 capture supplements the preserved erroneous historical rustup pin without retroactive process attestation. Whole LLBC22 declarations include19 unused opaque builtins; generated/reachable3-body closure is opaque0. Coimport succeeds without asserting a nominal type/model or physical-memory bridge.
+
+Either report27 revision11 adds shared factor_iter with independent left/right Item and IntoIter families. It delegates the selected borrowed callback Result into the original IterEither constructor, whose Rust Item shape is Either<LItem,RItem>, without requiring equal Items. Old44 fields/IDs/preconditions remain exact;148 primary/helper plus6 separate reference4 audits are recorded. Iterator operations, arbitrary effects and physical aliasing remain outside the guarantee.

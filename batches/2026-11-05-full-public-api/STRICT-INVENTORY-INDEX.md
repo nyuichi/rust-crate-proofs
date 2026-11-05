@@ -1,6 +1,6 @@
 # Strict inventory index and current public results
 
-This index covers all13 final scoped ledger reconciliations. Public reports currently contain427 model contracts with their stated configurations, domains and trust boundaries. Neither a final reconciliation nor a source-identity match establishes full API verification, complete hidden/nightly coverage or all downstream trait instantiations.
+This index covers all13 final scoped ledger reconciliations. Public reports currently contain428 model contracts with their stated configurations, domains and trust boundaries. Neither a final reconciliation nor a source-identity match establishes full API verification, complete hidden/nightly coverage or all downstream trait instantiations.
 
 | Crate | Strict source inventory | Report / revision | Current mappings |
 |---|---|---:|---:|
@@ -9,7 +9,7 @@ This index covers all13 final scoped ledger reconciliations. Public reports curr
 | bit_field 0.10.3 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [34 / 8](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [32 / 5](https://proofs.rs/report/32) | 42 |
 | byteorder-lite 0.1.0 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [33 / 5](https://proofs.rs/report/33) | 64 |
-| either 1.19.0 | [either](diagnostics/either-strict-reconciliation/README.md) | [27 / 10](https://proofs.rs/report/27) | 44 |
+| either 1.19.0 | [either](diagnostics/either-strict-reconciliation/README.md) | [27 / 11](https://proofs.rs/report/27) | 45 |
 | endian-type 0.2.0 | [strict-three](diagnostics/strict-three-crate-reconciliation/README.md) | [26 / 3](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [strict-three](diagnostics/strict-three-crate-reconciliation/README.md) | [23 / 5](https://proofs.rs/report/23) | 14 |
 | normalize-line-endings 0.3.0 | [strict-three](diagnostics/strict-three-crate-reconciliation/README.md) | [21 / 5](https://proofs.rs/report/21) | 1 |
@@ -28,11 +28,11 @@ This index covers all13 final scoped ledger reconciliations. Public reports curr
 - base16: Default/minimal56 callable/default ledger rows divide31 ordinary conditional+10 gated+14 std-derive exclusions+1 shadow; all69 divide42+10+14+3. Base16 inputs explicitly document hidden items. This differs from the preserved three-crate input filter; arbitrary-size codec/Formatter/UTF8/allocation/encoded_len overflow remain outside current claims. Bounded Display/codec Kani are separate.
 - either: 2096 original rows retained across four configurations; shadow defaults50/50/38/40; two constructor operations have four aliases; seven serde-on operations remain unproved. Binder IR is diagnostic, not a trait-solver certificate. Owner/impl/trait/method/HRTB scope, foreign Result self and unknown lifetime/Sized/associated/type conditions remain explicit; default-only proof domains are not promoted across configurations.
 
-The packet baseline mapped counts sum to401. The current427 adds fourteen ASCII mappings beyond its original37 checkpoint and eight Oorandom range/generic mappings beyond its original12 checkpoint and four Either iterator/conversion mappings beyond its original40 checkpoint. The strict-four group is now184 (historical170), and the PRNG group115 (historical107). Historical typed-vector release evidence is the exact typed remote readback under `runs/ascii/aa2d4efc-f0be-4d5d-8ef0-35fc63de1c2b/`; two From cards have null/empty catalogue safety/signature metadata rather than independently verified rustdoc signatures. Their safe source headers are separately pinned by the reviewed finite source validator.
+The packet baseline mapped counts sum to401. The current428 adds fourteen ASCII mappings beyond its original37 checkpoint and eight Oorandom range/generic mappings beyond its original12 checkpoint and five Either iterator/conversion mappings beyond its original40 checkpoint. The strict-four group is now184 (historical170), and the PRNG group115 (historical107). Historical typed-vector release evidence is the exact typed remote readback under `runs/ascii/aa2d4efc-f0be-4d5d-8ef0-35fc63de1c2b/`; two From cards have null/empty catalogue safety/signature metadata rather than independently verified rustdoc signatures. Their safe source headers are separately pinned by the reviewed finite source validator.
 
 ## Resume boundary
 
-All13 current report updates are complete. `python3 resume.py` is a plan-only no-op for already published rows and prints the current427 total. It does not authorize reusing an old run for a changed proof snapshot. Current ASCII known41/46/49/51 snapshots and their existing identities remain pinned. Future snapshots require separate review, exact source identity, fresh recording and public readback. Oorandom six-family finite production binding is published; unsafe clone arbitrary-destination coverage is incomplete. Unknown snapshots, malformed/private type keys and generic erasure are rejected.
+All13 current report updates are complete. `python3 resume.py` is a plan-only no-op for already published rows and prints the current428 total. It does not authorize reusing an old run for a changed proof snapshot. Current ASCII known41/46/49/51 snapshots and their existing identities remain pinned. Future snapshots require separate review, exact source identity, fresh recording and public readback. Oorandom six-family finite production binding is published; unsafe clone arbitrary-destination coverage is incomplete. Unknown snapshots, malformed/private type keys and generic erasure are rejected.
 
 
 ## Oorandom API32 and pointer boundary
