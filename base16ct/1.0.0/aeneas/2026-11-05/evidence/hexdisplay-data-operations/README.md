@@ -1,0 +1,7 @@
+# HexDisplay public tuple data operation
+
+For every represented byte Slice, constructing the original public HexDisplay tuple stores that same slice, public .0 projection returns it, and constructing then projecting returns the original modeled slice. Three official-Aeneas theorem/audits use propext/Quot.sound only; no new model/opaque/typeaxiom/generated edit. All slice lengths and contents are quantified, rather than fixed Kani arrays.
+
+These are public data-construction/projection operations verified through three minimal transparent drivers; the driver functions are not fictitious base16ct public API cards. Original HexDisplay type is extracted from original src/display.rs5 as its single-field Slice representation. No Formatting, hexadecimal encoding/decoding, physical reference/pointer/heap/alias/lifetime claim follows. This is supplemental model-level data preservation, machine3 unchanged. The actual compiler checks the borrowed lifetime signatures.
+
+Original crate archive/full source is retained; executed Cargo.producer refers to its original untouched source location. Packaged Cargo changes only dependency path to ./original. Exact source/body mapping and generated output are retained; reproduction on a different directory may relocate the original dependency source prefix only. Official Git Aeneas Lake dependency/revision/manifest/toolchain retained. The local .lake/packages symlink is cache only and excluded from freeze.

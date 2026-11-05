@@ -5,3 +5,5 @@ require aeneas from git
 package enumproofs
 @[default_target] lean_lib Proofs
 lean_lib Generated
+
+lean_lib ConstructorProofs
