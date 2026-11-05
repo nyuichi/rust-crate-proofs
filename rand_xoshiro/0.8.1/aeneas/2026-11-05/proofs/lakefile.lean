@@ -13,3 +13,7 @@ lean_lib XoshiroApiRoots where
 @[default_target] lean_lib SeedProofs
 lean_lib Seed512 where
  roots := #[`Seed512.Types, `Seed512.Funs]
+
+@[default_target] lean_lib RngProofs
+lean_lib XoshiroRngApiRoots where
+ roots := #[`XoshiroRngApiRoots.Types, `XoshiroRngApiRoots.Funs]

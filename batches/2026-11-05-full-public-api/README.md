@@ -18,7 +18,7 @@ The counts below are explicitly mapped contracts, not a claim that the crate or 
 | rand_pcg | 21 | fresh record passed; catalogue quota hold |
 | byteorder | 22 | fresh record passed; catalogue quota hold |
 | byteorder-lite | 26 | latest publisher fresh in progress; previous 22 passed; catalogue quota hold |
-| rand_xoshiro | 29 | fresh record passed; catalogue quota hold |
+| rand_xoshiro | 54 candidate / 29 fresh | added external blanket APIs currently blocked in source discovery; previous 29 fresh guarantee retained; catalogue quota hold |
 | ascii | 21 | fresh record passed; catalogue quota hold |
 | base16ct | 3 | fresh record passed; catalogue quota hold |
 
