@@ -1,0 +1,22 @@
+// MIR for `little_borrow` after Inline
+
+fn little_borrow(_1: &endian_type::LittleEndian<T>) -> &endian_type::LittleEndian<T> {
+    debug value => _1;
+    let mut _0: &endian_type::LittleEndian<T>;
+    let _2: &endian_type::LittleEndian<T>;
+    let mut _3: &endian_type::LittleEndian<T>;
+    scope 1 (inlined <endian_type::LittleEndian<T> as std::borrow::Borrow<endian_type::LittleEndian<T>>>::borrow) {
+        debug self => _3;
+    }
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        _3 = &(*_1);
+        _2 = copy _3;
+        _0 = &(*_2);
+        StorageDead(_3);
+        StorageDead(_2);
+        return;
+    }
+}

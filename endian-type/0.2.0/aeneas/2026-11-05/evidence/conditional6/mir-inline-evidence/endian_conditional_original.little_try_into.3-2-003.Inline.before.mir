@@ -1,0 +1,22 @@
+// MIR for `little_try_into` before Inline
+
+fn little_try_into(_1: endian_type::LittleEndian<T>) -> std::result::Result<U, <U as std::convert::TryFrom<endian_type::LittleEndian<T>>>::Error> {
+    debug x => _1;
+    let mut _0: std::result::Result<U, <U as std::convert::TryFrom<endian_type::LittleEndian<T>>>::Error>;
+    let mut _2: endian_type::LittleEndian<T>;
+
+    bb0: {
+        StorageLive(_2);
+        _2 = move _1;
+        _0 = <endian_type::LittleEndian<T> as std::convert::TryInto<U>>::try_into(move _2) -> [return: bb1, unwind: bb2];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        return;
+    }
+
+    bb2 (cleanup): {
+        resume;
+    }
+}

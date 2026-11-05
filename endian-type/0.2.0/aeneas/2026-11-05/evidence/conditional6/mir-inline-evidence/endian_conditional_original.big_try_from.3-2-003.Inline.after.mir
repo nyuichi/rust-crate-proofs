@@ -1,0 +1,29 @@
+// MIR for `big_try_from` after Inline
+
+fn big_try_from(_1: U) -> std::result::Result<endian_type::BigEndian<T>, !> {
+    debug x => _1;
+    let mut _0: std::result::Result<endian_type::BigEndian<T>, !>;
+    let mut _2: U;
+    scope 1 (inlined <endian_type::BigEndian<T> as std::convert::TryFrom<U>>::try_from) {
+        debug value => _2;
+        let mut _3: endian_type::BigEndian<T>;
+    }
+
+    bb0: {
+        StorageLive(_2);
+        _2 = move _1;
+        StorageLive(_3);
+        _3 = <U as std::convert::Into<endian_type::BigEndian<T>>>::into(move _2) -> [return: bb2, unwind: bb1];
+    }
+
+    bb1 (cleanup): {
+        resume;
+    }
+
+    bb2: {
+        _0 = std::result::Result::<endian_type::BigEndian<T>, !>::Ok(move _3);
+        StorageDead(_3);
+        StorageDead(_2);
+        return;
+    }
+}

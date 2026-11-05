@@ -8,3 +8,9 @@ lean_lib Generated
 lean_lib EndianVerificationDriver
 lean_lib ModelProofs
 lean_lib FromProofs
+
+lean_lib EndianReflexiveOriginal
+lean_lib ReflexiveProofs
+
+lean_lib EndianConditionalOriginal
+lean_lib ConditionalProofs

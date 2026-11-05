@@ -1,0 +1,22 @@
+// MIR for `big_into` after ForceInline
+
+fn big_into(_1: endian_type::BigEndian<T>) -> U {
+    debug x => _1;
+    let mut _0: U;
+    let mut _2: endian_type::BigEndian<T>;
+
+    bb0: {
+        StorageLive(_2);
+        _2 = move _1;
+        _0 = <endian_type::BigEndian<T> as std::convert::Into<U>>::into(move _2) -> [return: bb1, unwind: bb2];
+    }
+
+    bb1: {
+        StorageDead(_2);
+        return;
+    }
+
+    bb2 (cleanup): {
+        resume;
+    }
+}
