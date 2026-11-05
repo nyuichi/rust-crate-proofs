@@ -1,0 +1,3 @@
+# RangeFull-only supplemental contracts
+
+All producer manifest file hashes were verified and copied unchanged, including raw1284check logs and original source/archive evidence. The twelve primitive get/set RangeFull specializations are closed call contracts, not arbitrary RangeBounds API-family completion. Existing27 Lean mappings/preconditions, model layout dictionaries and primitive/generic proof sources remain unchanged. No solver was rerun during packaging. Signed small-range diagnostic evidence remains authoritative and is not removed by whole-word replacement behavior. Default/debug/x86_64 only; no new release/other-target, arbitrary bounds callbacks, panic/unwind or physical aliasing guarantee follows.
