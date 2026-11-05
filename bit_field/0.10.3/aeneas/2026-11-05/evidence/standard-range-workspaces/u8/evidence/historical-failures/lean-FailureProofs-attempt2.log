@@ -1,0 +1,279 @@
+FailureProofs.lean:15:35: warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp only [WP.spec_vis] at h
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+FailureProofs.lean:16:31: warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp only [WP.spec_div] at h
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+FailureProofs.lean:29:69: error: unsolved goals
+value : U8
+start finish : Usize
+bad : 8 ≤ ↑start
+⊢ (do
+      if ↑start < 8 then ok () else fail Error.assertionFailure
+      if ↑finish ≤ 8 then ok () else fail Error.assertionFailure
+      if ↑start ≤ ↑finish then ok () else fail Error.assertionFailure
+      if start = finish then ok 0#u8
+        else do
+          let i ← 8#usize - finish
+          let i1 ← value <<< i
+          let i2 ← 8#usize - finish
+          let bits ← i1 >>> i2
+          bits >>> start) =
+    fail Error.assertionFailure
+FailureProofs.lean:30:52: warning: This simp argument is unused:
+  bad
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:33:69: error: unsolved goals
+value : U8
+start finish : Usize
+hs : ↑start < 8
+bad : 8 < ↑finish
+⊢ (do
+      if ↑finish ≤ 8 then ok () else fail Error.assertionFailure
+      if ↑start ≤ ↑finish then ok () else fail Error.assertionFailure
+      if start = finish then ok 0#u8
+        else do
+          let i ← 8#usize - finish
+          let i1 ← value <<< i
+          let i2 ← 8#usize - finish
+          let bits ← i1 >>> i2
+          bits >>> start) =
+    fail Error.assertionFailure
+FailureProofs.lean:34:52: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, bad]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:34:55: warning: This simp argument is unused:
+  bad
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, hs]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:37:69: error: unsolved goals
+value : U8
+start finish : Usize
+hs : ↑start < 8
+he : ↑finish ≤ 8
+bad : ↑finish < ↑start
+⊢ (do
+      if ↑start ≤ ↑finish then ok () else fail Error.assertionFailure
+      let i ← 8#usize - finish
+      let i1 ← value <<< i
+      let i2 ← 8#usize - finish
+      let bits ← i1 >>> i2
+      bits >>> start) =
+    fail Error.assertionFailure
+FailureProofs.lean:38:52: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, he, bad]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:38:55: warning: This simp argument is unused:
+  he
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, hs, bad]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:38:58: warning: This simp argument is unused:
+  bad
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, hs, he]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:41:81: error: unsolved goals
+value replacement : U8
+start finish : Usize
+bad : 8 ≤ ↑start
+⊢ (do
+      if ↑start < 8 then ok () else fail Error.assertionFailure
+      if ↑finish ≤ 8 then ok () else fail Error.assertionFailure
+      if ↑start ≤ ↑finish then ok () else fail Error.assertionFailure
+      if start = finish then
+          if replacement = 0#u8 then ok (value, fun value1 => value1)
+          else do
+            let i ← finish - finish
+            let i1 ← 8#usize - i
+            let i2 ← replacement <<< i1
+            let i3 ← 8#usize - i
+            let i4 ← i2 >>> i3
+            if i4 = replacement then ok () else fail Error.assertionFailure
+            ok (value, fun value1 => value1)
+        else do
+          let i ← finish - start
+          let i1 ← 8#usize - i
+          let i2 ← replacement <<< i1
+          let i3 ← 8#usize - i
+          let i4 ← i2 >>> i3
+          if i4 = replacement then ok () else fail Error.assertionFailure
+          let i5 ← 8#usize - finish
+          let i6 ← 255#u8 <<< i5
+          let i7 ← 8#usize - finish
+          let i8 ← i6 >>> i7
+          let i9 ← i8 >>> start
+          let i10 ← i9 <<< start
+          let bitmask ← lift (~~~i10)
+          let i11 ← lift (value &&& bitmask)
+          let i12 ← replacement <<< start
+          let self ← lift (i11 ||| i12)
+          ok (self, fun value1 => value1)) =
+    fail Error.assertionFailure
+FailureProofs.lean:42:52: warning: This simp argument is unused:
+  bad
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:45:81: error: unsolved goals
+value replacement : U8
+start finish : Usize
+hs : ↑start < 8
+bad : 8 < ↑finish
+⊢ (do
+      if ↑finish ≤ 8 then ok () else fail Error.assertionFailure
+      if ↑start ≤ ↑finish then ok () else fail Error.assertionFailure
+      if start = finish then
+          if replacement = 0#u8 then ok (value, fun value1 => value1)
+          else do
+            let i ← finish - finish
+            let i1 ← 8#usize - i
+            let i2 ← replacement <<< i1
+            let i3 ← 8#usize - i
+            let i4 ← i2 >>> i3
+            if i4 = replacement then ok () else fail Error.assertionFailure
+            ok (value, fun value1 => value1)
+        else do
+          let i ← finish - start
+          let i1 ← 8#usize - i
+          let i2 ← replacement <<< i1
+          let i3 ← 8#usize - i
+          let i4 ← i2 >>> i3
+          if i4 = replacement then ok () else fail Error.assertionFailure
+          let i5 ← 8#usize - finish
+          let i6 ← 255#u8 <<< i5
+          let i7 ← 8#usize - finish
+          let i8 ← i6 >>> i7
+          let i9 ← i8 >>> start
+          let i10 ← i9 <<< start
+          let bitmask ← lift (~~~i10)
+          let i11 ← lift (value &&& bitmask)
+          let i12 ← replacement <<< start
+          let self ← lift (i11 ||| i12)
+          ok (self, fun value1 => value1)) =
+    fail Error.assertionFailure
+FailureProofs.lean:46:52: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, bad]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:46:55: warning: This simp argument is unused:
+  bad
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, hs]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:49:81: error: unsolved goals
+value replacement : U8
+start finish : Usize
+hs : ↑start < 8
+he : ↑finish ≤ 8
+bad : ↑finish < ↑start
+⊢ (do
+      if ↑start ≤ ↑finish then ok () else fail Error.assertionFailure
+      let i ← finish - start
+      let i1 ← 8#usize - i
+      let i2 ← replacement <<< i1
+      let i3 ← 8#usize - i
+      let i4 ← i2 >>> i3
+      if i4 = replacement then ok () else fail Error.assertionFailure
+      let i5 ← 8#usize - finish
+      let i6 ← 255#u8 <<< i5
+      let i7 ← 8#usize - finish
+      let i8 ← i6 >>> i7
+      let i9 ← i8 >>> start
+      let i10 ← i9 <<< start
+      let bitmask ← lift (~~~i10)
+      let i11 ← lift (value &&& bitmask)
+      let i12 ← replacement <<< start
+      let self ← lift (i11 ||| i12)
+      ok (self, fun value1 => value1)) =
+    fail Error.assertionFailure
+FailureProofs.lean:50:52: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, he, bad]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:50:55: warning: This simp argument is unused:
+  he
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, hs, bad]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:50:58: warning: This simp argument is unused:
+  bad
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, hs, he]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:55:52: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, he]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:55:55: warning: This simp argument is unused:
+  he
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_get_range, bit_length, massert, hs]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:60:52: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, he]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+FailureProofs.lean:60:55: warning: This simp argument is unused:
+  he
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [original_u8_set_range, bit_length, massert, hs]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+'U8RangeFailure.bit_length' depends on axioms: [propext, Classical.choice, Quot.sound]
+'U8RangeFailure.get_invalid_start' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U8RangeFailure.get_invalid_end' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U8RangeFailure.get_reversed' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U8RangeFailure.set_invalid_start' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U8RangeFailure.set_invalid_end' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U8RangeFailure.set_reversed' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U8RangeFailure.get_empty' depends on axioms: [propext, Classical.choice, Quot.sound]
+'U8RangeFailure.set_empty_zero' depends on axioms: [propext, Classical.choice, Quot.sound]

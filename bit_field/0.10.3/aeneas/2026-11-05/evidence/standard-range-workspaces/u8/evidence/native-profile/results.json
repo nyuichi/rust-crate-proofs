@@ -1,0 +1,95 @@
+{
+  "scope": "one exact native original-call observation per profile, not all-input release theorem",
+  "input": "old0u8,range0usize..0usize,replacement1u8",
+  "compiler": "rustc 1.100.0-nightly (923c95cdf 2026-09-16)\nbinary: rustc\ncommit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8\ncommit-date: 2026-09-16\nhost: x86_64-unknown-linux-gnu\nrelease: 1.100.0-nightly\nLLVM version: 23.1.1\n",
+  "source_sha256_before_after": "cd8402931e8641aedf6a16b5200346be1ef42f1281e85995f131ba68c467dbca",
+  "original_source_unchanged": true,
+  "observations": [
+    {
+      "profile": "debug",
+      "flags": [
+        "-Copt-level=0",
+        "-Coverflow-checks=on",
+        "-Cdebug-assertions=on"
+      ],
+      "edition_original": "2015",
+      "commands": [
+        [
+          "rustc",
+          "--crate-name",
+          "bit_field",
+          "--crate-type=rlib",
+          "--edition=2015",
+          "-Copt-level=0",
+          "-Coverflow-checks=on",
+          "-Cdebug-assertions=on",
+          "/workspace/full-api/bits/bitfield-range-u8-inline/original/src/lib.rs",
+          "-o",
+          "/tmp/bitfield-empty-native-mwrdt0gg/libbit_field_debug.rlib"
+        ],
+        [
+          "rustc",
+          "--edition=2021",
+          "-Copt-level=0",
+          "-Coverflow-checks=on",
+          "-Cdebug-assertions=on",
+          "/workspace/full-api/bits/bitfield-range-u8-inline/native-profile/main.rs",
+          "--extern",
+          "bit_field=/tmp/bitfield-empty-native-mwrdt0gg/libbit_field_debug.rlib",
+          "-o",
+          "/tmp/bitfield-empty-native-mwrdt0gg/observer_debug"
+        ]
+      ],
+      "executable_sha256": "9600e0e696d06dd04f21c9b0e84a6521ce61433ad801068d8a35fbd2ed12159c",
+      "library_sha256": "39ab5c45e5071a7444ab16794735db2bb9bfb9ab64f96847e165e62f589a3fce",
+      "exit": 0,
+      "stdout": "outcome=caught_panic state=0\n",
+      "stderr": "\nthread 'main' (576624) panicked at /workspace/full-api/bits/bitfield-range-u8-inline/native-profile/main.rs:5:9:\nattempt to shift left with overflow\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+      "runtime_timeout_seconds": 5
+    },
+    {
+      "profile": "release",
+      "flags": [
+        "-Copt-level=3",
+        "-Coverflow-checks=off",
+        "-Cdebug-assertions=off"
+      ],
+      "edition_original": "2015",
+      "commands": [
+        [
+          "rustc",
+          "--crate-name",
+          "bit_field",
+          "--crate-type=rlib",
+          "--edition=2015",
+          "-Copt-level=3",
+          "-Coverflow-checks=off",
+          "-Cdebug-assertions=off",
+          "/workspace/full-api/bits/bitfield-range-u8-inline/original/src/lib.rs",
+          "-o",
+          "/tmp/bitfield-empty-native-mwrdt0gg/libbit_field_release.rlib"
+        ],
+        [
+          "rustc",
+          "--edition=2021",
+          "-Copt-level=3",
+          "-Coverflow-checks=off",
+          "-Cdebug-assertions=off",
+          "/workspace/full-api/bits/bitfield-range-u8-inline/native-profile/main.rs",
+          "--extern",
+          "bit_field=/tmp/bitfield-empty-native-mwrdt0gg/libbit_field_release.rlib",
+          "-o",
+          "/tmp/bitfield-empty-native-mwrdt0gg/observer_release"
+        ]
+      ],
+      "executable_sha256": "2689395a7d49220b2143780e43bd49cb36821a639778569d1839a3d699e93ea9",
+      "library_sha256": "9d02ab11b24eb209ca2d60d836f8a9c92a4a16a0bc4255b27c68b54189c9d2cd",
+      "exit": 0,
+      "stdout": "outcome=normal state=0\n",
+      "stderr": "",
+      "runtime_timeout_seconds": 5
+    }
+  ],
+  "compilation_and_runtime_bins": "temporary owned dir cleaned after hashes; logs/source retained",
+  "relation_to_Lean": "debug observed shift-overflow panic agrees with modeled integerOverflow; no panic payload/unwind equivalence theorem or general release claim"
+}

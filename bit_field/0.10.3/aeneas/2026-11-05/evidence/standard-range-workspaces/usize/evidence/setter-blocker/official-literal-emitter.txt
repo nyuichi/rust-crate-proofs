@@ -1,0 +1,73 @@
+(** The generic extraction *)
+
+open Pure
+open PureUtils
+open TranslateCore
+open Config
+include ExtractBase
+module T = Types
+
+(** Print a string literal (without any conversion to [str]) *)
+let extract_pure_string (fmt : F.formatter) (s : string) : unit =
+  let chars = StringUtils.string_to_chars s in
+  (* Using the OCaml escape conventions for now.
+
+     TODO: does this really work? *)
+  let s = String.concat "" (List.map Char.escaped chars) in
+  F.pp_print_string fmt ("\"" ^ s ^ "\"")
+
+let extract_str (_span : Meta.span) (fmt : F.formatter) ~(inside : bool)
+    (s : string) : unit =
+  (* We need to convert the string to a str (the conversion inserts a static check
+     that the string is not too long) *)
+  if inside then F.pp_print_string fmt "(";
+  F.pp_print_string fmt "toStr";
+  F.pp_print_space fmt ();
+  extract_pure_string fmt s;
+  if inside then F.pp_print_string fmt ")"
+
+(** Format a constant value.
+
+    Inputs:
+    - formatter
+    - [is_pattern]: if [true], it means we are generating a (match) pattern
+    - [inside]: if [true], the value should be wrapped in parentheses if it is
+      made of an application (ex.: [U32 3])
+    - the constant value *)
+let extract_literal (span : Meta.span) (fmt : F.formatter) ~(is_pattern : bool)
+    ~(inside : bool) (cv : literal) : unit =
+  match cv with
+  | VScalar sv -> (
+      match backend () with
+      | FStar -> F.pp_print_string fmt (Z.to_string (Scalars.get_val sv))
+      | Coq | HOL4 | Lean ->
+          let print_brackets = inside && backend () = HOL4 in
+          if print_brackets then F.pp_print_string fmt "(";
+          (match backend () with
+          | Coq | Lean -> ()
+          | HOL4 ->
+              F.pp_print_string fmt ("int_to_" ^ int_name (Scalars.get_ty sv));
+              F.pp_print_space fmt ()
+          | _ -> [%admit_raise] span "Unreachable" fmt);
+          (* We need to add parentheses if the value is negative *)
+          let sv_value = Scalars.get_val sv in
+          if sv_value >= Z.of_int 0 then
+            F.pp_print_string fmt (Z.to_string sv_value)
+          else F.pp_print_string fmt ("(" ^ Z.to_string sv_value ^ ")");
+          (match backend () with
+          | Coq ->
+              let iname = int_name (Scalars.get_ty sv) in
+              F.pp_print_string fmt ("%" ^ iname)
+          | Lean ->
+              (* We don't use the same notation for patterns and regular literals *)
+              let sv_int_ty = Scalars.get_ty sv in
+              if is_pattern then
+                if Scalars.integer_type_is_signed sv_int_ty then
+                  F.pp_print_string fmt "#iscalar"
+                else F.pp_print_string fmt "#uscalar"
+              else
+                let iname = String.lowercase_ascii (int_name sv_int_ty) in
+                F.pp_print_string fmt ("#" ^ iname)
+          | HOL4 -> ()
+          | _ -> [%admit_raise] span "Unreachable" fmt);
+          if print_brackets then F.pp_print_string fmt ")")

@@ -1,0 +1,92 @@
+SetterNormal.lean:54:2: error: Tactic `rfl` failed: The left-hand side
+  255#u16.bv <<< (16 - ↑finish) >>> (16 - ↑finish) >>> ↑start <<< ↑start
+is not definitionally equal to the right-hand side
+  ~~~0#16 <<< (16 - ↑finish) >>> (16 - ↑finish) >>> ↑start <<< ↑start
+
+value replacement : U16
+start finish : Usize
+hs : ↑start < 16
+he : ↑finish ≤ 16
+ho : ↑start < ↑finish
+fit : ↑replacement < 2 ^ (↑finish - ↑start)
+delta : UScalar UScalarTy.Usize
+hd : ↑delta = ↑16#usize - ↑finish ∧ ↑finish ≤ ↑16#usize
+hdv : ↑delta = 16 - ↑finish
+left : UScalar UScalarTy.U16
+hl : ↑left = ↑255#u16 <<< ↑delta % U16.size ∧ left.bv = 255#u16.bv <<< ↑delta
+delta2 : UScalar UScalarTy.Usize
+hd2 : ↑delta2 = ↑16#usize - ↑finish ∧ ↑finish ≤ ↑16#usize
+hdv2 : ↑delta2 = 16 - ↑finish
+right : UScalar UScalarTy.U16
+hr : ↑right = ↑left >>> ↑delta2 ∧ right.bv = left.bv >>> ↑delta2
+low : UScalar UScalarTy.U16
+hlo : ↑low = ↑right >>> ↑start ∧ low.bv = right.bv >>> ↑start
+win : UScalar UScalarTy.U16
+hw : ↑win = ↑low <<< ↑start % U16.size ∧ win.bv = low.bv <<< ↑start
+shifted : UScalar UScalarTy.U16
+hshift : ↑shifted = ↑replacement <<< ↑start % U16.size ∧ shifted.bv = replacement.bv <<< ↑start
+⊢ 255#u16.bv <<< (16 - ↑finish) >>> (16 - ↑finish) >>> ↑start <<< ↑start =
+    ~~~0#16 <<< (16 - ↑finish) >>> (16 - ↑finish) >>> ↑start <<< ↑start
+SetterNormal.lean:49:12: warning: This simp argument is unused:
+  lift
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [bind_ok, WP.spec_ok, Post]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+SetterNormal.lean:49:17: warning: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [lift, WP.spec_ok, Post]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+SetterNormal.lean:83:16: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+SetterNormal.lean:87:64: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+SetterNormal.lean:87:74: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+SetterNormal.lean:87:84: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+SetterNormal.lean:87:94: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+SetterNormal.lean:111:39: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+SetterNormal.lean:112:3: error: 'change' tactic failed, pattern
+  store value replacement start finish ⦃ Post value replacement start finish ⦄
+is not definitionally equal to target
+  (do
+      let i ← 16#usize - finish
+      let i1 ← 65535#u16 <<< i
+      let i2 ← 16#usize - finish
+      let i3 ← i1 >>> i2
+      let i4 ← i3 >>> start
+      let i5 ← i4 <<< start
+      let bitmask ← lift (~~~i5)
+      let i6 ← lift (value &&& bitmask)
+      let i7 ← replacement <<< start
+      let self ← lift (i6 ||| i7)
+      ok (self, fun value1 => value1)) ⦃
+    Post value replacement start finish ⦄
+SetterNormal.lean:111:14: warning: This simp argument is unused:
+  massert
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ite_true, bind_ok, if_pos hne]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+'U16RangeSetter.set_valid' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'U16RangeSetter.store_spec' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]

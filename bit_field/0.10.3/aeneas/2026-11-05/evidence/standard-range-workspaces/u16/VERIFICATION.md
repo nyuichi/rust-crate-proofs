@@ -1,0 +1,11 @@
+# u16 standard-range verification supplement
+
+Original bit_field 0.10.3 u16 get_bits/set_bits are invoked through two external UFCS callers and compiler-inlined by the official nonmonomorphizing route. Only core::ops::Range<usize> is selected. Source/Cargo/model changes are zero. This does not complete arbitrary RangeBounds, signed types or BitArray.
+
+For every word and usize endpoints, valid means start<16 and start<=end<=16. The getter returns (word/2^start)%2^(end-start), including zero for empty valid ranges; invalid endpoints assert. Setter invalid endpoints assert. Empty valid ranges with zero replacement preserve the word and permit arbitrary returned-reference writeback; nonzero replacement fails with integerOverflow. Nonempty valid ranges accept exactly replacement<2^(end-start), replace the selected bits, preserve outside bits and permit arbitrary writeback; nonfit values assert. CompleteSpec states this exhaustive all-input Result semantics.
+
+The configuration is x86_64 little-endian default/debug overflow-checking extraction. No release-profile, Rust panic payload/unwinding, runtime allocation/address or generic RangeBounds guarantee is claimed. The existing PrimitiveRustLayout provider is copied unchanged; actual size_of U16 uses existing layout_u16 (two bytes), not a new instance or arbitrary Rust type model. Its class remains open and the frozen ground-use closure is the boundary.
+
+33 audited theorem names include helper arithmetic/layout proofs, not 33 APIs. All use only the standard three permitted Lean axioms. Independent Kani two harnesses check every u16 word, all 152 valid intervals, all fitting replacements and arbitrary writebacks, comparing original direct method and caller against independent u32 mask math: 138 checks, zero failures. Failure cases are Lean obligations, not part of those Kani assumptions.
+
+Old artifacts are unchanged. The exact old27 simultaneous import probe failed with duplicate global instDiscriminantBoundIsize; its standalone old module compiled successfully. This is a separate library environment with this collision unresolved. Primary count addition zero and publication held; source binding/integration/fresh and independent review are separate gates.

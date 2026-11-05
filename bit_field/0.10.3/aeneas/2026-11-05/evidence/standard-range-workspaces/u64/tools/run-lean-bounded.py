@@ -1,0 +1,19 @@
+from pathlib import Path
+import subprocess,os,signal,time,json,sys
+p=Path(__file__).resolve().parent.parent;name=sys.argv[1];cache=Path('/tmp/bitfield-u64-range-portable-lean-cache');(cache/Path(name).parent).mkdir(parents=True,exist_ok=True);t=time.monotonic();peak=0;status='running';cmd=['lake','env','bash','-c',f'export LEAN_PATH={cache}:{p}/proofs:$LEAN_PATH; cd {p}/proofs; exec lean -M8192 -o {cache}/{name}.olean {name}.lean']
+with (p/'evidence'/('lean-'+name.replace('/','-')+'.log')).open('w') as log:
+ proc=subprocess.Popen(cmd,cwd='/workspace/full-api/oorandom-range/proofs',stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ while proc.poll() is None:
+  rss=0
+  for entry in Path('/proc').iterdir():
+   if not entry.name.isdigit():continue
+   try:
+    parts=(entry/'stat').read_text().split()
+    if int(parts[4])==proc.pid:rss+=int(parts[23])*os.sysconf('SC_PAGE_SIZE')
+   except (OSError,ValueError,IndexError):pass
+  peak=max(peak,rss)
+  if rss>4500*1024**2 or time.monotonic()-t>30:
+   status='RSS_guard_stopped' if rss>4500*1024**2 else 'timeout';os.killpg(proc.pid,signal.SIGTERM);proc.wait();break
+  time.sleep(.1)
+ if status=='running':status='success' if proc.returncode==0 else 'failed'
+r={'status':status,'exit':proc.returncode,'seconds':time.monotonic()-t,'peak_rss':peak,'module':name};(p/'evidence'/('lean-'+name.replace('/','-')+'.json')).write_text(json.dumps(r,indent=2)+'\n');print(json.dumps(r));sys.exit(0 if status=='success' else 1)

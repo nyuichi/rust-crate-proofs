@@ -1,0 +1,19 @@
+# u8 standard-range verification supplement
+
+The checked Rust invocation is `u8::get_bits` / `u8::set_bits` with `core::ops::Range<usize>`, reached through two external UFCS callers. Original bit_field 0.10.3 source and manifest are unchanged. Official Charon/Aeneas translate compiler-inlined original bodies; the MIR origin evidence identifies those bodies. This is not a proof for every `RangeBounds` implementation or every integer type, and is not an additional API-card publication by itself.
+
+For every u8 word and every usize endpoints, the getter either returns `(word / 2^start) % 2^(end-start)` for `start < 8`, `start <= end <= 8`, or fails with assertionFailure. Empty valid ranges return zero.
+
+For every word, replacement and endpoints, the setter asserts on invalid ranges. A valid empty range and replacement zero returns the original word; a nonzero replacement fails with integerOverflow. For nonempty valid ranges a fitting replacement (`replacement < 2^(end-start)`) replaces exactly those bits and preserves the others. Every returned-reference writeback sets the receiver to that arbitrary writeback value. A nonfitting replacement fails with assertionFailure. `CompleteSpec` gives this exhaustive case split against the generated actual caller bodies.
+
+These are Result-model contracts for the recorded x86_64 little-endian, overflow-checking/default debug extraction configuration. They do not establish panic payloads, unwinding, or release-profile behavior. One separate native observation finds empty `0..0`, old zero, replacement one panics with checks enabled and returns zero with checks disabled. That observation is not an all-input release theorem.
+
+The size_of interface reuses byte-identical, previously validated PrimitiveRustLayout provider files from the published 27-contract artifact. The audited call is only U8 with the existing layout_u8 dictionary (one byte). The class is open; this frozen-use guard is not a claim that arbitrary Rust types have modeled layouts. No new semantic model was introduced.
+
+The 33 audited names include auxiliary arithmetic/layout lemmas and the two all-input case theorems, not 33 new APIs. All are checked together in one generated-type environment using only propext, Classical.choice, and Quot.sound. Independent Kani evidence covers all normal valid u8 ranges/values (138 checks), not the failure cases. The Lean case theorems cover failures separately.
+
+The old 27-contract artifact and this supplement cannot currently be imported simultaneously: independently generated anonymous Bound discriminant instances have the same global name. The failed CoimportProbe and separate successful old-module check are preserved. This supplement is verified in a separate Lean library environment; no nominal type bridge or combined 27+33 environment is claimed. Old artifact files are unchanged.
+
+Reproduction: activate the recorded official toolchain, run tools/regenerate.bash with a private output directory, and compare with evidence/portable-regeneration.json. Only the exact documented original-source prefix relocation is normalized; raw regenerated files are retained. `proofs/lakefile.lean` pins official Aeneas exactly. Build `U8RangeAudit` in that dependency environment. The bounded producer runner records its use of the existing official dependency environment and separate output cache. Source-only freezing excludes target/.lake, compiler sidecars and Python caches. Historical failed attempts are evidence, not successful proof dependencies.
+
+Verification-ready and publication-ready are separate gates: source-card binding, library integration, report review and publisher fresh validation remain outside this supplement. Existing primary API counts are unchanged. Signed range behavior and its previously recorded counterexamples are not generalized from this unsigned result.
