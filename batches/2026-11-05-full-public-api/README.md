@@ -20,7 +20,7 @@ The counts below are explicitly mapped contracts, not a claim that the crate or 
 | byteorder-lite | 22 | fresh record passed; catalogue quota hold |
 | rand_xoshiro | 29 | fresh record passed; catalogue quota hold |
 | ascii | 21 | fresh record passed; catalogue quota hold |
-| base16ct | 3 | candidate integrated; publisher fresh record in progress |
+| base16ct | 3 | fresh record passed; catalogue quota hold |
 
 endian-type remains publicly at six mapped generic bitwise contracts while the 66-contract candidate awaits exact typed source registration. normalize-line-endings retains its prior one adapted-source contract and documented Kani bridge. Neither row is a full-API completion claim. The signed bit_field range diagnostic is not generalized to its already-proved single-bit contracts.
 
