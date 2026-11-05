@@ -28,3 +28,8 @@ lean_lib ByteReadDecodeMath
 lean_lib ByteReadSupport
 lean_lib ByteSignedReadProofs
 lean_lib ByteRead48Proofs
+
+lean_lib ByteorderRead128Roots
+lean_lib Byte128Support
+lean_lib Byte128Math
+lean_lib Byte128ReadProofs

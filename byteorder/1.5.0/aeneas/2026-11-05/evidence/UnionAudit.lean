@@ -6,6 +6,7 @@ import U24Exact24
 import NativeIdentityProofs
 import ByteRead48Proofs
 import ByteSignedReadProofs
+import Byte128ReadProofs
 #print axioms Proofs.be_write_u16_contract
 #print axioms Proofs.be_write_u32_contract
 #print axioms Proofs.be_write_u64_contract
@@ -46,3 +47,5 @@ import ByteSignedReadProofs
 #print axioms ByteSignedReadProofs.le_read_int_contract
 #print axioms ByteSignedReadProofs.le_read_i24_contract
 #print axioms ByteRead48Proofs.le_read_i48_contract
+#print axioms Byte128ReadProofs.be_read_int128_contract
+#print axioms Byte128ReadProofs.le_read_int128_contract

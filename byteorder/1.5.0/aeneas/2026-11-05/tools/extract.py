@@ -80,3 +80,14 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/read-pure/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/read-pure/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/check-read-pure.py'],cwd=p,check=True)
+
+(p/'evidence/read128').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/read128')]
+(p/'evidence/read128/charon-command.json').write_text(json.dumps(cmd,indent=2))
+read128_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/read128/rustflags.json').write_text(json.dumps({'RUSTFLAGS':read128_flags}))
+with (p/'evidence/read128/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/read128-selector',env=dict(os.environ,RUSTFLAGS=read128_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/ByteorderRead128Roots'),str(p/'evidence/read128/byteorder_read128_roots.llbc')]
+(p/'evidence/read128/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/read128/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-read128.py'],cwd=p,check=True)
