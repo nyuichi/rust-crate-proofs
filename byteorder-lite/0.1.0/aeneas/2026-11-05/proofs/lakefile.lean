@@ -10,3 +10,6 @@ lean_lib ByteorderLiteApiRoots
 
 lean_lib VariableProofs
 lean_lib VariableGenerated
+
+lean_lib FloatProofs
+lean_lib ByteorderLiteFloatRoots

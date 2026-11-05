@@ -22,3 +22,15 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/signed/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/signed/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/check-selector.py'],cwd=p,check=True)
+
+(p/'evidence/float').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/float')]
+(p/'evidence/float/charon-command.json').write_text(json.dumps(cmd,indent=2))
+float_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/float/rustflags.json').write_text(json.dumps({'RUSTFLAGS':float_flags}))
+with (p/'evidence/float/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/float-selector',env=dict(os.environ,RUSTFLAGS=float_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/ByteorderFloatRoots'),str(p/'evidence/float/byteorder_float_roots.llbc')]
+(p/'evidence/float/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/float/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/provide-float-models.py'],cwd=p,check=True)
+subprocess.run(['python3','tools/check-float-selector.py'],cwd=p,check=True)

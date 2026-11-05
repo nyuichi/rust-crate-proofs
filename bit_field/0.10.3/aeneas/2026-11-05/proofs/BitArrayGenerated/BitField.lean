@@ -63,4 +63,33 @@ def Slice.Insts.Bit_fieldBitArray.bit_length
   let i1 ← BitFieldInst.BIT_LENGTH
   i * i1
 
+/-- [bit_field::{impl bit_field::BitArray<T> for [T]}::get_bit]:
+    Source: 'src/lib.rs', lines 292:4-296:5
+    Visibility: public -/
+def Slice.Insts.Bit_fieldBitArray.get_bit
+  {T : Type _} (BitFieldInst : BitField T) (self : Slice T) (bit : Std.Usize) :
+  Result Bool
+  := do
+  let i ← BitFieldInst.BIT_LENGTH
+  let slice_index ← bit / i
+  let bit_index ← bit % i
+  let t ← Slice.index_usize self slice_index
+  BitFieldInst.get_bit t bit_index
+
+/-- [bit_field::{impl bit_field::BitArray<T> for [T]}::set_bit]:
+    Source: 'src/lib.rs', lines 329:4-333:5
+    Visibility: public -/
+def Slice.Insts.Bit_fieldBitArray.set_bit
+  {T : Type _} (BitFieldInst : BitField T) (self : Slice T) (bit : Std.Usize)
+  (value : Bool) :
+  Result (Slice T)
+  := do
+  let i ← BitFieldInst.BIT_LENGTH
+  let slice_index ← bit / i
+  let bit_index ← bit % i
+  let (t, index_mut_back) ← Slice.index_mut_usize self slice_index
+  let (t1, set_bit_back) ← BitFieldInst.set_bit t bit_index value
+  let t2 := set_bit_back t1
+  ok (index_mut_back t2)
+
 end bit_field

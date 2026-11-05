@@ -1,0 +1,60 @@
+{
+  "crate": "byteorder",
+  "version": "1.5.0",
+  "target": "x86_64-unknown-linux-gnu",
+  "kani": "0.68.0",
+  "cbmc": "6.11.0",
+  "rust": "nightly-2026-08-21",
+  "harnesses": [
+    {
+      "harness": "checks::le_write_f64_bits_and_suffix",
+      "successful": true,
+      "total_checks": 68,
+      "failed_checks": 0,
+      "unreachable_checks": 4
+    },
+    {
+      "harness": "checks::be_write_f64_bits_and_suffix",
+      "successful": true,
+      "total_checks": 68,
+      "failed_checks": 0,
+      "unreachable_checks": 4
+    },
+    {
+      "harness": "checks::le_write_f32_bits_and_suffix",
+      "successful": true,
+      "total_checks": 68,
+      "failed_checks": 0,
+      "unreachable_checks": 4
+    },
+    {
+      "harness": "checks::be_write_f32_bits_and_suffix",
+      "successful": true,
+      "total_checks": 68,
+      "failed_checks": 0,
+      "unreachable_checks": 4
+    },
+    {
+      "harness": "checks::f64_bit_pattern_identity",
+      "successful": true,
+      "total_checks": 2,
+      "failed_checks": 0,
+      "unreachable_checks": 0
+    },
+    {
+      "harness": "checks::f32_bit_pattern_identity",
+      "successful": true,
+      "total_checks": 2,
+      "failed_checks": 0,
+      "unreachable_checks": 0
+    }
+  ],
+  "total_checks": 276,
+  "failed_checks": 0,
+  "source_unchanged_from_inventory_before_run": true,
+  "source_lib_sha256": "ab3394c385b32457795931440cfb8dbca70ba5d9e1a428fcf651f7ccb2d6c34f",
+  "source_manifest_sha256": "94ba374cb26f3c68fb83da2e5e7dce85920fc4fb827620b06b39d71a9d0e1e18",
+  "input_domain": "Arbitrary u32/u64 bit patterns converted with Rust from_bits, including every NaN payload/sign and signed zero. Model identity checks cover all bit patterns. Public API checks use arbitrary 6-byte f32 and 10-byte f64 buffers; prefix bytes and the two-byte suffix are checked. Public buffer lengths are fixed in Kani, not arbitrary. Lean separately quantifies over arbitrary valid slice lengths.",
+  "unwind_bound": 12,
+  "not_established": "No floating arithmetic, numeric comparison, rounding, NaN arithmetic behavior, other targets, or extraction-toolchain/Lean mechanized semantic correspondence."
+}

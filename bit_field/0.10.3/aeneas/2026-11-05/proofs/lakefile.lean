@@ -7,3 +7,5 @@ lean_lib BitField
 
 lean_lib BitArrayGenerated
 lean_lib ArrayProofs
+
+lean_lib ArrayBitsProofs

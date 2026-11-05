@@ -7,3 +7,6 @@ lean_lib Generated
 
 lean_lib SignedProofs
 lean_lib ByteorderApiRoots
+
+lean_lib FloatProofs
+lean_lib ByteorderFloatRoots
