@@ -17,3 +17,8 @@ lean_lib Seed512 where
 @[default_target] lean_lib StateProofs
 lean_lib SplitMixState where
  roots := #[`SplitMixState.Types, `SplitMixState.Funs]
+
+@[default_target] lean_lib SerializerProofs
+@[default_target] lean_lib SerializerLoopProofs
+lean_lib Serializers where
+ roots := #[`Serializers.Types, `Serializers.FunsExternal, `Serializers.Funs]
