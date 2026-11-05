@@ -1,0 +1,13 @@
+# Bounded original-writer bridge supplement
+
+One harness compares the actual original `byteorder 1.5.0` and `byteorder-lite 0.1.0` BigEndian::write_uint public methods using unchanged path dependencies, their default `std` features and Cargo.lock. Neither crate provides a serde feature; byteorder's separately named i128 feature is not enabled. No Rust library source, manifest, pointer model or safe adaptation is introduced.
+
+The domain includes every u64 value, every nbytes in 1..=8 for which the value fits in 8*nbytes bits, every slice length between nbytes and 32, and every initial 32-byte array. Each method receives that array's prefix of the chosen slice length. Assertions require equality of the complete final 32-byte arrays and preservation of every byte at index nbytes..32. Thus both the slice suffix and bytes beyond the supplied slice remain unchanged. The nbytes=8 case includes all u64 values and avoids an overflowing shift in the fit assumption. Length zero, invalid counts, insufficient buffers and values that do not fit are outside this harness's domain.
+
+Kani 0.68.0 with Rust nightly-2026-08-21 completed this single harness: 113 checks, zero failed (four unreachable); verification time 5.6658263s under an outer 60-second limit. Results include successful unwind checks with bound34. Rust source and manifests hash identically before/after. Exact compiler host/LLVM details are in rustc-version.txt; dependency resolution is in Cargo.lock. These tools differ from the Aeneas extraction's Rust nightly-2026-09-17, and no claim of identical compiler semantics across toolchains is made.
+
+This is a bounded-allocation-shape normal-success comparison, not a proof for arbitrary allocation shapes or all buffer lengths. It does not check failing input behavior, conduct a separate invalid-memory campaign or run Miri. Kani's checked assertions are recorded in verification.log; no broader Rust memory-model guarantee is inferred. The original byteorder method remains blocked in Aeneas at raw-pointer construction. Its body is not definitionally equal to the Lite implementation.
+
+The comparison uses Lite's implementation as its expected result. The independently established Aeneas contract for Lite specifies the general width encoder and trailing-byte preservation; together they supply a scoped bridge for this 32-byte allocation shape and successful inputs. This supplement adds no byteorder Aeneas API claim. LittleEndian write_uint and both write_uint128 methods have not been checked here.
+
+Run `bash verify.bash`. Exit0 means completed; exit124 means the outer 60-second timeout and must not be reported as a proof. Raw output, exact exit status, unchanged-source hashes, lock and compiler version are retained.

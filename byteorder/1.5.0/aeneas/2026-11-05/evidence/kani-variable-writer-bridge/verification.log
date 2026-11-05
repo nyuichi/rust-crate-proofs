@@ -1,0 +1,818 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling byteorder v1.5.0 (/workspace/full-api/bits/byteorder/source)
+   Compiling byteorder-lite v0.1.0 (/workspace/full-api/bits/byteorder-lite/source)
+warning: trailing semicolon in macro used in expression position
+    --> /workspace/full-api/bits/byteorder/source/src/lib.rs:1209:27
+     |
+1209 |             const _: () = assert!(align_of::<u32>() <= align_of::<f32>());
+     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+     = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+     = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+     = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+    --> /workspace/full-api/bits/byteorder/source/src/lib.rs:1271:27
+     |
+1271 |             const _: () = assert!(align_of::<u64>() <= align_of::<f64>());
+     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+     = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+     = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling original-byteorder-writer-bridge v0.1.0 (/workspace/full-api/kani-byteorder-writer-bridge)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.81s
+warning: the following packages contain code that will be rejected by a future version of Rust: byteorder v1.5.0 (/workspace/full-api/bits/byteorder/source)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+Checking harness checks::be_write_uint_original_bridge...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-byteorder-writer-bridge/target/kani/x86_64-unknown-linux-gnu/debug/build/original-byteorder-writer-bridge/db7322b754fa42c0/out/original_byteorder_writer_bridge-db7322b754fa42c0__RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 50 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 69 column 5 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 427 column 13 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 50 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 69 column 5 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 427 column 13 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 50 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 69 column 5 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 427 column 13 function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 41 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 59 column 9 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 69 column 5 function core::slice::index::slice_index_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::index::slice_index_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::index::slice_index_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs line 545 column 13 function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index thread 0
+aborting path on assume(false) at file library/kani_core/src/models.rs line 203 column 17 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
+aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
+aborting path on assume(false) at file library/kani/src/lib.rs line 57 column 1 function <usize as kani::rustc_intrinsics::ToISize>::to_isize thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs line 5589 column 9 function core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs line 2641 column 9 function core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs line 177 column 9 function core::slice::copy_from_slice_impl::len_mismatch_fail thread 0
+aborting path on assume(false) at file /home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs line 5598 column 9 function core::slice::copy_from_slice_impl::<u8> thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 3 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 4 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 5 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 6 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 7 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 8 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 9 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 10 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 11 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 12 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 13 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 14 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 15 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 16 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 17 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 18 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 19 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 20 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 21 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 22 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 23 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 24 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 25 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 26 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 27 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 28 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 29 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 30 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 31 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 32 file <builtin-library-memcmp> line 25 function memcmp thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 1 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 2 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 3 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 4 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 5 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 6 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 7 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 8 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 9 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 10 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 11 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 12 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 13 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 14 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 15 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 16 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 17 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 18 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 19 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 20 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 21 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 22 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 23 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 24 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 25 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 26 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 27 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 28 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 29 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 30 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 31 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 32 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 33 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+aborting path on assume(false) at file src/lib.rs line 19 column 18 function checks::be_write_uint_original_bridge thread 0
+Not unwinding loop _RNvNtCsclC6o7LYUe5_32original_byteorder_writer_bridge6checks29be_write_uint_original_bridge.0 iteration 34 file src/lib.rs line 19 column 9 function checks::be_write_uint_original_bridge thread 0
+Runtime Symex: 0.430134s
+size of program expression: 18973 steps
+slicing removed 12321 assignments
+Generated 1684 VCC(s), 395 remaining after simplification
+Runtime Postprocess Equation: 0.024847s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.144088s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 0.0196494s
+Solving with CaDiCaL 3.0.0
+112798 variables, 422158 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 1.18622s
+Runtime decision procedure: 1.33439s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+112799 variables, 422159 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.321117s
+Runtime decision procedure: 0.323762s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+112800 variables, 422160 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0102603s
+Runtime decision procedure: 0.0142181s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+112801 variables, 422161 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 2.49915s
+Runtime decision procedure: 2.50003s
+
+RESULTS:
+Check 1: core::num::<impl usize>::checked_sub.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1096:31 in function core::num::<impl usize>::checked_sub
+
+Check 2: std::panic::Location::<'_>::caller.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
+
+Check 3: memcmp.precondition.1
+	 - Status: SUCCESS
+	 - Description: "memcmp region 1 readable"
+	 - Location: <builtin-library-memcmp>:19 in function memcmp
+
+Check 4: memcmp.precondition.2
+	 - Status: SUCCESS
+	 - Description: "memcpy region 2 readable"
+	 - Location: <builtin-library-memcmp>:21 in function memcmp
+
+Check 5: core::num::<impl usize>::unchecked_add.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_add` which would overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:1013:17 in function core::num::<impl usize>::unchecked_add
+
+Check 6: core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:5589:9 in function core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime
+
+Check 7: kani::rustc_intrinsics::offset::<u8, *const u8, isize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, isize>
+
+Check 8: kani::rustc_intrinsics::offset::<u8, *const u8, isize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, isize>
+
+Check 9: kani::rustc_intrinsics::offset::<u8, *const u8, isize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, isize>
+
+Check 10: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:549:27 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 11: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 12: <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:550:13 in function <std::ops::RangeFrom<usize> as std::slice::SliceIndex<[u8]>>::index
+
+Check 13: core::ub_checks::maybe_is_nonoverlapping::runtime.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2628:9 in function core::ub_checks::maybe_is_nonoverlapping::runtime
+
+Check 14: std::ptr::const_ptr::<impl *const T>::offset::runtime_offset_nowrap::runtime.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2628:9 in function std::ptr::const_ptr::<impl *const T>::offset::runtime_offset_nowrap::runtime
+
+Check 15: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
+
+Check 16: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
+
+Check 17: kani::rustc_intrinsics::offset::<u8, *mut u8, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *mut u8, usize>
+
+Check 18: core::num::<impl usize>::abs_diff.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3182:21 in function core::num::<impl usize>::abs_diff
+
+Check 19: core::num::<impl usize>::abs_diff.assertion.2
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3184:21 in function core::num::<impl usize>::abs_diff
+
+Check 20: std::fmt::Arguments::<'_>::from_str.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs:820:38 in function std::fmt::Arguments::<'_>::from_str
+
+Check 21: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 22: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 23: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 24: byteorder_lite::pack_size.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: ../bits/byteorder-lite/source/src/lib.rs:110:10 in function byteorder_lite::pack_size
+
+Check 25: byteorder_lite::pack_size.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../bits/byteorder-lite/source/src/lib.rs:110:5 in function byteorder_lite::pack_size
+
+Check 26: core::slice::index::slice_index_fail::do_panic::runtime.assertion.3
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:69:5 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 27: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
+
+Check 28: std::ptr::const_ptr::<impl *const ()>::is_aligned_to.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1360:23 in function std::ptr::const_ptr::<impl *const ()>::is_aligned_to
+
+Check 29: std::ptr::const_ptr::<impl *const ()>::is_aligned_to.assertion.2
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1357:13 in function std::ptr::const_ptr::<impl *const ()>::is_aligned_to
+
+Check 30: core::slice::index::slice_index_fail::do_panic::runtime.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:41:9 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 31: <byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_uint.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: pack_size(n) <= nbytes && nbytes <= 8"
+	 - Location: ../bits/byteorder-lite/source/src/lib.rs:1852:9 in function <byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_uint
+
+Check 32: <byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_uint.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: nbytes <= buf.len()"
+	 - Location: ../bits/byteorder-lite/source/src/lib.rs:1853:9 in function <byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_uint
+
+Check 33: <byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_uint.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../bits/byteorder-lite/source/src/lib.rs:1855:56 in function <byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_uint
+
+Check 34: std::ptr::copy_nonoverlapping::<u8>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "`src` must be properly aligned"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 35: std::ptr::copy_nonoverlapping::<u8>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "`dst` must be properly aligned"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 36: std::ptr::copy_nonoverlapping::<u8>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "copy_nonoverlapping: attempt to compute number in bytes which would overflow"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 37: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:419:5 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut
+
+Check 38: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:425:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut
+
+Check 39: <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:425:22 in function <std::ops::Range<usize> as std::slice::SliceIndex<[u8]>>::index_mut
+
+Check 40: checks::be_write_uint_original_bridge.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to multiply with overflow"
+	 - Location: src/lib.rs:13:47 in function checks::be_write_uint_original_bridge
+
+Check 41: checks::be_write_uint_original_bridge.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:13:38 in function checks::be_write_uint_original_bridge
+
+Check 42: checks::be_write_uint_original_bridge.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: original == safe"
+	 - Location: src/lib.rs:18:9 in function checks::be_write_uint_original_bridge
+
+Check 43: checks::be_write_uint_original_bridge.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: src/lib.rs:19:18 in function checks::be_write_uint_original_bridge
+
+Check 44: checks::be_write_uint_original_bridge.assertion.4
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:19:42 in function checks::be_write_uint_original_bridge
+
+Check 45: checks::be_write_uint_original_bridge.assertion.5
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:19:55 in function checks::be_write_uint_original_bridge
+
+Check 46: checks::be_write_uint_original_bridge.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: original[i] == initial[i]"
+	 - Location: src/lib.rs:19:31 in function checks::be_write_uint_original_bridge
+
+Check 47: byteorder::pack_size.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:113:12 in function byteorder::pack_size
+
+Check 48: byteorder::pack_size.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:115:19 in function byteorder::pack_size
+
+Check 49: byteorder::pack_size.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:117:19 in function byteorder::pack_size
+
+Check 50: byteorder::pack_size.assertion.4
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:119:19 in function byteorder::pack_size
+
+Check 51: byteorder::pack_size.assertion.5
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:121:19 in function byteorder::pack_size
+
+Check 52: byteorder::pack_size.assertion.6
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:123:19 in function byteorder::pack_size
+
+Check 53: byteorder::pack_size.assertion.7
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:125:19 in function byteorder::pack_size
+
+Check 54: kani::mem::cbmc::same_allocation.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "Kani does not support reasoning about pointer to unallocated memory"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::mem::cbmc::same_allocation
+
+Check 55: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: pack_size(n) <= nbytes && nbytes <= 8"
+	 - Location: ../bits/byteorder/source/src/lib.rs:1999:9 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 56: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: nbytes <= buf.len()"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2000:9 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 57: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "null pointer dereference occurred"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 58: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2004:39 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 59: core::slice::index::slice_index_fail::do_panic::runtime.assertion.2
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:59:9 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 60: <usize as kani::rustc_intrinsics::ToISize>::to_isize.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: library/kani_core/src/models.rs:203:17 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+
+Check 61: <usize as kani::rustc_intrinsics::ToISize>::to_isize.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset value overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+
+Check 62: <usize as kani::rustc_intrinsics::ToISize>::to_isize.assertion.1
+	 - Status: SUCCESS
+	 - Description: "internal error: entered unreachable code"
+	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+
+Check 63: core::slice::index::slice_index_fail::do_panic::runtime.assertion.4
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/index.rs:50:9 in function core::slice::index::slice_index_fail::do_panic::runtime
+
+Check 64: memcpy.pointer.1
+	 - Status: SUCCESS
+	 - Description: "same object violation in (const unsigned char *)(void *)src >= (const unsigned char *)(void *)dst + (signed long int)(count * sizeof(unsigned char) /*1*/ )"
+	 - Location: <builtin-library-memcpy>:33 in function memcpy
+
+Check 65: memcpy.pointer.2
+	 - Status: SUCCESS
+	 - Description: "same object violation in (const unsigned char *)(void *)dst >= (const unsigned char *)(void *)src + (signed long int)(count * sizeof(unsigned char) /*1*/ )"
+	 - Location: <builtin-library-memcpy>:34 in function memcpy
+
+Check 66: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.1
+	 - Status: SUCCESS
+	 - Description: "memcpy src/dst overlap"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 67: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.2
+	 - Status: SUCCESS
+	 - Description: "memcpy source region readable"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 68: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.3
+	 - Status: SUCCESS
+	 - Description: "memcpy destination region writeable"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 69: checks::be_write_uint_original_bridge.array_bounds.1
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:19:42 in function checks::be_write_uint_original_bridge
+
+Check 70: checks::be_write_uint_original_bridge.array_bounds.2
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:19:55 in function checks::be_write_uint_original_bridge
+
+Check 71: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 72: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 73: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 74: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 75: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 76: <byteorder::BigEndian as byteorder::ByteOrder>::write_uint.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/byteorder/source/src/lib.rs:2002:25 in function <byteorder::BigEndian as byteorder::ByteOrder>::write_uint
+
+Check 77: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1101:23 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 78: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1101:23 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 79: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1101:23 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 80: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1101:23 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 81: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1101:23 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 82: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1101:23 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 83: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1103:13 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 84: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1103:13 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 85: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1103:13 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 86: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1103:13 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 87: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1103:13 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 88: <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:1103:13 in function <std::ops::Range<usize> as std::iter::range::RangeIteratorImpl>::spec_next
+
+Check 89: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 90: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 91: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 92: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 93: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 94: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 95: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 96: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 97: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 98: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 99: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 100: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 101: memcmp.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 102: memcmp.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 103: memcmp.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 104: memcmp.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 105: memcmp.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 106: memcmp.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 107: memcmp.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 108: memcmp.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 109: memcmp.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 110: memcmp.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 111: memcmp.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 112: memcmp.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 113: checks::be_write_uint_original_bridge.unwind.0
+	 - Status: SUCCESS
+	 - Description: "unwinding assertion loop 0"
+	 - Location: src/lib.rs:19:9 in function checks::be_write_uint_original_bridge
+
+
+SUMMARY:
+ ** 0 of 113 failed (4 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 5.6658263s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.
