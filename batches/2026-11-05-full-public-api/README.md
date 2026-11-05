@@ -6,7 +6,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Current public results
 
-**Thirteen reports contain 352 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 377 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
@@ -22,7 +22,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 | oorandom 11.1.5 | [25 / 3](https://proofs.rs/report/25) | 12 |
 | rand_pcg 0.10.2 | [29 / 2](https://proofs.rs/report/29) | 25 |
 | rand_xorshift 0.5.0 | [24 / 2](https://proofs.rs/report/24) | 1 |
-| rand_xoshiro 0.8.1 | [30 / 2](https://proofs.rs/report/30) | 44 |
+| rand_xoshiro 0.8.1 | [30 / 3](https://proofs.rs/report/30) | 69 |
 
 `current-public-reports.json` records exact immutable source/run/SARIF/readback hashes. `proof-updates.json` separates published coverage from newer candidates and unsuccessful runs. Independent Kani packets do not inflate Aeneas claim counts. The adapted normalization theorem and reviewed model bridges remain explicitly identified in their reports.
 
