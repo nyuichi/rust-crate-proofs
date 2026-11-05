@@ -1,0 +1,9 @@
+# Original unchecked ASCII conversions5 — complete documented safe domains
+
+For u8, i8, u16, u32 and char, every input in the documented ASCII range0..127 converts normally to a valid AsciiChar with the exact same scalar code. Five fully qualified original unsafe ToAsciiChar::to_ascii_char_unchecked calls passed Kani with no failed checks. These are different API identities from the earlier five checked conversions; the existing AsciiChar-owner forwarding proof is also separate.
+
+Each assumption is exactly the documented unsafe-call requirement: u8/u16/u32 below128, i8 nonnegative (its maximum is127), and char's scalar code below128. Inputs outside that range are not declared safe or verified. In particular, u16/u32 values above127 with ASCII low bytes are not admitted, despite the source TODO discussing truncation. No invalid enum is injected, and standard Kani UB/validity, panic and arithmetic checks are retained without disabling options or added models. Unreachable-property counts remain visible in raw logs/results.
+
+These are original manual impls, unrelated to standard derive exclusions. All runtime Rust files under src and Cargo.toml match the crates.io archive and remained byte unchanged before/after. Kani0.68/CBMC6.11/nightly2026-08-21, default features and x86_64 compiler/standard semantics are trusted. Other configurations/targets, const evaluation and behavior outside the unsafe safety domain are not covered. No bounded-buffer example, source adaptation, stub or new standard model was used. Publication/source binding and Aeneas primary counts remain separate.
+
+The archive root tests.rs is not in the dependency source copy and crate tests were not run; this does not affect the default runtime library calls checked here. The full upstream archive remains included.
