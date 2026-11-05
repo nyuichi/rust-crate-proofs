@@ -1,0 +1,47 @@
+{
+  "crate": "rand_xoshiro",
+  "version": "0.8.1",
+  "archive_reference": "upstream.crate",
+  "archive_sha256": "662effc7698e08ea324d3acccf8d9d7f7bf79b9785e270a174ea36e56900c91d",
+  "instrumented_files": [
+    {
+      "file": "src/xoroshiro64star.rs",
+      "original_length": 3359,
+      "original_sha256": "9f68e46bf1aaba56f2520d62563c50ddf7f8659c20ddb393c340fae2aedec90a",
+      "observer_suffix": "\n#[cfg(kani)]\npub(crate) fn proof_from_words(words:[u32;2])->Xoroshiro64Star{Xoroshiro64Star{s0:words[0],s1:words[1]}}\n#[cfg(kani)]\npub(crate) fn proof_words(s:&Xoroshiro64Star)->[u32;2]{[s.s0,s.s1]}\n"
+    },
+    {
+      "file": "src/xoroshiro64starstar.rs",
+      "original_length": 3373,
+      "original_sha256": "46631bcbd2f22ee986bafea8bb81b644763ce66b59fc3f841ce9ce3f5ad02702",
+      "observer_suffix": "\n#[cfg(kani)]\npub(crate) fn proof_from_words(words:[u32;2])->Xoroshiro64StarStar{Xoroshiro64StarStar{s0:words[0],s1:words[1]}}\n#[cfg(kani)]\npub(crate) fn proof_words(s:&Xoroshiro64StarStar)->[u32;2]{[s.s0,s.s1]}\n"
+    },
+    {
+      "file": "src/xoshiro128plus.rs",
+      "original_length": 5139,
+      "original_sha256": "458bd99260fb132760cc4e1658ffa422a4357f1c237a302541886e609f1f5b4b",
+      "observer_suffix": "\n#[cfg(kani)]\npub(crate) fn proof_from_words(words:[u32;4])->Xoshiro128Plus{Xoshiro128Plus{s:words}}\n#[cfg(kani)]\npub(crate) fn proof_words(s:&Xoshiro128Plus)->[u32;4]{s.s}\n"
+    },
+    {
+      "file": "src/xoshiro128plusplus.rs",
+      "original_length": 5216,
+      "original_sha256": "1a0b1b52ae070ca119a08090cc5acd0b972c01cb9d17edac755b306f9fae4426",
+      "observer_suffix": "\n#[cfg(kani)]\npub(crate) fn proof_from_words(words:[u32;4])->Xoshiro128PlusPlus{Xoshiro128PlusPlus{s:words}}\n#[cfg(kani)]\npub(crate) fn proof_words(s:&Xoshiro128PlusPlus)->[u32;4]{s.s}\n"
+    },
+    {
+      "file": "src/xoshiro128starstar.rs",
+      "original_length": 5206,
+      "original_sha256": "2393ba4897871cc8fc2558083b8cfebe08ca09fcc5d7d182f050ea0ed449fab2",
+      "observer_suffix": "\n#[cfg(kani)]\npub(crate) fn proof_from_words(words:[u32;4])->Xoshiro128StarStar{Xoshiro128StarStar{s:words}}\n#[cfg(kani)]\npub(crate) fn proof_words(s:&Xoshiro128StarStar)->[u32;4]{s.s}\n"
+    },
+    {
+      "file": "src/lib.rs",
+      "original_length": 5787,
+      "original_sha256": "a205f268b53e4f0cadcd5ec9aeb341083e80d5f81be0356b4fdfeaf2b8f7cb8a",
+      "observer_suffix": "\n#[cfg(kani)]\nmod composition_harnesses;\n"
+    }
+  ],
+  "all_other_files": "byte-identical to original archive",
+  "instrumentation_scope": "Observers construct and read private scalar state only; no original method body is changed. Harnesses call the original try_next_u64 implementation.",
+  "input_domain": "Every two-u32 or four-u32 internal state, including all zero, with no arbitrary length bound."
+}
