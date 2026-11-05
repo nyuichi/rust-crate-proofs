@@ -1,12 +1,12 @@
 # Current publication queue
 
-Thirteen public reports contain424 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
+Thirteen public reports contain426 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
 
 | Completed update | Primary mapped contracts | Supplemental scope |
 |---|---:|---|
 | ASCII report28 rev9 |51|Original scalar35 plus Error2/staticDefault1 Kani evidence; earlier evidence retained|
 | PCG report29 rev6 |25|MCGserde592, PCG32composition81, externalRng158+393; constructor-image domains distinct from arbitrary serde wire states|
-| Either report27 rev8 |41|next_back adds1 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
+| Either report27 rev9 |43|next_back and two conversions add3 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
 | BitField report34 rev6 |27|RangeFull24 closed specializations,1284checks; arbitrary RangeBounds completion remains unproved and signed small-range counterexample remains|
 | Xoshiro report30 rev4 |69|Seed512 public tuple construction/all64 input bytes and full64-byte replacement through actual AsMut;84Kani checks; existing views are not recounted|
 | NoHash report23 rev5 |14|Four compiler-inlined caller API families across four configurations: prior13 declarations plus newwrite_str4 equals17 unique audits; Kani900 remains separate/narrower|
@@ -23,4 +23,4 @@ Seed512 constructor report30rev4 uses sourcee7e01c0c/runfaffa99f with a successf
 
 Base16 report31rev4 is published with58 supplemental Error-default checks across all2 valid variants. Primary3/overflow precondition/foreignfmtError identity/Display1910/codec1484 remain unchanged. Raw August std source was not available; exact compiled Kani std pins are trusted without September substitution. Next source copies are Endianreflexive6 (70 files) and finalu8Range3f5c (122 files), neither yet a new published machine claim.
 
-Endian report26rev3 is published with12 supplemental compiler-inlined caller contracts (reflexive6 plus conditional6), source9615c619/runbfc51b49; old66 IDs/preconditions and50 model/bridge assumptions remain. Recorded1806-job build contains all12 supplemental audits. H88 exactreadback is archived. Next formal priority is reviewedEither43; BitFieldmultiwidth independent workspaces require an explicit recorded build graph.
+Endian report26rev3 is published with12 supplemental compiler-inlined caller contracts (reflexive6 plus conditional6), source9615c619/runbfc51b49; old66 IDs/preconditions and50 model/bridge assumptions remain. Recorded1806-job build contains all12 supplemental audits. H88 exactreadback is archived. Either43 is now published at revision9 with old41 identities and preconditions preserved; BitFieldmultiwidth independent workspaces require an explicit recorded build graph.
