@@ -1,0 +1,21 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "Rand32::rand_range"
+module = "EstablishedRange"
+theorem = "EstablishedRange.rand32_contract"
+precondition = "For every represented state, start < end gives no failure and normal returns lie in [start,end) with increment unchanged (divergence permitted); start >= end gives assertion failure in debug-assertion extraction; public from_state((0,0)) followed by range 0..3 diverges. Termination, exact final state, uniformity and running time remain unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
+
+[[tool.proofs]]
+api = "Rand64::rand_range"
+module = "EstablishedRange"
+theorem = "EstablishedRange.rand64_contract"
+precondition = "For every represented state, start < end gives no failure and normal returns lie in [start,end) with increment unchanged (divergence permitted); start >= end gives assertion failure in debug-assertion extraction; public from_state((0,0)) followed by range 0..3 diverges. Termination, exact final state, uniformity and running time remain unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
+
+[report]
+summary = "Both range methods have all-input partial correctness: valid inputs cannot fail, normal returns lie in the requested range, and invalid ranges assert. Restored zero state/increment with 0..3 provably diverges."
+guarantees = "Direct original-method proofs cover all represented states/ranges: valid inputs cannot fail; normal returns lie in [start,end) and preserve the increment; invalid inputs assert. They also cover the public restored-zero-state 0..3 divergence case. The latter is a formal nontermination result, supported separately by bounded native observations."
+limitations = "Partial correctness permits divergence: termination, exact final state, uniformity, expected running time, release configurations and Rust panic/unwinding behavior are not established. The zero pair is accepted by from_state, but reachability from constructors is not asserted. Original std wrapping_neg bodies are transparent; no new provider/model."

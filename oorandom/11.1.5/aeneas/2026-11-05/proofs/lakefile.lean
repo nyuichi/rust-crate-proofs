@@ -24,3 +24,10 @@ lean_lib Generated
 lean_lib GeneratedDelegations
 lean_lib GenericConversionProofs
 lean_lib OriginalDelegationProofs
+lean_lib GenericTrace
+lean_lib ActualLoop32
+lean_lib ActualLoop64
+lean_lib PublicTrace32
+lean_lib PublicTrace64
+lean_lib TraceAudit
+lean_lib ExactRange

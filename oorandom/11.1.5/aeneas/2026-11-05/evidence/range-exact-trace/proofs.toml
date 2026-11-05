@@ -1,0 +1,21 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "Rand32::rand_range"
+module = "ExactRange"
+theorem = "ExactRange.rand32_contract"
+precondition = "Every represented state/range, typed width equals end.val-start.val. Invalid range asserts in debug extraction. For valid ranges, least accepted candidate n implies normal return with exact high-product-plus-start sample and candidate_n generator state; all rejected implies divergence. Canonical threshold is proved. Existence of an accepted index is conditional, not guaranteed; uniformity/period/runtime are unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
+
+[[tool.proofs]]
+api = "Rand64::rand_range"
+module = "ExactRange"
+theorem = "ExactRange.rand64_contract"
+precondition = "Every represented state/range, typed width equals end.val-start.val. Invalid range asserts in debug extraction. For valid ranges, least accepted candidate n implies normal return with exact high-product-plus-start sample and candidate_n generator state; all rejected implies divergence. Canonical threshold is proved. Existence of an accepted index is conditional, not guaranteed; uniformity/period/runtime are unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
+
+[report]
+summary = "Both rand_range methods have exact behavior for every represented input: invalid ranges assert; a least accepted candidate yields its exact sample and generator state; if every candidate is rejected, sampling diverges."
+guarantees = "For valid ranges, if candidate n is the first accepted candidate, the original method terminates normally with sample equal to the high product plus start and the exact generator state after n+1 draws. If every candidate is rejected, it diverges. Canonical threshold calculation and the finite-or-all-rejected case split are kernel proved. The prior no-failure, normal-return bounds, increment preservation and restored-zero-state divergence proofs remain included."
+limitations = "Acceptance at some finite index is a condition, not a guarantee for all states: general termination is false for the accepted raw zero-state/increment example. Uniformity, period, expected running time, constructor reachability of arbitrary restored states, other build configurations and Rust panic/unwinding behavior are not established. Official nonmonomorphic extraction uses unchanged crate and transparent original std wrapping_neg bodies, with no new provider/model."
