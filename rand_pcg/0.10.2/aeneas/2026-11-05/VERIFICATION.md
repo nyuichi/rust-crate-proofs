@@ -9,3 +9,11 @@ The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar mo
 Exact output_xsl_rr and output_dxsm scalar formulas and all state transitions are in proofs/Proofs.lean. For xsl_rr, xor the high and low 64-bit halves and rotate right by the top six bits of the 128-bit state. DXSM mixes the old high half with logical shifts 32/48 and multiplier 15750249268501108917, then multiplies by the low half OR 1.
 
 Run `./verify-all.bash`. The baseline inventory (before these extensions) is retained in evidence/api-inventory-baseline.json.
+
+## Full-delta multiplicative advance
+
+AdvanceProofs.mcg_advance_spec proves the unchanged original Mcg128Xsl64::advance body returns normally for every full-width unsigned delta and arbitrary internal state, with state=M^delta*initial_state modulo2^128. Zero/even states are valid unsigned Rust values even where ordinary seeds cannot reach them. The loop invariant preserves the accumulator/power relation and zero additive accumulators; remaining_delta/2 strictly decreases when positive. No testing bound, compiler-inlined replacement, custom std model or new axiom is used. The proof does not establish period or jump-back semantics for wrapped negative deltas. Default/serde models are byte-identical. Distinct official namespace and simultaneous configured-module imports prevent duplicate-model collisions.
+
+## Full-delta affine advance
+
+All three LCG advance methods are proved on unchanged original bodies for arbitrary full-width state, increment and delta, including zero/even increments. Each returns normally, preserves increment, and reaches exactly the state from delta repetitions of x↦M*x+increment modulo the word width. The reference is ordinary linear recursion, not the implementation’s binary algorithm. General affine composition, binary-power algebra, per-width loop invariants and strictly decreasing remaining_delta/2 connect it to the source. No period, statistical quality, seed reachability or wrapped-negative jump-back guarantee is inferred. See Affine.lean/AffineProofs.lean and the separate namespace/default-serde/coimport guards.

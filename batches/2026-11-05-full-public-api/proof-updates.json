@@ -82,7 +82,7 @@
       "version": "0.10.2",
       "artifact_path": "rand_pcg/0.10.2/aeneas/2026-11-05",
       "prior_mapping_count": 1,
-      "new_mapping_count": 21,
+      "new_mapping_count": 25,
       "added_mappings": [
         "<rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u32",
         "<rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64",
@@ -242,22 +242,46 @@
           "module": "Proofs",
           "theorem": "Proofs.next64_Lcg128CmDxsm64_spec",
           "precondition": "All well-typed internal states, including zero and even LCG increments; default or serde feature configuration, x86_64."
+        },
+        {
+          "api": "Mcg128Xsl64::advance",
+          "module": "AdvanceProofs",
+          "theorem": "AdvanceProofs.mcg_advance_spec",
+          "precondition": "Every internal u128 state (including zero/even) and every u128 delta; default or serde on x86_64. Final state is M^delta times initial state modulo 2^128; total normal termination, no seed reachability or period assumption."
+        },
+        {
+          "api": "Lcg64Xsh32::advance",
+          "module": "AffineProofs",
+          "theorem": "AffineProofs.lcg64_advance_spec",
+          "precondition": "Every internal 64-bit state, every 64-bit increment including even/zero, and every unsigned 64-bit delta; default/serde on x86_64. Total normal termination, state equals delta repetitions of x\u21a6M*x+increment modulo word width, increment unchanged; no period/seed-reachability assumption."
+        },
+        {
+          "api": "Lcg128Xsl64::advance",
+          "module": "AffineProofs",
+          "theorem": "AffineProofs.lcg128_advance_spec",
+          "precondition": "Every internal 128-bit state, every 128-bit increment including even/zero, and every unsigned 128-bit delta; default/serde on x86_64. Total normal termination, state equals delta repetitions of x\u21a6M*x+increment modulo word width, increment unchanged; no period/seed-reachability assumption."
+        },
+        {
+          "api": "Lcg128CmDxsm64::advance",
+          "module": "AffineProofs",
+          "theorem": "AffineProofs.cm_advance_spec",
+          "precondition": "Every internal 128-bit state, every 128-bit increment including even/zero, and every unsigned 128-bit delta; default/serde on x86_64. Total normal termination, state equals delta repetitions of x\u21a6M*x+increment modulo word width, increment unchanged; no period/seed-reachability assumption."
         }
       ],
       "report": {
-        "title": "Exact construction, state access and native output for all four PCG generator types",
-        "explanation": "For rand_pcg 0.10.2, state returns the exact stored word for Lcg64Xsh32, Lcg128Xsl64, Lcg128CmDxsm64 and Mcg128Xsl64. For the three LCG types, stream returns the stored increment shifted logically right by one; from_state preserves the given state and stores increment=(stream<<1) OR 1, discarding the highest stream bit. Their new constructors normalize that increment and initialize state=((input_state+increment)*multiplier+increment), with state-width modular arithmetic. The multipliers are 6364136223846793005, 47026247687942121848144207491837523525, and 15750249268501108917, respectively. Mcg128Xsl64::new stores input_state OR 1. Each of these fourteen original APIs terminates normally in the model for arbitrary scalar inputs. The prior Lcg64Xsh32::try_next_u32 exact PCG-XSH-RR output/state theorem is also retained, for fifteen initial proved API bodies. Six further body proofs establish try_next_u64 and try_next_u32 for Lcg128Xsl64, Mcg128Xsl64 and Lcg128CmDxsm64, for twenty-one API bodies total. The XSL-RR variants permute the newly advanced state; the CM-DXSM variant permutes the old state and then advances. Their 32-bit methods return the low 32 bits of the corresponding 64-bit result with exactly the same state update. The original standard Result::map body and the original conversion closures are included in the proof. Selected official translations are byte-identical under default and serde configurations; serde trait implementations remain unproved.",
+        "title": "Exact PCG state, output and advance for all four generator types",
+        "explanation": "For rand_pcg 0.10.2, the four state getters return their stored word. The three LCG stream getters return increment>>1; from_state preserves its input state and stores increment=(stream<<1) OR 1, discarding the highest stream bit. Their new constructors initialize state=((input_state+increment)*multiplier+increment) with modular arithmetic; the multipliers are 6364136223846793005, 47026247687942121848144207491837523525 and 15750249268501108917 respectively. Mcg128Xsl64::new stores input_state OR 1. Native output proofs retain Lcg64Xsh32::try_next_u32 and both word widths for the three 128-bit types. The XSL-RR variants permute the newly advanced state; CM-DXSM permutes the old state then advances. Their 32-bit methods return the low 32 bits of the 64-bit result with the same final state. Original Result::map and conversion closures are body-extracted. Mcg128Xsl64::advance additionally terminates normally for every u128 delta and every internal u128 state, returning state=M^delta*initial_state modulo 2^128, M=47026247687942121848144207491837523525. A well-founded halving-loop proof connects the original body to this ordinary power specification, covering all deltas without an artificial execution bound. These twenty-five direct original-body API guarantees apply under default and serde because the selected official translations are byte-identical; the serde implementations themselves remain unproved. Each of the three LCG advance methods also terminates normally for every full-width delta, state and increment, preserving the stored increment and producing exactly delta repetitions of the ordinary modular affine step x\u21a6M*x+increment. An independent linear recurrence specifies this behavior; a generic affine-composition proof connects the original binary algorithm to it. Increments need not be odd for this state-transform identity. Separate Kani evidence calls the unchanged Mcg128Xsl64::from_seed and public state getter for every sixteen-byte seed. Its state equals the independently decoded little-endian u128 seed OR 1 (242 successful checks under each of default and serde). The exact rand_core 0.10.0 and serde 1.0.228 dependency lock is retained. This is a separate Kani body guarantee, not another Aeneas machine claim or a formal cross-tool equivalence proof.",
         "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models, source adaptations or local trusted helper contracts are used. All twenty-one API theorem dependency audits permit only propext, Classical.choice and Quot.sound. Wrapping arithmetic, shifts, casts and rotations use official standard-library models, rather than proofs of Rust std implementation bodies. The original Result::map body is extracted and proved through its actual closure calls, rather than supplied by a custom model.",
-        "limitations": "Coverage is limited to the twenty-one named bodies, default or serde features, x86_64-unknown-linux-gnu. Model states need not have odd increments: the getter theorem reports the logical shift for every modeled state, but no save/restore identity is claimed for an arbitrary even-increment state. from_state/new normalize the increment exactly as specified. Advance, seed bytes/from_seed/seed_from_u64, Lcg64Xsh32::try_next_u64, byte-buffer filling, RNG callbacks/forking, manual Debug, serde and inherited/default/external blanket APIs remain unproved. The proof does not establish period, statistical quality or cryptographic security. Other targets and dependency feature combinations were not checked.",
-        "environment": "Unchanged crates.io rand_pcg 0.10.2 Rust sources and Cargo.toml; original archive/hash checks, tests and regeneration comparisons retained in evidence. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction includes each actual original body, macro-expanded state helpers and private constructor helpers. Separate all-features (serde) extraction is retained in evidence/serde; generated Lean is byte-identical to the default extraction. Six additional output bodies and core::result::Result::map are included via the official --include core::result selection. Two output-permutation helper theorems are audited separately."
+        "limitations": "Coverage is the twenty-five named bodies on x86_64 under default or serde. Internal word states include zero/even values that usual seed constructors may not produce, but all are valid Rust scalar data; no seed-reachability claim is made. Stream getter behavior for arbitrary increments is proved, but no save/restore identity is claimed for an arbitrary even increment. Aeneas byte-seed/from_seed/seed_from_u64 contracts, Lcg64Xsh32::try_next_u64, buffer filling, RNG callbacks/forking, manual Debug, serde and inherited/external blanket APIs remain outside these Aeneas claims. No period, jump-back interpretation for wrapped negative strides, statistical quality or cryptographic security is established. Other targets and dependency feature combinations were not checked.",
+        "environment": "Unchanged crates.io rand_pcg 0.10.2 Rust sources and Cargo.toml; original archive/hash checks, tests and regeneration comparisons retained in evidence. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction includes each actual original body, macro-expanded state helpers and private constructor helpers. Separate all-features (serde) extraction is retained in evidence/serde; generated Lean is byte-identical to the default extraction. Six additional output bodies and core::result::Result::map are included via the official --include core::result selection. Two output-permutation helper theorems are audited separately. The MCG advance extraction uses the official PcgAdvanceModel namespace. Its full-delta power/termination proof uses BitVec algebra and a decreasing natural measure, and all configured proof modules are imported together for the final audit. Three LCG advance bodies use a separate official PcgAffineAdvanceModel namespace. BitVec affine algebra and halving induction prove all deltas with increment preservation; all configured proof modules are imported together."
       },
       "existing_report_to_update": null,
       "author_integrated_verification": "passed",
       "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
-      "publisher_fresh_record_status": "passed",
-      "publisher_run_id": "702c172f-820b-47b7-9b00-ecff7d926779",
-      "source_commit": "57c4d16e1184f84353db90589bc3cb601f89cb85",
-      "publication_status": "published",
+      "publisher_fresh_record_status": "pending_25_integrated",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "report29_revision1_remains_published;25_candidate_not_yet_reflected",
       "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
       "configuration_scope": [
         "default features",
@@ -267,11 +291,31 @@
       "full_crate_completion": false,
       "archived_sarif": "runs/rand_pcg/702c172f-820b-47b7-9b00-ecff7d926779/run.sarif.json",
       "archived_sarif_sha256": "95c5f53c472b33aaba05063f8cef7ad66adadacde5dd19b90fb82573041f7de7",
-      "publishable": true,
+      "publishable": false,
       "report_id": 29,
       "report_revision": 1,
       "report_url": "https://proofs.rs/report/29",
-      "readback_passed": true
+      "readback_passed": true,
+      "prior_publisher_evidence": {
+        "publisher_run_id": "702c172f-820b-47b7-9b00-ecff7d926779",
+        "source_commit": "57c4d16e1184f84353db90589bc3cb601f89cb85",
+        "archived_sarif": "runs/rand_pcg/702c172f-820b-47b7-9b00-ecff7d926779/run.sarif.json",
+        "archived_sarif_sha256": "95c5f53c472b33aaba05063f8cef7ad66adadacde5dd19b90fb82573041f7de7",
+        "report_id": 29,
+        "report_revision": 1
+      },
+      "separate_tool_evidence": {
+        "path": "evidence/kani-mcg-seed",
+        "tool": "Kani",
+        "api_count": 1,
+        "checks_per_configuration": 242,
+        "configuration": [
+          "default",
+          "serde"
+        ],
+        "domain": "all16byte seeds; exact LE128(seed)|1",
+        "machine_mapping": false
+      }
     },
     {
       "id": "rand_xorshift-seed-nonzero-supplement",

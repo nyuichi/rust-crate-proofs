@@ -5,3 +5,12 @@ require aeneas from git
 package proofs
 @[default_target] lean_lib Proofs
 lean_lib RandPcg
+
+@[default_target] lean_lib AdvanceProofs
+lean_lib PcgAdvance where
+ roots := #[`PcgAdvance.Types, `PcgAdvance.Funs]
+
+@[default_target] lean_lib AffineProofs
+lean_lib Affine
+lean_lib PcgAffineAdvance where
+ roots := #[`PcgAffineAdvance.Types, `PcgAffineAdvance.Funs]

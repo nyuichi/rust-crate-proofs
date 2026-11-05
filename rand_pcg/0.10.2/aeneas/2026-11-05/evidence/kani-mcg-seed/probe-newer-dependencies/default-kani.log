@@ -1,0 +1,1293 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling rand_core v0.10.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rand_pcg v0.10.2 (/workspace/full-api/prng/kani-pcg-mcg-seed/original)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling pcg-mcg-seed-checks v0.1.0 (/workspace/full-api/prng/kani-pcg-mcg-seed)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.15s
+Checking harness checks::original_mcg128xsl64_seed_state...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/prng/kani-pcg-mcg-seed/target/kani/x86_64-unknown-linux-gnu/debug/build/pcg-mcg-seed-checks/1ea5017c9e86058b/out/pcg_mcg_seed_checks-1ea5017c9e86058b__RNvNtCs4mcgPGi64kJ_19pcg_mcg_seed_checks6checks31original_mcg128xsl64_seed_state.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Unwinding loop _RINvNtCs9GiT0i7mW4C_9rand_core5utils10read_wordsyKj2_ECs4mcgPGi64kJ_19pcg_mcg_seed_checks.0 iteration 1 file /workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs line 145 column 5 function rand_pcg::rand_core::utils::read_words::<u64, 2> thread 0
+Unwinding loop _RINvNtCs9GiT0i7mW4C_9rand_core5utils10read_wordsyKj2_ECs4mcgPGi64kJ_19pcg_mcg_seed_checks.0 iteration 2 file /workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs line 145 column 5 function rand_pcg::rand_core::utils::read_words::<u64, 2> thread 0
+Runtime Symex: 0.225085s
+size of program expression: 7402 steps
+slicing removed 4701 assignments
+Generated 398 VCC(s), 56 remaining after simplification
+Runtime Postprocess Equation: 0.00574003s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0321001s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 2.9935e-05s
+Solving with CaDiCaL 3.0.0
+17941 variables, 20341 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00125018s
+Runtime decision procedure: 0.0348875s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+17942 variables, 20342 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 1.9709e-05s
+Runtime decision procedure: 0.000179311s
+
+RESULTS:
+Check 1: kani::rustc_intrinsics::size_of_val_raw::<[u8]>.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: library/kani_core/src/models.rs:23:13 in function kani::rustc_intrinsics::size_of_val_raw::<[u8]>
+
+Check 2: kani::rustc_intrinsics::size_of_val_raw::<[u8]>.assertion.1
+	 - Status: SUCCESS
+	 - Description: "cannot compute `size_of_val` for extern types"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::size_of_val_raw::<[u8]>
+
+Check 3: kani::rustc_intrinsics::size_of_val_raw::<[u8]>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "failed to compute `size_of_val`"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::size_of_val_raw::<[u8]>
+
+Check 4: <usize as kani::rustc_intrinsics::ToISize>::to_isize.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: library/kani_core/src/models.rs:203:17 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+
+Check 5: <usize as kani::rustc_intrinsics::ToISize>::to_isize.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset value overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+
+Check 6: <usize as kani::rustc_intrinsics::ToISize>::to_isize.assertion.1
+	 - Status: SUCCESS
+	 - Description: "internal error: entered unreachable code"
+	 - Location: library/kani/src/lib.rs:57:1 in function <usize as kani::rustc_intrinsics::ToISize>::to_isize
+
+Check 7: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to divide by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 8: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to divide by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 9: core::slice::<impl [u8]>::chunks_exact.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:1242:9 in function core::slice::<impl [u8]>::chunks_exact
+
+Check 10: kani::rustc_intrinsics::offset::<u64, *mut u64, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u64, *mut u64, usize>
+
+Check 11: kani::rustc_intrinsics::offset::<u64, *mut u64, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u64, *mut u64, usize>
+
+Check 12: kani::rustc_intrinsics::offset::<u64, *mut u64, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u64, *mut u64, usize>
+
+Check 13: rand_pcg::rand_core::utils::read_words::<u64, 2>.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:145:25 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 14: kani::rustc_intrinsics::ptr_offset_from::<u64>.assertion.1
+	 - Status: SUCCESS
+	 - Description: "Cannot compute offset of a ZST"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 15: kani::rustc_intrinsics::ptr_offset_from::<u64>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer should point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 16: kani::rustc_intrinsics::ptr_offset_from::<u64>.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: library/kani_core/src/models.rs:93:25 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 17: kani::rustc_intrinsics::ptr_offset_from::<u64>.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with overflow"
+	 - Location: library/kani_core/src/models.rs:93:25 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 18: kani::rustc_intrinsics::ptr_offset_from::<u64>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with overflow"
+	 - Location: library/kani_core/src/models.rs:93:25 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 19: kani::rustc_intrinsics::ptr_offset_from::<u64>.arithmetic_overflow.2
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: library/kani_core/src/models.rs:93:25 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 20: kani::rustc_intrinsics::ptr_offset_from::<u64>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Expected the distance between the pointers, in bytes, to be a
+                        multiple of the size of `T`"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 21: kani::rustc_intrinsics::ptr_offset_from::<u64>.assertion.4
+	 - Status: SUCCESS
+	 - Description: "attempt to divide by zero"
+	 - Location: library/kani_core/src/models.rs:97:21 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 22: kani::rustc_intrinsics::ptr_offset_from::<u64>.assertion.5
+	 - Status: SUCCESS
+	 - Description: "attempt to divide with overflow"
+	 - Location: library/kani_core/src/models.rs:97:21 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 23: kani::rustc_intrinsics::ptr_offset_from::<u64>.arithmetic_overflow.3
+	 - Status: SUCCESS
+	 - Description: "attempt to divide with overflow"
+	 - Location: library/kani_core/src/models.rs:97:21 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 24: kani::rustc_intrinsics::ptr_offset_from::<u64>.arithmetic_overflow.4
+	 - Status: SUCCESS
+	 - Description: "attempt to divide by zero"
+	 - Location: library/kani_core/src/models.rs:97:21 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 25: core::panicking::assert_failed_inner.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: src/lib.rs:0:0 in function core::panicking::assert_failed_inner
+
+Check 26: core::panicking::assert_failed_inner.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:447:23 in function core::panicking::assert_failed_inner
+
+Check 27: core::panicking::assert_failed_inner.assertion.2
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:452:17 in function core::panicking::assert_failed_inner
+
+Check 28: core::slice::<impl [u8]>::split_at_unchecked.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to compute `unchecked_sub` which would overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:2062:74 in function core::slice::<impl [u8]>::split_at_unchecked
+
+Check 29: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to multiply with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:21 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 30: checks::original_mcg128xsl64_seed_state.assertion.1
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:23 in function checks::original_mcg128xsl64_seed_state
+
+Check 31: checks::original_mcg128xsl64_seed_state.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:11 in function checks::original_mcg128xsl64_seed_state
+
+Check 32: checks::original_mcg128xsl64_seed_state.assertion.3
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:51 in function checks::original_mcg128xsl64_seed_state
+
+Check 33: checks::original_mcg128xsl64_seed_state.assertion.4
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:39 in function checks::original_mcg128xsl64_seed_state
+
+Check 34: checks::original_mcg128xsl64_seed_state.assertion.5
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:79 in function checks::original_mcg128xsl64_seed_state
+
+Check 35: checks::original_mcg128xsl64_seed_state.assertion.6
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:67 in function checks::original_mcg128xsl64_seed_state
+
+Check 36: checks::original_mcg128xsl64_seed_state.assertion.7
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:108 in function checks::original_mcg128xsl64_seed_state
+
+Check 37: checks::original_mcg128xsl64_seed_state.assertion.8
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:96 in function checks::original_mcg128xsl64_seed_state
+
+Check 38: checks::original_mcg128xsl64_seed_state.assertion.9
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:137 in function checks::original_mcg128xsl64_seed_state
+
+Check 39: checks::original_mcg128xsl64_seed_state.assertion.10
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:125 in function checks::original_mcg128xsl64_seed_state
+
+Check 40: checks::original_mcg128xsl64_seed_state.assertion.11
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:166 in function checks::original_mcg128xsl64_seed_state
+
+Check 41: checks::original_mcg128xsl64_seed_state.assertion.12
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:154 in function checks::original_mcg128xsl64_seed_state
+
+Check 42: checks::original_mcg128xsl64_seed_state.assertion.13
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:195 in function checks::original_mcg128xsl64_seed_state
+
+Check 43: checks::original_mcg128xsl64_seed_state.assertion.14
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:183 in function checks::original_mcg128xsl64_seed_state
+
+Check 44: checks::original_mcg128xsl64_seed_state.assertion.15
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:224 in function checks::original_mcg128xsl64_seed_state
+
+Check 45: checks::original_mcg128xsl64_seed_state.assertion.16
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:212 in function checks::original_mcg128xsl64_seed_state
+
+Check 46: checks::original_mcg128xsl64_seed_state.assertion.17
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:253 in function checks::original_mcg128xsl64_seed_state
+
+Check 47: checks::original_mcg128xsl64_seed_state.assertion.18
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:241 in function checks::original_mcg128xsl64_seed_state
+
+Check 48: checks::original_mcg128xsl64_seed_state.assertion.19
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:282 in function checks::original_mcg128xsl64_seed_state
+
+Check 49: checks::original_mcg128xsl64_seed_state.assertion.20
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:270 in function checks::original_mcg128xsl64_seed_state
+
+Check 50: checks::original_mcg128xsl64_seed_state.assertion.21
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:311 in function checks::original_mcg128xsl64_seed_state
+
+Check 51: checks::original_mcg128xsl64_seed_state.assertion.22
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:299 in function checks::original_mcg128xsl64_seed_state
+
+Check 52: checks::original_mcg128xsl64_seed_state.assertion.23
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:341 in function checks::original_mcg128xsl64_seed_state
+
+Check 53: checks::original_mcg128xsl64_seed_state.assertion.24
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:329 in function checks::original_mcg128xsl64_seed_state
+
+Check 54: checks::original_mcg128xsl64_seed_state.assertion.25
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:371 in function checks::original_mcg128xsl64_seed_state
+
+Check 55: checks::original_mcg128xsl64_seed_state.assertion.26
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:359 in function checks::original_mcg128xsl64_seed_state
+
+Check 56: checks::original_mcg128xsl64_seed_state.assertion.27
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:401 in function checks::original_mcg128xsl64_seed_state
+
+Check 57: checks::original_mcg128xsl64_seed_state.assertion.28
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:389 in function checks::original_mcg128xsl64_seed_state
+
+Check 58: checks::original_mcg128xsl64_seed_state.assertion.29
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:432 in function checks::original_mcg128xsl64_seed_state
+
+Check 59: checks::original_mcg128xsl64_seed_state.assertion.30
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:420 in function checks::original_mcg128xsl64_seed_state
+
+Check 60: checks::original_mcg128xsl64_seed_state.assertion.31
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:463 in function checks::original_mcg128xsl64_seed_state
+
+Check 61: checks::original_mcg128xsl64_seed_state.assertion.32
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:8:451 in function checks::original_mcg128xsl64_seed_state
+
+Check 62: checks::original_mcg128xsl64_seed_state.assertion.33
+	 - Status: SUCCESS
+	 - Description: "assertion failed: rng.state() == state|1"
+	 - Location: src/lib.rs:9:1 in function checks::original_mcg128xsl64_seed_state
+
+Check 63: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Offset in bytes overflows isize"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 64: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "Offset result address must equal original pointer address plus offset"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 65: kani::rustc_intrinsics::offset::<u8, *const u8, usize>.safety_check.3
+	 - Status: SUCCESS
+	 - Description: "Offset result and original pointer must point to the same allocation"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::offset::<u8, *const u8, usize>
+
+Check 66: core::ub_checks::is_valid_allocation_size.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to divide by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ub_checks.rs:148:54 in function core::ub_checks::is_valid_allocation_size
+
+Check 67: core::ub_checks::is_valid_allocation_size.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to divide by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ub_checks.rs:148:54 in function core::ub_checks::is_valid_allocation_size
+
+Check 68: std::ptr::const_ptr::<impl *const u64>::offset_from_unsigned.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: 0 < pointee_size && pointee_size <= isize::MAX as usize"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:731:9 in function std::ptr::const_ptr::<impl *const u64>::offset_from_unsigned
+
+Check 69: kani::mem::cbmc::same_allocation.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "Kani does not support reasoning about pointer to unallocated memory"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::mem::cbmc::same_allocation
+
+Check 70: core::ub_checks::maybe_is_nonoverlapping::runtime.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2628:9 in function core::ub_checks::maybe_is_nonoverlapping::runtime
+
+Check 71: std::panic::Location::<'_>::caller.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
+
+Check 72: std::ptr::copy_nonoverlapping::<u8>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "`src` must be properly aligned"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 73: std::ptr::copy_nonoverlapping::<u8>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "`dst` must be properly aligned"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 74: std::ptr::copy_nonoverlapping::<u8>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "copy_nonoverlapping: attempt to compute number in bytes which would overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 75: std::slice::from_raw_parts::<'_, u8>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs:139:9 in function std::slice::from_raw_parts::<'_, u8>
+
+Check 76: std::slice::from_raw_parts::<'_, u8>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs:139:9 in function std::slice::from_raw_parts::<'_, u8>
+
+Check 77: std::result::unwrap_failed.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1871:5 in function std::result::unwrap_failed
+
+Check 78: core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:5589:9 in function core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime
+
+Check 79: std::fmt::Arguments::<'_>::from_str.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs:820:38 in function std::fmt::Arguments::<'_>::from_str
+
+Check 80: std::ptr::const_ptr::<impl *const ()>::is_aligned_to.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1360:23 in function std::ptr::const_ptr::<impl *const ()>::is_aligned_to
+
+Check 81: std::ptr::const_ptr::<impl *const ()>::is_aligned_to.assertion.2
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1357:13 in function std::ptr::const_ptr::<impl *const ()>::is_aligned_to
+
+Check 82: core::num::<impl usize>::abs_diff.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3182:21 in function core::num::<impl usize>::abs_diff
+
+Check 83: core::num::<impl usize>::abs_diff.assertion.2
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3184:21 in function core::num::<impl usize>::abs_diff
+
+Check 84: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
+
+Check 85: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:26 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 86: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:26 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 87: kani::rustc_intrinsics::ptr_offset_from_unsigned::<u64>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "Expected non-negative distance between pointers"
+	 - Location: library/kani/src/lib.rs:57:1 in function kani::rustc_intrinsics::ptr_offset_from_unsigned::<u64>
+
+Check 88: std::slice::ChunksExact::<'_, u8>::new.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1850:19 in function std::slice::ChunksExact::<'_, u8>::new
+
+Check 89: std::slice::ChunksExact::<'_, u8>::new.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1850:19 in function std::slice::ChunksExact::<'_, u8>::new
+
+Check 90: std::slice::ChunksExact::<'_, u8>::new.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1851:23 in function std::slice::ChunksExact::<'_, u8>::new
+
+Check 91: std::result::Result::<u64, std::num::TryFromIntError>::unwrap.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1230:15 in function std::result::Result::<u64, std::num::TryFromIntError>::unwrap
+
+Check 92: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 93: <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed.assertion.1
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: original/src/pcg128.rs:246:32 in function <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed
+
+Check 94: <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed.assertion.2
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: original/src/pcg128.rs:246:59 in function <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed
+
+Check 95: <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: original/src/pcg128.rs:246:47 in function <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed
+
+Check 96: kani::rustc_intrinsics::ptr_offset_from::<u64>.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: library/kani_core/src/models.rs:93:25 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 97: kani::rustc_intrinsics::ptr_offset_from::<u64>.division-by-zero.2
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: library/kani_core/src/models.rs:97:21 in function kani::rustc_intrinsics::ptr_offset_from::<u64>
+
+Check 98: memcpy.pointer.1
+	 - Status: SUCCESS
+	 - Description: "same object violation in (const unsigned char *)(void *)src >= (const unsigned char *)(void *)dst + (signed long int)(count * sizeof(unsigned char) /*1*/ )"
+	 - Location: <builtin-library-memcpy>:33 in function memcpy
+
+Check 99: memcpy.pointer.2
+	 - Status: SUCCESS
+	 - Description: "same object violation in (const unsigned char *)(void *)dst >= (const unsigned char *)(void *)src + (signed long int)(count * sizeof(unsigned char) /*1*/ )"
+	 - Location: <builtin-library-memcpy>:34 in function memcpy
+
+Check 100: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.1
+	 - Status: SUCCESS
+	 - Description: "memcpy src/dst overlap"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 101: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.2
+	 - Status: SUCCESS
+	 - Description: "memcpy source region readable"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 102: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.3
+	 - Status: SUCCESS
+	 - Description: "memcpy destination region writeable"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 103: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:22 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 104: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:22 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 105: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:22 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 106: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:22 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 107: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:22 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 108: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:22 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 109: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:35 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 110: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:35 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 111: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:35 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 112: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:35 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 113: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:35 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 114: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:47:35 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 115: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:145:25 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 116: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:148:9 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 117: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:148:9 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 118: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:148:9 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 119: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:148:9 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 120: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:148:9 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 121: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.19
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.1/src/utils.rs:148:9 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 122: rand_pcg::rand_core::utils::read_words::<u64, 2>.pointer_dereference.20
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/macros/mod.rs:52:85 in function rand_pcg::rand_core::utils::read_words::<u64, 2>
+
+Check 123: std::slice::ChunksExact::<'_, u8>::new.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1850:19 in function std::slice::ChunksExact::<'_, u8>::new
+
+Check 124: rand_pcg::Mcg128Xsl64::state.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/pcg128.rs:227:9 in function rand_pcg::Mcg128Xsl64::state
+
+Check 125: rand_pcg::Mcg128Xsl64::state.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/pcg128.rs:227:9 in function rand_pcg::Mcg128Xsl64::state
+
+Check 126: rand_pcg::Mcg128Xsl64::state.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/pcg128.rs:227:9 in function rand_pcg::Mcg128Xsl64::state
+
+Check 127: rand_pcg::Mcg128Xsl64::state.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/pcg128.rs:227:9 in function rand_pcg::Mcg128Xsl64::state
+
+Check 128: rand_pcg::Mcg128Xsl64::state.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/pcg128.rs:227:9 in function rand_pcg::Mcg128Xsl64::state
+
+Check 129: rand_pcg::Mcg128Xsl64::state.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/pcg128.rs:227:9 in function rand_pcg::Mcg128Xsl64::state
+
+Check 130: checks::original_mcg128xsl64_seed_state.array_bounds.1
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:23 in function checks::original_mcg128xsl64_seed_state
+
+Check 131: checks::original_mcg128xsl64_seed_state.array_bounds.2
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:51 in function checks::original_mcg128xsl64_seed_state
+
+Check 132: checks::original_mcg128xsl64_seed_state.array_bounds.3
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:79 in function checks::original_mcg128xsl64_seed_state
+
+Check 133: checks::original_mcg128xsl64_seed_state.array_bounds.4
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:108 in function checks::original_mcg128xsl64_seed_state
+
+Check 134: checks::original_mcg128xsl64_seed_state.array_bounds.5
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:137 in function checks::original_mcg128xsl64_seed_state
+
+Check 135: checks::original_mcg128xsl64_seed_state.array_bounds.6
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:166 in function checks::original_mcg128xsl64_seed_state
+
+Check 136: checks::original_mcg128xsl64_seed_state.array_bounds.7
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:195 in function checks::original_mcg128xsl64_seed_state
+
+Check 137: checks::original_mcg128xsl64_seed_state.array_bounds.8
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:224 in function checks::original_mcg128xsl64_seed_state
+
+Check 138: checks::original_mcg128xsl64_seed_state.array_bounds.9
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:253 in function checks::original_mcg128xsl64_seed_state
+
+Check 139: checks::original_mcg128xsl64_seed_state.array_bounds.10
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:282 in function checks::original_mcg128xsl64_seed_state
+
+Check 140: checks::original_mcg128xsl64_seed_state.array_bounds.11
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:311 in function checks::original_mcg128xsl64_seed_state
+
+Check 141: checks::original_mcg128xsl64_seed_state.array_bounds.12
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:341 in function checks::original_mcg128xsl64_seed_state
+
+Check 142: checks::original_mcg128xsl64_seed_state.array_bounds.13
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:371 in function checks::original_mcg128xsl64_seed_state
+
+Check 143: checks::original_mcg128xsl64_seed_state.array_bounds.14
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:401 in function checks::original_mcg128xsl64_seed_state
+
+Check 144: checks::original_mcg128xsl64_seed_state.array_bounds.15
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:432 in function checks::original_mcg128xsl64_seed_state
+
+Check 145: checks::original_mcg128xsl64_seed_state.array_bounds.16
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: src/lib.rs:8:463 in function checks::original_mcg128xsl64_seed_state
+
+Check 146: core::panicking::assert_failed_inner.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:446:11 in function core::panicking::assert_failed_inner
+
+Check 147: core::ub_checks::is_valid_allocation_size.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ub_checks.rs:148:54 in function core::ub_checks::is_valid_allocation_size
+
+Check 148: std::ptr::const_ptr::<impl *const T>::offset_from_unsigned::runtime_ptr_ge::runtime.pointer.1
+	 - Status: SUCCESS
+	 - Description: "same object violation in this >= origin"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:716:21 in function std::ptr::const_ptr::<impl *const T>::offset_from_unsigned::runtime_ptr_ge::runtime
+
+Check 149: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:27 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 150: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:27 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 151: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:27 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 152: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:27 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 153: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:27 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 154: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1931:27 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 155: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:33 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 156: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:33 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 157: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:33 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 158: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:33 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 159: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:33 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 160: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:33 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 161: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:61 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 162: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:61 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 163: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:61 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 164: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:61 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 165: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:61 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 166: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1933:61 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 167: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 168: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 169: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 170: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 171: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 172: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 173: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:32 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 174: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:32 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 175: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:32 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 176: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:32 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 177: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:32 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 178: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:32 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 179: <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter.rs:1903:17 in function <std::slice::ChunksExact<'_, u8> as std::iter::Iterator>::size_hint
+
+Check 180: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:42 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 181: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:42 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 182: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:42 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 183: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:42 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 184: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:42 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 185: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:424:42 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::__iterator_get_unchecked
+
+Check 186: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:29:24 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 187: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:29:24 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 188: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:29:24 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 189: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:29:24 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 190: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:29:24 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 191: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:29:24 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 192: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:33:72 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 193: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:33:72 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 194: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:33:72 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 195: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:33:72 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 196: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:33:72 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 197: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:33:72 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 198: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:57:51 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 199: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:57:51 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 200: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:57:51 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 201: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:57:51 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 202: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:57:51 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 203: <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:57:51 in function <std::slice::IterMut<'_, u64> as std::iter::Iterator>::size_hint
+
+Check 204: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:12 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 205: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:12 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 206: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:12 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 207: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:12 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 208: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:12 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 209: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:12 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 210: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:25 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 211: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:25 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 212: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:25 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 213: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:25 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 214: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:25 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 215: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:300:25 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 216: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:301:21 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 217: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:301:21 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 218: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:301:21 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 219: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:301:21 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 220: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:301:21 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 221: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:301:21 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 222: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.19
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 223: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.20
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 224: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.21
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 225: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.22
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 226: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.23
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 227: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.24
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:304:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 228: <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next.pointer_dereference.25
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/zip.rs:310:13 in function <std::iter::Zip<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>> as std::iter::adapters::zip::ZipImpl<std::slice::IterMut<'_, u64>, std::slice::ChunksExact<'_, u8>>>::next
+
+Check 229: <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed.array_bounds.1
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: original/src/pcg128.rs:246:32 in function <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed
+
+Check 230: <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed.array_bounds.2
+	 - Status: SUCCESS
+	 - Description: "index out of bounds: the length is less than or equal to the given index"
+	 - Location: original/src/pcg128.rs:246:59 in function <rand_pcg::Mcg128Xsl64 as rand_pcg::rand_core::SeedableRng>::from_seed
+
+Check 231: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 232: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 233: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 234: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 235: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 236: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:50 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 237: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 238: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 239: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 240: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 241: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+Check 242: std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2192:59 in function std::cmp::impls::<impl std::cmp::PartialOrd for usize>::lt
+
+
+SUMMARY:
+ ** 0 of 242 failed (5 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 2.8595035s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.
