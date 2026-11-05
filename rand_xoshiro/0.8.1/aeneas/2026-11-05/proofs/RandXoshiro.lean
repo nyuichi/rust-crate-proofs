@@ -20,6 +20,182 @@ set_option maxRecDepth 2048
 
 namespace rand_xoshiro
 
+/-- [rand_xoshiro::splitmix64::SplitMix64]
+    Source: 'src/splitmix64.rs', lines 26:0-28:1
+    Visibility: public -/
+structure splitmix64.SplitMix64 where
+  x : Std.U64
+
+/-- [rand_xoshiro::splitmix64::PHI]
+    Source: 'src/splitmix64.rs', lines 30:0-30:36 -/
+@[global_simps, irreducible]
+def splitmix64.PHI : Std.U64 := 11400714819323198485#u64
+
+/-- [rand_xoshiro::splitmix64::{impl rand_core::TryRng<!> for rand_xoshiro::splitmix64::SplitMix64}::try_next_u32]:
+    Source: 'src/splitmix64.rs', lines 36:4-46:5
+    Visibility: public -/
+def splitmix64.SplitMix64.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : splitmix64.SplitMix64) :
+  Result ((core.result.Result Std.U32 Never) × splitmix64.SplitMix64)
+  := do
+  let z ← lift (core.num.U64.wrapping_add self.x splitmix64.PHI)
+  let i ← z >>> 33#i32
+  let i1 ← lift (z ^^^ i)
+  let z1 ← lift (core.num.U64.wrapping_mul i1 7109453100751455733#u64)
+  let i2 ← z1 >>> 28#i32
+  let i3 ← lift (z1 ^^^ i2)
+  let z2 ← lift (core.num.U64.wrapping_mul i3 14638054099313767859#u64)
+  let i4 ← z2 >>> 32#i32
+  let i5 ← lift (UScalar.cast .U32 i4)
+  ok (core.result.Result.Ok i5, { x := z })
+
+/-- [rand_xoshiro::splitmix64::{impl rand_core::TryRng<!> for rand_xoshiro::splitmix64::SplitMix64}::try_next_u64]:
+    Source: 'src/splitmix64.rs', lines 49:4-55:5
+    Visibility: public -/
+def splitmix64.SplitMix64.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : splitmix64.SplitMix64) :
+  Result ((core.result.Result Std.U64 Never) × splitmix64.SplitMix64)
+  := do
+  let z ← lift (core.num.U64.wrapping_add self.x splitmix64.PHI)
+  let i ← z >>> 30#i32
+  let i1 ← lift (z ^^^ i)
+  let z1 ← lift (core.num.U64.wrapping_mul i1 13787848793156543929#u64)
+  let i2 ← z1 >>> 27#i32
+  let i3 ← lift (z1 ^^^ i2)
+  let z2 ← lift (core.num.U64.wrapping_mul i3 10723151780598845931#u64)
+  let i4 ← z2 >>> 31#i32
+  let i5 ← lift (z2 ^^^ i4)
+  ok (core.result.Result.Ok i5, { x := z })
+
+/-- [rand_xoshiro::xoroshiro128plus::Xoroshiro128Plus]
+    Source: 'src/xoroshiro128plus.rs', lines 26:0-29:1
+    Visibility: public -/
+structure xoroshiro128plus.Xoroshiro128Plus where
+  s0 : Std.U64
+  s1 : Std.U64
+
+/-- [rand_xoshiro::xoroshiro128plus::{impl rand_core::TryRng<!> for rand_xoshiro::xoroshiro128plus::Xoroshiro128Plus}::try_next_u64]:
+    Source: 'src/xoroshiro128plus.rs', lines 72:4-76:5
+    Visibility: public -/
+def xoroshiro128plus.Xoroshiro128Plus.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoroshiro128plus.Xoroshiro128Plus) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoroshiro128plus.Xoroshiro128Plus)
+  := do
+  let r ← lift (core.num.U64.wrapping_add self.s0 self.s1)
+  let i ← lift (self.s1 ^^^ self.s0)
+  let i1 ← lift (core.num.U64.rotate_left self.s0 24#u32)
+  let i2 ← lift (i1 ^^^ i)
+  let i3 ← i <<< 16#i32
+  let i4 ← lift (i2 ^^^ i3)
+  let i5 ← lift (core.num.U64.rotate_left i 37#u32)
+  ok (core.result.Result.Ok r, { s0 := i4, s1 := i5 })
+
+/-- [rand_xoshiro::xoroshiro128plusplus::Xoroshiro128PlusPlus]
+    Source: 'src/xoroshiro128plusplus.rs', lines 25:0-28:1
+    Visibility: public -/
+structure xoroshiro128plusplus.Xoroshiro128PlusPlus where
+  s0 : Std.U64
+  s1 : Std.U64
+
+/-- [rand_xoshiro::xoroshiro128plusplus::{impl rand_core::TryRng<!> for rand_xoshiro::xoroshiro128plusplus::Xoroshiro128PlusPlus}::try_next_u64]:
+    Source: 'src/xoroshiro128plusplus.rs', lines 69:4-73:5
+    Visibility: public -/
+def
+  xoroshiro128plusplus.Xoroshiro128PlusPlus.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoroshiro128plusplus.Xoroshiro128PlusPlus) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoroshiro128plusplus.Xoroshiro128PlusPlus)
+  := do
+  let i ← lift (core.num.U64.wrapping_add self.s0 self.s1)
+  let i1 ← lift (core.num.U64.rotate_left i 17#u32)
+  let r ← lift (core.num.U64.wrapping_add i1 self.s0)
+  let i2 ← lift (self.s1 ^^^ self.s0)
+  let i3 ← lift (core.num.U64.rotate_left self.s0 49#u32)
+  let i4 ← lift (i3 ^^^ i2)
+  let i5 ← i2 <<< 21#i32
+  let i6 ← lift (i4 ^^^ i5)
+  let i7 ← lift (core.num.U64.rotate_left i2 28#u32)
+  ok (core.result.Result.Ok r, { s0 := i6, s1 := i7 })
+
+/-- [rand_xoshiro::xoroshiro128starstar::Xoroshiro128StarStar]
+    Source: 'src/xoroshiro128starstar.rs', lines 25:0-28:1
+    Visibility: public -/
+structure xoroshiro128starstar.Xoroshiro128StarStar where
+  s0 : Std.U64
+  s1 : Std.U64
+
+/-- [rand_xoshiro::xoroshiro128starstar::{impl rand_core::TryRng<!> for rand_xoshiro::xoroshiro128starstar::Xoroshiro128StarStar}::try_next_u64]:
+    Source: 'src/xoroshiro128starstar.rs', lines 69:4-73:5
+    Visibility: public -/
+def
+  xoroshiro128starstar.Xoroshiro128StarStar.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoroshiro128starstar.Xoroshiro128StarStar) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoroshiro128starstar.Xoroshiro128StarStar)
+  := do
+  let i ← lift (core.num.U64.wrapping_mul self.s0 5#u64)
+  let i1 ← lift (core.num.U64.rotate_left i 7#u32)
+  let r ← lift (core.num.U64.wrapping_mul i1 9#u64)
+  let i2 ← lift (self.s1 ^^^ self.s0)
+  let i3 ← lift (core.num.U64.rotate_left self.s0 24#u32)
+  let i4 ← lift (i3 ^^^ i2)
+  let i5 ← i2 <<< 16#i32
+  let i6 ← lift (i4 ^^^ i5)
+  let i7 ← lift (core.num.U64.rotate_left i2 37#u32)
+  ok (core.result.Result.Ok r, { s0 := i6, s1 := i7 })
+
+/-- [rand_xoshiro::xoroshiro64star::Xoroshiro64Star]
+    Source: 'src/xoroshiro64star.rs', lines 26:0-29:1
+    Visibility: public -/
+structure xoroshiro64star.Xoroshiro64Star where
+  s0 : Std.U32
+  s1 : Std.U32
+
+/-- [rand_xoshiro::xoroshiro64star::{impl rand_core::TryRng<!> for rand_xoshiro::xoroshiro64star::Xoroshiro64Star}::try_next_u32]:
+    Source: 'src/xoroshiro64star.rs', lines 35:4-39:5
+    Visibility: public -/
+def xoroshiro64star.Xoroshiro64Star.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : xoroshiro64star.Xoroshiro64Star) :
+  Result ((core.result.Result Std.U32 Never) ×
+    xoroshiro64star.Xoroshiro64Star)
+  := do
+  let r ← lift (core.num.U32.wrapping_mul self.s0 2654435771#u32)
+  let i ← lift (self.s1 ^^^ self.s0)
+  let i1 ← lift (core.num.U32.rotate_left self.s0 26#u32)
+  let i2 ← lift (i1 ^^^ i)
+  let i3 ← i <<< 9#i32
+  let i4 ← lift (i2 ^^^ i3)
+  let i5 ← lift (core.num.U32.rotate_left i 13#u32)
+  ok (core.result.Result.Ok r, { s0 := i4, s1 := i5 })
+
+/-- [rand_xoshiro::xoroshiro64starstar::Xoroshiro64StarStar]
+    Source: 'src/xoroshiro64starstar.rs', lines 25:0-28:1
+    Visibility: public -/
+structure xoroshiro64starstar.Xoroshiro64StarStar where
+  s0 : Std.U32
+  s1 : Std.U32
+
+/-- [rand_xoshiro::xoroshiro64starstar::{impl rand_core::TryRng<!> for rand_xoshiro::xoroshiro64starstar::Xoroshiro64StarStar}::try_next_u32]:
+    Source: 'src/xoroshiro64starstar.rs', lines 34:4-38:5
+    Visibility: public -/
+def
+  xoroshiro64starstar.Xoroshiro64StarStar.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : xoroshiro64starstar.Xoroshiro64StarStar) :
+  Result ((core.result.Result Std.U32 Never) ×
+    xoroshiro64starstar.Xoroshiro64StarStar)
+  := do
+  let i ← lift (core.num.U32.wrapping_mul self.s0 2654435771#u32)
+  let i1 ← lift (core.num.U32.rotate_left i 5#u32)
+  let r ← lift (core.num.U32.wrapping_mul i1 5#u32)
+  let i2 ← lift (self.s1 ^^^ self.s0)
+  let i3 ← lift (core.num.U32.rotate_left self.s0 26#u32)
+  let i4 ← lift (i3 ^^^ i2)
+  let i5 ← i2 <<< 9#i32
+  let i6 ← lift (i4 ^^^ i5)
+  let i7 ← lift (core.num.U32.rotate_left i2 13#u32)
+  ok (core.result.Result.Ok r, { s0 := i6, s1 := i7 })
+
 /-- [rand_xoshiro::xoshiro128plus::Xoshiro128Plus]
     Source: 'src/xoshiro128plus.rs', lines 25:0-27:1
     Visibility: public -/
@@ -60,5 +236,400 @@ def xoshiro128plus.Xoshiro128Plus.Insts.Rand_coreTryRngNever.try_next_u32
   let i17 ← lift (core.num.U32.rotate_left i16 11#u32)
   let a5 ← Array.update a4 3#usize i17
   ok (core.result.Result.Ok result_plus, { s := a5 })
+
+/-- [rand_xoshiro::xoshiro128plusplus::Xoshiro128PlusPlus]
+    Source: 'src/xoshiro128plusplus.rs', lines 24:0-26:1
+    Visibility: public -/
+structure xoshiro128plusplus.Xoshiro128PlusPlus where
+  s : Array Std.U32 4#usize
+
+/-- [rand_xoshiro::xoshiro128plusplus::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro128plusplus::Xoshiro128PlusPlus}::try_next_u32]:
+    Source: 'src/xoshiro128plusplus.rs', lines 82:4-86:5
+    Visibility: public -/
+def
+  xoshiro128plusplus.Xoshiro128PlusPlus.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : xoshiro128plusplus.Xoshiro128PlusPlus) :
+  Result ((core.result.Result Std.U32 Never) ×
+    xoshiro128plusplus.Xoshiro128PlusPlus)
+  := do
+  let i ← Array.index_usize self.s 0#usize
+  let i1 ← Array.index_usize self.s 3#usize
+  let i2 ← lift (core.num.U32.wrapping_add i i1)
+  let i3 ← lift (core.num.U32.rotate_left i2 7#u32)
+  let result_starstar ← lift (core.num.U32.wrapping_add i3 i)
+  let i4 ← Array.index_usize self.s 1#usize
+  let t ← i4 <<< 9#i32
+  let i5 ← Array.index_usize self.s 2#usize
+  let i6 ← lift (i5 ^^^ i)
+  let a ← Array.update self.s 2#usize i6
+  let i7 ← Array.index_usize a 1#usize
+  let i8 ← Array.index_usize a 3#usize
+  let i9 ← lift (i8 ^^^ i7)
+  let a1 ← Array.update a 3#usize i9
+  let i10 ← Array.index_usize a1 2#usize
+  let i11 ← Array.index_usize a1 1#usize
+  let i12 ← lift (i11 ^^^ i10)
+  let a2 ← Array.update a1 1#usize i12
+  let i13 ← Array.index_usize a2 3#usize
+  let i14 ← Array.index_usize a2 0#usize
+  let i15 ← lift (i14 ^^^ i13)
+  let a3 ← Array.update a2 0#usize i15
+  let i16 ← Array.index_usize a3 2#usize
+  let i17 ← lift (i16 ^^^ t)
+  let a4 ← Array.update a3 2#usize i17
+  let i18 ← Array.index_usize a4 3#usize
+  let i19 ← lift (core.num.U32.rotate_left i18 11#u32)
+  let a5 ← Array.update a4 3#usize i19
+  ok (core.result.Result.Ok result_starstar, { s := a5 })
+
+/-- [rand_xoshiro::xoshiro128starstar::Xoshiro128StarStar]
+    Source: 'src/xoshiro128starstar.rs', lines 24:0-26:1
+    Visibility: public -/
+structure xoshiro128starstar.Xoshiro128StarStar where
+  s : Array Std.U32 4#usize
+
+/-- [rand_xoshiro::xoshiro128starstar::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro128starstar::Xoshiro128StarStar}::try_next_u32]:
+    Source: 'src/xoshiro128starstar.rs', lines 82:4-86:5
+    Visibility: public -/
+def
+  xoshiro128starstar.Xoshiro128StarStar.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : xoshiro128starstar.Xoshiro128StarStar) :
+  Result ((core.result.Result Std.U32 Never) ×
+    xoshiro128starstar.Xoshiro128StarStar)
+  := do
+  let i ← Array.index_usize self.s 1#usize
+  let i1 ← lift (core.num.U32.wrapping_mul i 5#u32)
+  let i2 ← lift (core.num.U32.rotate_left i1 7#u32)
+  let result_starstar ← lift (core.num.U32.wrapping_mul i2 9#u32)
+  let t ← i <<< 9#i32
+  let i3 ← Array.index_usize self.s 0#usize
+  let i4 ← Array.index_usize self.s 2#usize
+  let i5 ← lift (i4 ^^^ i3)
+  let a ← Array.update self.s 2#usize i5
+  let i6 ← Array.index_usize a 1#usize
+  let i7 ← Array.index_usize a 3#usize
+  let i8 ← lift (i7 ^^^ i6)
+  let a1 ← Array.update a 3#usize i8
+  let i9 ← Array.index_usize a1 2#usize
+  let i10 ← Array.index_usize a1 1#usize
+  let i11 ← lift (i10 ^^^ i9)
+  let a2 ← Array.update a1 1#usize i11
+  let i12 ← Array.index_usize a2 3#usize
+  let i13 ← Array.index_usize a2 0#usize
+  let i14 ← lift (i13 ^^^ i12)
+  let a3 ← Array.update a2 0#usize i14
+  let i15 ← Array.index_usize a3 2#usize
+  let i16 ← lift (i15 ^^^ t)
+  let a4 ← Array.update a3 2#usize i16
+  let i17 ← Array.index_usize a4 3#usize
+  let i18 ← lift (core.num.U32.rotate_left i17 11#u32)
+  let a5 ← Array.update a4 3#usize i18
+  ok (core.result.Result.Ok result_starstar, { s := a5 })
+
+/-- [rand_xoshiro::xoshiro256plus::Xoshiro256Plus]
+    Source: 'src/xoshiro256plus.rs', lines 25:0-27:1
+    Visibility: public -/
+structure xoshiro256plus.Xoshiro256Plus where
+  s : Array Std.U64 4#usize
+
+/-- [rand_xoshiro::xoshiro256plus::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro256plus::Xoshiro256Plus}::try_next_u64]:
+    Source: 'src/xoshiro256plus.rs', lines 108:4-112:5
+    Visibility: public -/
+def xoshiro256plus.Xoshiro256Plus.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoshiro256plus.Xoshiro256Plus) :
+  Result ((core.result.Result Std.U64 Never) × xoshiro256plus.Xoshiro256Plus)
+  := do
+  let i ← Array.index_usize self.s 0#usize
+  let i1 ← Array.index_usize self.s 3#usize
+  let result_plus ← lift (core.num.U64.wrapping_add i i1)
+  let i2 ← Array.index_usize self.s 1#usize
+  let t ← i2 <<< 17#i32
+  let i3 ← Array.index_usize self.s 2#usize
+  let i4 ← lift (i3 ^^^ i)
+  let a ← Array.update self.s 2#usize i4
+  let i5 ← Array.index_usize a 1#usize
+  let i6 ← Array.index_usize a 3#usize
+  let i7 ← lift (i6 ^^^ i5)
+  let a1 ← Array.update a 3#usize i7
+  let i8 ← Array.index_usize a1 2#usize
+  let i9 ← Array.index_usize a1 1#usize
+  let i10 ← lift (i9 ^^^ i8)
+  let a2 ← Array.update a1 1#usize i10
+  let i11 ← Array.index_usize a2 3#usize
+  let i12 ← Array.index_usize a2 0#usize
+  let i13 ← lift (i12 ^^^ i11)
+  let a3 ← Array.update a2 0#usize i13
+  let i14 ← Array.index_usize a3 2#usize
+  let i15 ← lift (i14 ^^^ t)
+  let a4 ← Array.update a3 2#usize i15
+  let i16 ← Array.index_usize a4 3#usize
+  let i17 ← lift (core.num.U64.rotate_left i16 45#u32)
+  let a5 ← Array.update a4 3#usize i17
+  ok (core.result.Result.Ok result_plus, { s := a5 })
+
+/-- [rand_xoshiro::xoshiro256plusplus::Xoshiro256PlusPlus]
+    Source: 'src/xoshiro256plusplus.rs', lines 24:0-26:1
+    Visibility: public -/
+structure xoshiro256plusplus.Xoshiro256PlusPlus where
+  s : Array Std.U64 4#usize
+
+/-- [rand_xoshiro::xoshiro256plusplus::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro256plusplus::Xoshiro256PlusPlus}::try_next_u64]:
+    Source: 'src/xoshiro256plusplus.rs', lines 107:4-111:5
+    Visibility: public -/
+def
+  xoshiro256plusplus.Xoshiro256PlusPlus.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoshiro256plusplus.Xoshiro256PlusPlus) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoshiro256plusplus.Xoshiro256PlusPlus)
+  := do
+  let i ← Array.index_usize self.s 0#usize
+  let i1 ← Array.index_usize self.s 3#usize
+  let i2 ← lift (core.num.U64.wrapping_add i i1)
+  let i3 ← lift (core.num.U64.rotate_left i2 23#u32)
+  let result_plusplus ← lift (core.num.U64.wrapping_add i3 i)
+  let i4 ← Array.index_usize self.s 1#usize
+  let t ← i4 <<< 17#i32
+  let i5 ← Array.index_usize self.s 2#usize
+  let i6 ← lift (i5 ^^^ i)
+  let a ← Array.update self.s 2#usize i6
+  let i7 ← Array.index_usize a 1#usize
+  let i8 ← Array.index_usize a 3#usize
+  let i9 ← lift (i8 ^^^ i7)
+  let a1 ← Array.update a 3#usize i9
+  let i10 ← Array.index_usize a1 2#usize
+  let i11 ← Array.index_usize a1 1#usize
+  let i12 ← lift (i11 ^^^ i10)
+  let a2 ← Array.update a1 1#usize i12
+  let i13 ← Array.index_usize a2 3#usize
+  let i14 ← Array.index_usize a2 0#usize
+  let i15 ← lift (i14 ^^^ i13)
+  let a3 ← Array.update a2 0#usize i15
+  let i16 ← Array.index_usize a3 2#usize
+  let i17 ← lift (i16 ^^^ t)
+  let a4 ← Array.update a3 2#usize i17
+  let i18 ← Array.index_usize a4 3#usize
+  let i19 ← lift (core.num.U64.rotate_left i18 45#u32)
+  let a5 ← Array.update a4 3#usize i19
+  ok (core.result.Result.Ok result_plusplus, { s := a5 })
+
+/-- [rand_xoshiro::xoshiro256starstar::Xoshiro256StarStar]
+    Source: 'src/xoshiro256starstar.rs', lines 24:0-26:1
+    Visibility: public -/
+structure xoshiro256starstar.Xoshiro256StarStar where
+  s : Array Std.U64 4#usize
+
+/-- [rand_xoshiro::xoshiro256starstar::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro256starstar::Xoshiro256StarStar}::try_next_u64]:
+    Source: 'src/xoshiro256starstar.rs', lines 107:4-111:5
+    Visibility: public -/
+def
+  xoshiro256starstar.Xoshiro256StarStar.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoshiro256starstar.Xoshiro256StarStar) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoshiro256starstar.Xoshiro256StarStar)
+  := do
+  let i ← Array.index_usize self.s 1#usize
+  let i1 ← lift (core.num.U64.wrapping_mul i 5#u64)
+  let i2 ← lift (core.num.U64.rotate_left i1 7#u32)
+  let result_starstar ← lift (core.num.U64.wrapping_mul i2 9#u64)
+  let t ← i <<< 17#i32
+  let i3 ← Array.index_usize self.s 0#usize
+  let i4 ← Array.index_usize self.s 2#usize
+  let i5 ← lift (i4 ^^^ i3)
+  let a ← Array.update self.s 2#usize i5
+  let i6 ← Array.index_usize a 1#usize
+  let i7 ← Array.index_usize a 3#usize
+  let i8 ← lift (i7 ^^^ i6)
+  let a1 ← Array.update a 3#usize i8
+  let i9 ← Array.index_usize a1 2#usize
+  let i10 ← Array.index_usize a1 1#usize
+  let i11 ← lift (i10 ^^^ i9)
+  let a2 ← Array.update a1 1#usize i11
+  let i12 ← Array.index_usize a2 3#usize
+  let i13 ← Array.index_usize a2 0#usize
+  let i14 ← lift (i13 ^^^ i12)
+  let a3 ← Array.update a2 0#usize i14
+  let i15 ← Array.index_usize a3 2#usize
+  let i16 ← lift (i15 ^^^ t)
+  let a4 ← Array.update a3 2#usize i16
+  let i17 ← Array.index_usize a4 3#usize
+  let i18 ← lift (core.num.U64.rotate_left i17 45#u32)
+  let a5 ← Array.update a4 3#usize i18
+  ok (core.result.Result.Ok result_starstar, { s := a5 })
+
+/-- [rand_xoshiro::xoshiro512plus::Xoshiro512Plus]
+    Source: 'src/xoshiro512plus.rs', lines 27:0-29:1
+    Visibility: public -/
+structure xoshiro512plus.Xoshiro512Plus where
+  s : Array Std.U64 8#usize
+
+/-- [rand_xoshiro::xoshiro512plus::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro512plus::Xoshiro512Plus}::try_next_u64]:
+    Source: 'src/xoshiro512plus.rs', lines 118:4-122:5
+    Visibility: public -/
+def xoshiro512plus.Xoshiro512Plus.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoshiro512plus.Xoshiro512Plus) :
+  Result ((core.result.Result Std.U64 Never) × xoshiro512plus.Xoshiro512Plus)
+  := do
+  let i ← Array.index_usize self.s 0#usize
+  let i1 ← Array.index_usize self.s 2#usize
+  let result_plus ← lift (core.num.U64.wrapping_add i i1)
+  let i2 ← Array.index_usize self.s 1#usize
+  let t ← i2 <<< 11#i32
+  let i3 ← lift (i1 ^^^ i)
+  let a ← Array.update self.s 2#usize i3
+  let i4 ← Array.index_usize a 1#usize
+  let i5 ← Array.index_usize a 5#usize
+  let i6 ← lift (i5 ^^^ i4)
+  let a1 ← Array.update a 5#usize i6
+  let i7 ← Array.index_usize a1 2#usize
+  let i8 ← Array.index_usize a1 1#usize
+  let i9 ← lift (i8 ^^^ i7)
+  let a2 ← Array.update a1 1#usize i9
+  let i10 ← Array.index_usize a2 3#usize
+  let i11 ← Array.index_usize a2 7#usize
+  let i12 ← lift (i11 ^^^ i10)
+  let a3 ← Array.update a2 7#usize i12
+  let i13 ← Array.index_usize a3 4#usize
+  let i14 ← Array.index_usize a3 3#usize
+  let i15 ← lift (i14 ^^^ i13)
+  let a4 ← Array.update a3 3#usize i15
+  let i16 ← Array.index_usize a4 5#usize
+  let i17 ← Array.index_usize a4 4#usize
+  let i18 ← lift (i17 ^^^ i16)
+  let a5 ← Array.update a4 4#usize i18
+  let i19 ← Array.index_usize a5 6#usize
+  let i20 ← Array.index_usize a5 0#usize
+  let i21 ← lift (i20 ^^^ i19)
+  let a6 ← Array.update a5 0#usize i21
+  let i22 ← Array.index_usize a6 7#usize
+  let i23 ← Array.index_usize a6 6#usize
+  let i24 ← lift (i23 ^^^ i22)
+  let a7 ← Array.update a6 6#usize i24
+  let i25 ← Array.index_usize a7 6#usize
+  let i26 ← lift (i25 ^^^ t)
+  let a8 ← Array.update a7 6#usize i26
+  let i27 ← Array.index_usize a8 7#usize
+  let i28 ← lift (core.num.U64.rotate_left i27 21#u32)
+  let a9 ← Array.update a8 7#usize i28
+  ok (core.result.Result.Ok result_plus, { s := a9 })
+
+/-- [rand_xoshiro::xoshiro512plusplus::Xoshiro512PlusPlus]
+    Source: 'src/xoshiro512plusplus.rs', lines 26:0-28:1
+    Visibility: public -/
+structure xoshiro512plusplus.Xoshiro512PlusPlus where
+  s : Array Std.U64 8#usize
+
+/-- [rand_xoshiro::xoshiro512plusplus::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro512plusplus::Xoshiro512PlusPlus}::try_next_u64]:
+    Source: 'src/xoshiro512plusplus.rs', lines 117:4-121:5
+    Visibility: public -/
+def
+  xoshiro512plusplus.Xoshiro512PlusPlus.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoshiro512plusplus.Xoshiro512PlusPlus) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoshiro512plusplus.Xoshiro512PlusPlus)
+  := do
+  let i ← Array.index_usize self.s 2#usize
+  let i1 ← Array.index_usize self.s 0#usize
+  let i2 ← lift (core.num.U64.wrapping_add i i1)
+  let i3 ← lift (core.num.U64.rotate_left i2 17#u32)
+  let result_plusplus ← lift (core.num.U64.wrapping_add i3 i)
+  let i4 ← Array.index_usize self.s 1#usize
+  let t ← i4 <<< 11#i32
+  let i5 ← lift (i ^^^ i1)
+  let a ← Array.update self.s 2#usize i5
+  let i6 ← Array.index_usize a 1#usize
+  let i7 ← Array.index_usize a 5#usize
+  let i8 ← lift (i7 ^^^ i6)
+  let a1 ← Array.update a 5#usize i8
+  let i9 ← Array.index_usize a1 2#usize
+  let i10 ← Array.index_usize a1 1#usize
+  let i11 ← lift (i10 ^^^ i9)
+  let a2 ← Array.update a1 1#usize i11
+  let i12 ← Array.index_usize a2 3#usize
+  let i13 ← Array.index_usize a2 7#usize
+  let i14 ← lift (i13 ^^^ i12)
+  let a3 ← Array.update a2 7#usize i14
+  let i15 ← Array.index_usize a3 4#usize
+  let i16 ← Array.index_usize a3 3#usize
+  let i17 ← lift (i16 ^^^ i15)
+  let a4 ← Array.update a3 3#usize i17
+  let i18 ← Array.index_usize a4 5#usize
+  let i19 ← Array.index_usize a4 4#usize
+  let i20 ← lift (i19 ^^^ i18)
+  let a5 ← Array.update a4 4#usize i20
+  let i21 ← Array.index_usize a5 6#usize
+  let i22 ← Array.index_usize a5 0#usize
+  let i23 ← lift (i22 ^^^ i21)
+  let a6 ← Array.update a5 0#usize i23
+  let i24 ← Array.index_usize a6 7#usize
+  let i25 ← Array.index_usize a6 6#usize
+  let i26 ← lift (i25 ^^^ i24)
+  let a7 ← Array.update a6 6#usize i26
+  let i27 ← Array.index_usize a7 6#usize
+  let i28 ← lift (i27 ^^^ t)
+  let a8 ← Array.update a7 6#usize i28
+  let i29 ← Array.index_usize a8 7#usize
+  let i30 ← lift (core.num.U64.rotate_left i29 21#u32)
+  let a9 ← Array.update a8 7#usize i30
+  ok (core.result.Result.Ok result_plusplus, { s := a9 })
+
+/-- [rand_xoshiro::xoshiro512starstar::Xoshiro512StarStar]
+    Source: 'src/xoshiro512starstar.rs', lines 26:0-28:1
+    Visibility: public -/
+structure xoshiro512starstar.Xoshiro512StarStar where
+  s : Array Std.U64 8#usize
+
+/-- [rand_xoshiro::xoshiro512starstar::{impl rand_core::TryRng<!> for rand_xoshiro::xoshiro512starstar::Xoshiro512StarStar}::try_next_u64]:
+    Source: 'src/xoshiro512starstar.rs', lines 117:4-121:5
+    Visibility: public -/
+def
+  xoshiro512starstar.Xoshiro512StarStar.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : xoshiro512starstar.Xoshiro512StarStar) :
+  Result ((core.result.Result Std.U64 Never) ×
+    xoshiro512starstar.Xoshiro512StarStar)
+  := do
+  let i ← Array.index_usize self.s 1#usize
+  let i1 ← lift (core.num.U64.wrapping_mul i 5#u64)
+  let i2 ← lift (core.num.U64.rotate_left i1 7#u32)
+  let result_starstar ← lift (core.num.U64.wrapping_mul i2 9#u64)
+  let t ← i <<< 11#i32
+  let i3 ← Array.index_usize self.s 0#usize
+  let i4 ← Array.index_usize self.s 2#usize
+  let i5 ← lift (i4 ^^^ i3)
+  let a ← Array.update self.s 2#usize i5
+  let i6 ← Array.index_usize a 1#usize
+  let i7 ← Array.index_usize a 5#usize
+  let i8 ← lift (i7 ^^^ i6)
+  let a1 ← Array.update a 5#usize i8
+  let i9 ← Array.index_usize a1 2#usize
+  let i10 ← Array.index_usize a1 1#usize
+  let i11 ← lift (i10 ^^^ i9)
+  let a2 ← Array.update a1 1#usize i11
+  let i12 ← Array.index_usize a2 3#usize
+  let i13 ← Array.index_usize a2 7#usize
+  let i14 ← lift (i13 ^^^ i12)
+  let a3 ← Array.update a2 7#usize i14
+  let i15 ← Array.index_usize a3 4#usize
+  let i16 ← Array.index_usize a3 3#usize
+  let i17 ← lift (i16 ^^^ i15)
+  let a4 ← Array.update a3 3#usize i17
+  let i18 ← Array.index_usize a4 5#usize
+  let i19 ← Array.index_usize a4 4#usize
+  let i20 ← lift (i19 ^^^ i18)
+  let a5 ← Array.update a4 4#usize i20
+  let i21 ← Array.index_usize a5 6#usize
+  let i22 ← Array.index_usize a5 0#usize
+  let i23 ← lift (i22 ^^^ i21)
+  let a6 ← Array.update a5 0#usize i23
+  let i24 ← Array.index_usize a6 7#usize
+  let i25 ← Array.index_usize a6 6#usize
+  let i26 ← lift (i25 ^^^ i24)
+  let a7 ← Array.update a6 6#usize i26
+  let i27 ← Array.index_usize a7 6#usize
+  let i28 ← lift (i27 ^^^ t)
+  let a8 ← Array.update a7 6#usize i28
+  let i29 ← Array.index_usize a8 7#usize
+  let i30 ← lift (core.num.U64.rotate_left i29 21#u32)
+  let a9 ← Array.update a8 7#usize i30
+  ok (core.result.Result.Ok result_starstar, { s := a9 })
 
 end rand_xoshiro
