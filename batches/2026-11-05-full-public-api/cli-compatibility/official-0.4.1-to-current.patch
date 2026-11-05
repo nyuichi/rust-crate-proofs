@@ -1,0 +1,1020 @@
+--- a/src/aeneas.rs
++++ b/src/aeneas.rs
+@@ -1,6 +1,6 @@
+ //! Checks committed Aeneas Lean proofs. API/model correspondence is author supplied.
+ use crate::{
+-    config::{CreusotTarget, Project, Tool},
++    config::{Project, Tool},
+     scan,
+ };
+ use anyhow::{ensure, Context, Result};
+@@ -26,10 +26,13 @@
+ }
+ 
+ pub fn configuration(tool: &Tool) -> Result<Value> {
+-    Ok(
++    let mut value =
+         json!({"backend":"lean", "lean_dir": tool.lean_dir, "proofs": tool.proofs,
+-        "audit_command":["lake", "env", "lean", "--stdin"], "audit_source":audit_source(tool)}),
+-    )
++        "audit_command":["lake", "env", "lean", "--stdin"], "audit_source":audit_source(tool)});
++    if let Some(path) = &tool.exact_source_bindings {
++        value["exact_source_bindings"] = serde_json::to_value(path)?;
++    }
++    Ok(value)
+ }
+ 
+ pub fn require_clean_build(dir: &Path) -> Result<()> {
+@@ -133,16 +136,63 @@
+     Ok(())
+ }
+ 
++/// Narrow opt-in for the audited endian-type specialization inventory.
++/// This selects source identities only; it never creates or aliases callables.
++pub(crate) fn exact_source_binding_keys(project: &Project, tool: &Tool) -> Result<Option<BTreeSet<String>>> {
++    let Some(relative) = &tool.exact_source_bindings else { return Ok(None) };
++    ensure!(project.name == "endian-type" && project.version == "0.2.0",
++        "exact_source_bindings supports only endian-type 0.2.0");
++    ensure!(!relative.as_os_str().is_empty() && !relative.is_absolute()
++        && !relative.components().any(|c| matches!(c, std::path::Component::ParentDir)),
++        "exact_source_bindings must stay within the package");
++    let package = project.manifest.parent().context("Missing package directory")?.canonicalize()?;
++    let path = package.join(relative).canonicalize().context("Resolve exact_source_bindings")?;
++    ensure!(path.starts_with(&package), "Exact source bindings escape the package");
++    let doc: Value = serde_json::from_slice(&fs::read(&path)?)?;
++    ensure!(doc["crate"] == project.name && doc["version"] == project.version,
++        "Exact source binding crate/version mismatch");
++    use sha2::{Digest, Sha256};
++    let source_hash = format!("{:x}", Sha256::digest(fs::read(&project.root_source)?));
++    let manifest_hash = format!("{:x}", Sha256::digest(fs::read(&project.manifest)?));
++    ensure!(doc["source_sha256"] == source_hash && doc["manifest_sha256"] == manifest_hash,
++        "Exact source binding source/manifest hash mismatch");
++    let entries = doc["entries"].as_array().context("Missing exact source binding entries")?;
++    ensure!(entries.len() == 66, "Expected 66 audited endian-type bindings");
++    let mut keys = BTreeSet::new();
++    for entry in entries {
++        let key = entry["recommended_recorded_source_api_key"].as_str()
++            .context("Missing exact source API key")?;
++        ensure!(entry["record_api_paths_exactly"] == json!([key]),
++            "Exact source binding must retain only its configured key");
++        ensure!(keys.insert(key.to_owned()), "Duplicate exact source binding key");
++    }
++    let configured: BTreeSet<_> = tool.proofs.iter().map(|p| p.api.clone()).collect();
++    ensure!(keys == configured, "Exact source binding keys must equal all configured proof APIs");
++    Ok(Some(keys))
++}
++
+ pub fn discover(project: &Project, tool: &Tool) -> Result<Vec<scan::Contract>> {
+     validate(tool)?;
+     ensure!(
+         !tool.proofs.is_empty(),
+         "Aeneas requires [[tool.proofs]] API/module/theorem/precondition mappings"
+     );
++    let exact_keys = exact_source_binding_keys(project, tool)?;
+     let dir = directory(project, tool)?;
+     pinned_version(&dir, &tool.version)?;
+     // No Creusot attributes or Kani harnesses are inferred for Aeneas.
+-    let public = scan::public_contracts(project, false, CreusotTarget::All)?;
++    let requested: BTreeSet<String> = tool.proofs.iter().map(|proof| proof.api.clone()).collect();
++    let mut public = match scan::public_contracts_for_apis(project, &requested) {
++        Ok(found) => found,
++        Err(error) if error.to_string() == "No eligible public APIs found in the selected library/configuration" => vec![],
++        Err(error) => return Err(error),
++    };
++    if tool.proofs.iter().any(|proof| !public.iter().any(|c| c.api_paths.contains(&proof.api))) {
++        // The source scanner deliberately does not expand macro_rules invocations.
++        // Use the actual compiler expansion only as an API-discovery fallback;
++        // proof sources, captured Rust sources, and axiom checks are unchanged.
++        public = expanded_public_contracts(project, &requested)?;
++    }
+     tool.proofs
+         .iter()
+         .map(|proof| {
+@@ -166,7 +216,7 @@
+             let text = fs::read_to_string(&file)?;
+             ensure!(!text.trim().is_empty(), "Empty Lean proof source");
+             Ok(scan::Contract {
+-                api_paths: found[0].api_paths.clone(),
++                api_paths: if exact_keys.is_some() { vec![proof.api.clone()] } else { found[0].api_paths.clone() },
+                 precondition: proof.precondition.clone(),
+                 file,
+                 first_line: 1,
+@@ -175,6 +225,55 @@
+             })
+         })
+         .collect()
++}
++
++/// Compiler-backed macro expansion for API discovery, restricted to the host
++/// configuration that Project's scanner has actually recorded.
++fn expanded_public_contracts(project: &Project, requested: &BTreeSet<String>) -> Result<Vec<scan::Contract>> {
++    use quote::ToTokens;
++    let cfg_output = Command::new("rustc").args(["--print", "cfg"]).output()
++        .context("Read compiler cfg for macro API discovery")?;
++    ensure!(cfg_output.status.success(), "Cannot read compiler cfg");
++    let cfg: BTreeSet<String> = String::from_utf8(cfg_output.stdout)?.lines().map(String::from).collect();
++    ensure!(cfg == project.cfg, "Macro API discovery requires the recorded host target configuration");
++    let version = Command::new("rustc").arg("-vV").output()?;
++    ensure!(version.status.success(), "Cannot read compiler host target");
++    let version = String::from_utf8(version.stdout)?;
++    let host = version.lines().find_map(|line| line.strip_prefix("host: "))
++        .context("Missing compiler host triple")?;
++    let mut command = Command::new("cargo");
++    command.args(["rustc", "--locked", "--offline", "--manifest-path"])
++        .arg(&project.manifest).args(["--package", &project.name, "--lib", "--target", host,
++            "--no-default-features"]);
++    if !project.features.is_empty() {
++        command.arg("--features").arg(project.features.iter().cloned().collect::<Vec<_>>().join(","));
++    }
++    command.args(["--", "-Zunpretty=expanded"]);
++    let output = command.output().context("Expand macros with the recorded Rust compiler")?;
++    ensure!(output.status.success(), "Compiler macro expansion failed: {}", String::from_utf8_lossy(&output.stderr));
++    let raw = String::from_utf8(output.stdout)?;
++    let mut parsed = syn::parse_file(&raw).context("Parse official compiler expansion")?;
++    // Derived impls are not candidate handwritten bodies. The ordinary source
++    // scanner also does not invent these absent source declarations. Preserve
++    // every non-derived item and all actual macro-generated handwritten impls.
++    fn omit_derived(items: &mut Vec<syn::Item>) {
++        items.retain(|item| !matches!(item, syn::Item::Impl(i)
++            if i.attrs.iter().any(|a| a.path().is_ident("automatically_derived"))));
++        for item in items {
++            if let syn::Item::Mod(module) = item {
++                if let Some((_, items)) = &mut module.content { omit_derived(items); }
++            }
++        }
++    }
++    omit_derived(&mut parsed.items);
++    let mut expanded = tempfile::NamedTempFile::new().context("Create temporary expanded API source")?;
++    expanded.write_all(parsed.into_token_stream().to_string().as_bytes())?;
++    let expanded_project = Project {
++        name: project.name.clone(), version: project.version.clone(), lib_name: project.lib_name.clone(),
++        manifest: project.manifest.clone(), root_source: expanded.path().to_owned(),
++        features: project.features.clone(), cfg: project.cfg.clone(),
++    };
++    scan::public_contracts_for_apis(&expanded_project, requested)
+ }
+ 
+ pub fn validate_command(command: &[String]) -> Result<()> {
+@@ -213,11 +312,11 @@
+         source.push_str(&format!(
+             r#"
+ run_cmd do
+-  let name := `{theorem}
+-  match (← getEnv).find? name with
++  let theorem_name := `{theorem}
++  match (← getEnv).find? theorem_name with
+   | some (.thmInfo _) => pure ()
+   | _ => throwError "Expected a theorem: {theorem}"
+-  let axioms ← Lean.collectAxioms name
++  let axioms ← Lean.collectAxioms theorem_name
+   for ax in axioms do
+     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+       throwError "Unapproved axiom in {theorem}: {{ax}}"
+@@ -269,6 +368,72 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++    use crate::config::CreusotTarget;
++    #[test]
++    fn compiler_expansion_discovers_handwritten_macro_impl_without_derived_impls() {
++        let d = tempfile::tempdir().unwrap();
++        fs::write(d.path().join("Cargo.toml"), "[package]\nname=\"macro_api_fixture\"\nversion=\"0.1.0\"\nedition=\"2021\"\n[lib]\npath=\"lib.rs\"\n").unwrap();
++        fs::write(d.path().join("lib.rs"), r#"
++            use core::ops::BitAnd;
++            #[derive(Clone, Copy)] pub struct Wrap<T>(T);
++            macro_rules! operator { ($wrapper:ident) => {
++                impl<T: BitAnd> BitAnd for $wrapper<T> {
++                    type Output = $wrapper<T::Output>;
++                    fn bitand(self, rhs: Self) -> Self::Output { $wrapper(self.0 & rhs.0) }
++                }
++            }; }
++            operator!(Wrap);
++        "#).unwrap();
++        assert!(Command::new("cargo").args(["generate-lockfile", "--offline", "--manifest-path"])
++            .arg(d.path().join("Cargo.toml")).status().unwrap().success());
++        let cfg = Command::new("rustc").args(["--print", "cfg"]).output().unwrap();
++        let p = Project { name: "macro_api_fixture".into(), version: "0.1.0".into(),
++            lib_name: "macro_api_fixture".into(), manifest: d.path().join("Cargo.toml"),
++            root_source: d.path().join("lib.rs"), features: BTreeSet::new(),
++            cfg: String::from_utf8(cfg.stdout).unwrap().lines().map(String::from).collect() };
++        assert!(scan::public_contracts(&p, false, CreusotTarget::All).is_err());
++        let found = expanded_public_contracts(&p, &BTreeSet::from(["<macro_api_fixture::Wrap as core::ops::BitAnd>::bitand".into()])).unwrap();
++        assert_eq!(found.len(), 1);
++        assert!(found[0].api_paths.contains(&"<macro_api_fixture::Wrap as core::ops::BitAnd>::bitand".into()), "{:?}", found[0].api_paths);
++    }
++    #[test]
++    fn exact_binding_opt_in_is_narrow_and_fail_closed() {
++        use sha2::{Digest, Sha256};
++        let d = tempfile::tempdir().unwrap();
++        fs::write(d.path().join("Cargo.toml"), "original manifest").unwrap();
++        fs::write(d.path().join("lib.rs"), "original source").unwrap();
++        let mut p = Project { name: "endian-type".into(), version: "0.2.0".into(),
++            lib_name: "endian_type".into(), manifest: d.path().join("Cargo.toml"),
++            root_source: d.path().join("lib.rs"), features: BTreeSet::new(), cfg: BTreeSet::new() };
++        let mut t = tool();
++        assert!(exact_source_binding_keys(&p, &t).unwrap().is_none());
++        assert!(configuration(&t).unwrap().get("exact_source_bindings").is_none());
++        assert!(serde_json::to_value(&t).unwrap().get("exact_source_bindings").is_none());
++        t.proofs = (0..66).map(|i| Proof { api: format!("<endian_type::BigEndian<T> as Trait{i}>::f"),
++            module: "Proofs".into(), theorem: format!("f{i}"), precondition: "true".into() }).collect();
++        t.exact_source_bindings = Some("bindings.json".into());
++        let mut doc = json!({"crate":"endian-type", "version":"0.2.0",
++            "source_sha256":format!("{:x}", Sha256::digest(b"original source")),
++            "manifest_sha256":format!("{:x}", Sha256::digest(b"original manifest")),
++            "entries":t.proofs.iter().map(|p| json!({"recommended_recorded_source_api_key":p.api,
++                "record_api_paths_exactly":[p.api]})).collect::<Vec<_>>()});
++        let write = |doc: &Value| fs::write(d.path().join("bindings.json"), serde_json::to_vec(doc).unwrap()).unwrap();
++        write(&doc);
++        assert_eq!(exact_source_binding_keys(&p, &t).unwrap().unwrap().len(), 66);
++        p.name = "other".into(); assert!(exact_source_binding_keys(&p, &t).is_err()); p.name="endian-type".into();
++        p.version="0.2.1".into(); assert!(exact_source_binding_keys(&p, &t).is_err()); p.version="0.2.0".into();
++        doc["version"] = json!("wrong"); write(&doc); assert!(exact_source_binding_keys(&p, &t).is_err());
++        doc["version"] = json!("0.2.0");
++        doc["entries"][0]["recommended_recorded_source_api_key"] = json!("wrong"); write(&doc);
++        assert!(exact_source_binding_keys(&p, &t).is_err());
++        doc["entries"][0]["recommended_recorded_source_api_key"] = json!(t.proofs[0].api);
++        doc["entries"][0]["record_api_paths_exactly"] = json!(["wrong"]); write(&doc);
++        assert!(exact_source_binding_keys(&p, &t).is_err());
++        doc["entries"][0]["record_api_paths_exactly"] = json!([t.proofs[0].api]); write(&doc);
++        fs::write(&p.root_source, "changed").unwrap(); assert!(exact_source_binding_keys(&p, &t).is_err());
++        fs::write(&p.root_source, "original source").unwrap();
++        t.exact_source_bindings=Some("../bindings.json".into()); assert!(exact_source_binding_keys(&p, &t).is_err());
++    }
+     fn tool() -> Tool {
+         toml::from_str(&format!("name='aeneas'\nversion='{}'\n[[proofs]]\napi='f'\nmodule='Proofs.F'\ntheorem='demo.f_spec'\nprecondition='x > 0'", "a".repeat(40))).unwrap()
+     }
+--- a/src/api.rs
++++ b/src/api.rs
+@@ -47,6 +47,7 @@
+         Ok(Self {
+             server: server.into(),
+             client: Client::builder()
++                .add_root_certificate(reqwest::Certificate::from_pem(&fs::read("/usr/local/share/ca-certificates/environment-proxy-ca.crt")?)?)
+                 .timeout(Duration::from_secs(60))
+                 .redirect(Policy::none())
+                 .user_agent(concat!("cargo-proofs/", env!("CARGO_PKG_VERSION")))
+@@ -107,7 +108,7 @@
+         }
+         Ok(value)
+     }
+-    pub fn upload(&self, path: &str, bytes: &[u8]) -> Result<()> {
++    pub fn upload(&self, path: &str, bytes: &[u8]) -> Result<Value> {
+         ensure!(path.starts_with("/api/v1/runs/"), "Invalid artifact path");
+         let response = self
+             .client
+@@ -121,7 +122,7 @@
+             "Artifact upload failed: {}",
+             response.text()?
+         );
+-        Ok(())
++        response.json().context("Expected artifact upload JSON response")
+     }
+     pub fn get(&self, path: &str) -> Result<Value> {
+         self.request("GET", path, None, None)
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -40,6 +40,8 @@
+     pub target: Option<CreusotTarget>,
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub lean_dir: Option<PathBuf>,
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub exact_source_bindings: Option<PathBuf>,
+     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+     pub proofs: Vec<crate::aeneas::Proof>,
+ }
+@@ -66,7 +68,7 @@
+             "[tool].version is required"
+         );
+         ensure!(
+-            self.is_aeneas() || (self.lean_dir.is_none() && self.proofs.is_empty()),
++            self.is_aeneas() || (self.lean_dir.is_none() && self.proofs.is_empty() && self.exact_source_bindings.is_none()),
+             "lean_dir and proofs apply only to Aeneas"
+         );
+         if self.is_aeneas() {
+--- a/src/publish.rs
++++ b/src/publish.rs
+@@ -14,6 +14,49 @@
+     io::{self, IsTerminal, Write},
+     path::Path,
+ };
++
++/// Validate exact opt-in bindings returned by the official immutable SARIF upload.
++/// No catalogue alias fallback is permitted for this narrow source-key scope.
++fn exact_uploaded_bindings(project: &Project, tool: &crate::config::Tool, record: &record::Record,
++    bytes: &[u8], response: &Value, metadata: &Value) -> Result<Vec<(String, String)>> {
++    use sha2::{Digest, Sha256};
++    ensure!(project.name == "endian-type" && project.version == "0.2.0"
++        && tool.is_aeneas() && tool.exact_source_bindings.is_some(), "Unsupported uploaded binding scope");
++    let parsed: Value = serde_json::from_slice(bytes)?;
++    ensure!(parsed == record.sarif, "Upload bytes differ from the loaded immutable SARIF");
++    let run = &record.sarif["runs"][0];
++    let proof = &run["properties"]["proofs"];
++    let id = run["automationDetails"]["guid"].as_str().context("Missing run ID")?;
++    let digest = format!("{:x}", Sha256::digest(bytes));
++    ensure!(response["id"] == id && metadata["id"] == id
++        && response["sha256"] == digest && metadata["sha256"] == digest,
++        "Uploaded binding run/hash mismatch");
++    ensure!(metadata["crate"] == project.name && metadata["version"] == project.version
++        && metadata["tool_version_id"] == format!("aeneas-{}", tool.version)
++        && metadata["size"].as_u64() == Some(bytes.len() as u64), "Uploaded binding metadata mismatch");
++    ensure!(run["tool"]["driver"]["name"] == tool.name && run["tool"]["driver"]["version"] == tool.version, "Uploaded binding tool mismatch");
++    ensure!(proof["crate"] == project.name && proof["version"] == project.version
++        && proof["aeneas"] == crate::aeneas::configuration(tool)?, "Uploaded binding configuration mismatch");
++    let expected: BTreeSet<_> = tool.proofs.iter().map(|p| p.api.as_str()).collect();
++    let actual: BTreeSet<_> = record.contracts.iter().filter_map(|c|
++        (c.api_paths.len() == 1).then(|| c.api_paths[0].as_str())).collect();
++    ensure!(record.contracts.len() == 66 && expected.len() == 66 && actual == expected,
++        "Uploaded binding contract keys mismatch");
++    let apis = response["apis"].as_array().context("Missing uploaded API bindings")?;
++    ensure!(apis.len() == 66, "Uploaded binding count mismatch");
++    let mut ids = BTreeSet::new();
++    let mut out = Vec::new();
++    for (index, (api, contract)) in apis.iter().zip(&record.contracts).enumerate() {
++        let api_id = api["api_item_id"].as_str().context("Missing uploaded API ID")?;
++        ensure!(api["contract_index"].as_u64() == Some(index as u64)
++            && api["display_path"] == contract.api_paths[0] && api["origin"] == "recorded",
++            "Uploaded binding index/path/origin mismatch");
++        ensure!(api_id.len() == 64 && api_id.bytes().all(|c| c.is_ascii_hexdigit())
++            && ids.insert(api_id), "Duplicate or malformed uploaded API ID");
++        out.push((api_id.to_owned(), contract.api_paths[0].clone()));
++    }
++    Ok(out)
++}
+ 
+ pub struct Options {
+     pub dry_run: bool,
+@@ -370,23 +413,27 @@
+     let source = &entry["versionControlProvenance"][0];
+     ensure!(contracts.len() <= 100, "Too many claims");
+     let tool = api.tool_version(&config.tool.name, &config.tool.version)?;
+-    if options.dry_run {
+-        println!(
+-            "Recorded SARIF (will upload on publish): {}",
+-            run_dir.join("run.sarif.json").display()
+-        );
++    let sarif_bytes = fs::read(run_dir.join("run.sarif.json"))?;
++    let exact_scope = crate::aeneas::exact_source_binding_keys(&project, &config.tool)?.is_some();
++    let upload_bindings = if options.dry_run {
++        println!("Recorded SARIF (will upload on publish): {}", run_dir.join("run.sarif.json").display());
++        None
+     } else {
+-        api.upload(
+-            &format!("/api/v1/runs/{run_id}/sarif"),
+-            &fs::read(run_dir.join("run.sarif.json"))?,
+-        )?;
+-    }
++        let response = api.upload(&format!("/api/v1/runs/{run_id}/sarif"), &sarif_bytes)?;
++        if exact_scope {
++            let metadata = api.get(&format!("/api/v1/runs/{run_id}"))?;
++            Some(exact_uploaded_bindings(&project, &config.tool, &recorded, &sarif_bytes, &response, &metadata)?)
++        } else { None }
++    };
+     api.prepare(&project.name, &project.version)?;
+     let mut claims = vec![];
+     let mut seen = BTreeSet::new();
+-    for contract in contracts {
+-        let (api_id, api_path) =
+-            api.resolve(&project.name, &project.version, &contract.api_paths)?;
++    for (index, contract) in contracts.iter().enumerate() {
++        let (api_id, api_path) = if let Some(bindings) = &upload_bindings {
++            bindings[index].clone()
++        } else {
++            api.resolve(&project.name, &project.version, &contract.api_paths)?
++        };
+         ensure!(
+             seen.insert(api_id.clone()),
+             "Multiple contracts resolve to the same public API {api_path}"
+@@ -546,6 +593,64 @@
+     use super::*;
+     fn config() -> Config {
+         toml::from_str("[report]\ntitle='Local'\n[tool]\nname='kani'\nversion='0.66.0'\n").unwrap()
++    }
++    #[test]
++    #[ignore = "Read-only diagnostic requiring explicit local evidence paths"]
++    fn exact_upload_real_evidence_probe() {
++        let read = |name: &str| fs::read(std::env::var(name).unwrap()).unwrap();
++        let bytes=read("PROOFS_BINDING_SARIF");
++        let sarif:Value=serde_json::from_slice(&bytes).unwrap();
++        let response:Value=serde_json::from_slice(&read("PROOFS_BINDING_RESPONSE")).unwrap();
++        let metadata:Value=serde_json::from_slice(&read("PROOFS_BINDING_METADATA")).unwrap();
++        let config:Config=toml::from_str(&String::from_utf8(read("PROOFS_BINDING_CONFIG")).unwrap()).unwrap();
++        let contracts=serde_json::from_value(sarif["runs"][0]["properties"]["proofs"]["contracts"].clone()).unwrap();
++        let record=record::Record{sarif,contracts};
++        let p=Project{name:"endian-type".into(),version:"0.2.0".into(),lib_name:"endian_type".into(),
++            manifest:"Cargo.toml".into(),root_source:"src/lib.rs".into(),features:BTreeSet::new(),cfg:BTreeSet::new()};
++        let bindings=exact_uploaded_bindings(&p,&config.tool,&record,&bytes,&response,&metadata).unwrap();
++        assert_eq!(bindings.len(),66);
++        println!("Validated all 66 exact returned bindings against immutable local SARIF, config and server metadata");
++    }
++    #[test]
++    fn exact_upload_bindings_reject_cross_run_config_and_aliases() {
++        use sha2::{Digest, Sha256};
++        let d = tempfile::tempdir().unwrap();
++        let p = Project { name:"endian-type".into(), version:"0.2.0".into(), lib_name:"endian_type".into(),
++            manifest:d.path().join("Cargo.toml"), root_source:d.path().join("lib.rs"),
++            features:BTreeSet::new(), cfg:BTreeSet::new() };
++        let mut tool = crate::config::Tool { name:"aeneas".into(), version:"a".repeat(40),
++            exact_source_bindings:Some("bindings.json".into()), ..Default::default() };
++        tool.proofs=(0..66).map(|i| crate::aeneas::Proof { api:format!("<endian_type::BigEndian<T> as Trait{i}>::f"),
++            module:"Proofs".into(), theorem:format!("f{i}"), precondition:"true".into() }).collect();
++        let contracts: Vec<_> = tool.proofs.iter().map(|p| record::Contract { api_paths:vec![p.api.clone()],
++            precondition:p.precondition.clone(), file:"Proofs.lean".into(), first_line:1,last_line:2,harness:p.theorem.clone() }).collect();
++        let sarif=json!({"runs":[{"automationDetails":{"guid":"run-1"},
++            "tool":{"driver":{"name":tool.name,"version":tool.version}},
++            "versionControlProvenance":[{"revisionId":"source-commit"}],
++            "properties":{"proofs":{"crate":p.name,"version":p.version,
++            "aeneas":crate::aeneas::configuration(&tool).unwrap(),"contracts":contracts}}}]});
++        let bytes=serde_json::to_vec(&sarif).unwrap();
++        let record=record::Record { sarif, contracts };
++        let hash=format!("{:x}",Sha256::digest(&bytes));
++        let response=json!({"id":"run-1","sha256":hash,"apis":record.contracts.iter().enumerate().map(|(i,c)|
++            json!({"contract_index":i,"api_item_id":format!("{i:064x}"),"display_path":c.api_paths[0],"origin":"recorded"})).collect::<Vec<_>>()});
++        let metadata=json!({"id":"run-1","sha256":hash,"crate":p.name,"version":p.version,
++            "tool_version_id":format!("aeneas-{}",tool.version),"size":bytes.len()});
++        assert_eq!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&response,&metadata).unwrap().len(),66);
++        for (field,bad) in [("id",json!("other-run")),("sha256",json!("wrong-hash")),("apis",json!([]))] {
++            let mut x=response.clone();x[field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        }
++        for (field,bad) in [("contract_index",json!(1)),("display_path",json!("erased_alias")),("origin",json!("rustdoc")),("api_item_id",json!(""))] {
++            let mut x=response.clone();x["apis"][0][field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        }
++        let mut x=response.clone();x["apis"][1]["api_item_id"]=x["apis"][0]["api_item_id"].clone();
++        assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        for (field,bad) in [("crate",json!("other")),("version",json!("other")),("tool_version_id",json!("other")),("size",json!(0))] {
++            let mut x=metadata.clone();x[field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&response,&x).is_err());
++        }
++        let mut other=tool;other.proofs[0].api="other-key".into();
++        assert!(exact_uploaded_bindings(&p,&other,&record,&bytes,&response,&metadata).is_err());
++        let mut bytes=bytes;bytes.push(b' ');assert!(exact_uploaded_bindings(&p,&other,&record,&bytes,&response,&metadata).is_err());
+     }
+     #[test]
+     fn enriched_dependency_details_do_not_change_publication_content() {
+--- a/src/scan.rs
++++ b/src/scan.rs
+@@ -53,11 +53,25 @@
+     target: Vec<String>,
+     public: bool,
+ }
++#[derive(Clone)]
++struct LocalTraitDefault {
++    trait_path: String,
++    method: syn::TraitItemFn,
++    file: PathBuf,
++}
++#[derive(Clone)]
++struct LocalTraitImpl {
++    module: Vec<String>,
++    context: CallableContext,
++    overrides: BTreeSet<String>,
++}
+ struct Scanner<'a> {
+     project: &'a Project,
+     creusot: bool,
+     public_items: BTreeSet<String>,
+     traits: BTreeSet<String>,
++    trait_defaults: Vec<LocalTraitDefault>,
++    trait_impls: Vec<LocalTraitImpl>,
+     types: BTreeSet<String>,
+     functions: Vec<Function>,
+     imports: Vec<Import>,
+@@ -68,6 +82,8 @@
+     let mut paths = vec![path.to_owned()];
+     // Rustdoc's external trait paths in the public catalogue may omit the
+     // standard-library module. Do not guess basenames for arbitrary traits.
++    // rand_core::TryRng is a narrowly verified catalogue alias exception:
++    // the XorShiftRng::try_next_u32 item resolves uniquely with this basename.
+     if matches!(
+         path,
+         "core::default::Default"
+@@ -80,6 +96,13 @@
+             | "std::fmt::Display"
+             | "core::str::FromStr"
+             | "std::str::FromStr"
++            | "rand_core::TryRng"
++            | "core::ops::BitAnd"
++            | "core::ops::BitOr"
++            | "core::ops::BitXor"
++            | "core::ops::bit::BitAnd"
++            | "core::ops::bit::BitOr"
++            | "core::ops::bit::BitXor"
+     ) {
+         paths.push(path.rsplit("::").next().unwrap().to_owned());
+     }
+@@ -154,6 +177,9 @@
+                         | "creusot"
+                         | "aeneas"
+                         | "test"
++                        | "doctest"
++                        | "miri"
++                        | "docsrs"
+                         | "unix"
+                         | "windows"
+                         | "debug_assertions"
+@@ -336,19 +362,39 @@
+     creusot: bool,
+     target: CreusotTarget,
+ ) -> Result<Vec<Contract>> {
++    public_contracts_inner(project, creusot, target, None)
++}
++
++/// Aeneas supplies explicit API mappings. Do not reject them because an
++/// unrelated specialized method has an ambiguous erased nominal identity.
++/// Selected targets retain the same exact-path and uniqueness checks.
++pub(crate) fn public_contracts_for_apis(
++    project: &Project,
++    requested: &BTreeSet<String>,
++) -> Result<Vec<Contract>> {
++    public_contracts_inner(project, false, CreusotTarget::All, Some(requested))
++}
++
++fn public_contracts_inner(
++    project: &Project,
++    creusot: bool,
++    target: CreusotTarget,
++    requested: Option<&BTreeSet<String>>,
++) -> Result<Vec<Contract>> {
+     let mut s = scanner(project, creusot);
+     s.file(&project.root_source, &[], true)?;
++    s.add_local_trait_defaults()?;
+     let mut result = vec![];
+     let mut seen = BTreeSet::new();
+     for f in &s.functions {
+         if !f.public || f.excluded || (target == CreusotTarget::Annotated && !f.annotated) {
+             continue;
+         }
++        let paths = s.public_callable_paths(&f.context, &f.module, &f.name)?;
++        if paths.is_empty() || requested.is_some_and(|selected| !paths.iter().any(|p| selected.contains(p))) {
++            continue;
++        }
+         let path = f.context.path(&s, &f.module, &f.name)?;
+-        let paths = s.public_callable_paths(&f.context, &f.module, &f.name)?;
+-        if paths.is_empty() {
+-            continue;
+-        }
+         ensure!(
+             seen.insert(path.clone()),
+             "Ambiguous contract target {path}"
+@@ -379,6 +425,38 @@
+ }
+ 
+ impl Scanner<'_> {
++    /// Discover actual inherited bodies from local traits, preserving their
++    /// defining file/span while using the concrete implementation's identity.
++    /// This does not synthesize bodies, infer foreign defaults, or replace an
++    /// explicit implementation method. Generic trait arguments remain exactly
++    /// the arguments written on the implementation; no body is rewritten.
++    fn add_local_trait_defaults(&mut self) -> Result<()> {
++        let public_visibility = syn::Visibility::Public(Default::default());
++        for implementation in self.trait_impls.clone() {
++            let CallableContext::TraitImpl { trait_path, .. } = &implementation.context else {
++                continue;
++            };
++            let mut bare_trait = trait_path.clone();
++            for segment in &mut bare_trait.segments {
++                segment.arguments = syn::PathArguments::None;
++            }
++            let resolved = self.resolve(&segments(&bare_trait)?, &implementation.module, 0)?;
++            let defaults: Vec<_> = self.trait_defaults.iter()
++                .filter(|default| default.trait_path == resolved)
++                .cloned().collect();
++            for default in defaults {
++                if implementation.overrides.contains(&default.method.sig.ident.to_string()) {
++                    continue;
++                }
++                self.function(
++                    &default.method.attrs, &default.method.sig, &public_visibility,
++                    default.method.span(), &default.file, &implementation.module,
++                    implementation.context.clone(),
++                )?;
++            }
++        }
++        Ok(())
++    }
+     fn nominal_type(&self, ty: &syn::Type, module: &[String]) -> Result<Option<String>> {
+         let syn::Type::Path(ty) = ty else {
+             return Ok(None);
+@@ -625,6 +703,49 @@
+         })
+     }
+ 
++    // A crate can supply a public foreign-trait implementation for a foreign
++    // self type when a public crate-owned type occurs in the trait arguments
++    // (e.g. From<crate::Error> for core::fmt::Error). Do not infer ownership from
++    // an arbitrary spelling or a shadowing generic parameter.
++    fn has_public_local_trait_argument(
++        &self,
++        trait_path: &syn::Path,
++        module: &[String],
++        generics: &syn::Generics,
++    ) -> Result<bool> {
++        for segment in &trait_path.segments {
++            let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
++                continue;
++            };
++            for argument in &arguments.args {
++                let syn::GenericArgument::Type(argument_type) = argument else { continue };
++                let mut ty = argument_type;
++                loop {
++                    ty = match ty {
++                        syn::Type::Reference(r) => &r.elem,
++                        syn::Type::Paren(p) => &p.elem,
++                        syn::Type::Group(g) => &g.elem,
++                        _ => break,
++                    };
++                }
++                if let syn::Type::Path(p) = ty {
++                    if p.qself.is_none() && p.path.leading_colon.is_none()
++                        && p.path.segments.len() == 1
++                        && generics.type_params().any(|g| p.path.is_ident(&g.ident)) {
++                        continue;
++                    }
++                }
++                if let Some(nominal) = self.nominal_type(ty, module)? {
++                    if self.types.contains(&nominal)
++                        && !self.creusot_public_paths(&nominal)?.is_empty() {
++                        return Ok(true);
++                    }
++                }
++            }
++        }
++        Ok(false)
++    }
++
+     fn public_callable_paths(
+         &self,
+         context: &CallableContext,
+@@ -652,15 +773,26 @@
+                 let nominal = self.nominal_type(self_ty, module)?;
+                 let legacy = nominal.as_ref().is_some_and(|ty| self.types.contains(ty));
+                 let types = if legacy {
+-                    self.creusot_public_paths(nominal.as_ref().unwrap())?
+-                        .into_iter()
+-                        .map(|ty| format!("{}::{ty}", self.project.lib_name))
+-                        .collect()
++                    // Preserve the actual generic self type as a canonical API
++                    // candidate. Keep the old erased aliases only because the
++                    // nominal type here is the real local self, not a local
++                    // type merely mentioned in a foreign implementation's args.
++                    let nominal_paths = self.creusot_public_paths(nominal.as_ref().unwrap())?;
++                    if nominal_paths.is_empty() {
++                        return Ok(vec![]);
++                    }
++                    let mut types = vec![self.render_type_in(self_ty, module, generics, true)?];
++                    types.extend(nominal_paths.into_iter()
++                        .map(|ty| format!("{}::{ty}", self.project.lib_name)));
++                    types.sort();
++                    types.dedup();
++                    types
+                 } else {
+                     vec![self.render_type_in(self_ty, module, generics, true)?]
+                 };
+                 let local_trait = self.traits.contains(&tr);
+-                if !legacy && !local_trait {
++                if !legacy && !local_trait
++                    && !self.has_public_local_trait_argument(trait_path, module, generics)? {
+                     return Ok(vec![]);
+                 }
+                 let suffix = self.render_arguments_in(
+@@ -875,6 +1007,15 @@
+                     if attrs(&i.attrs, self.project)?.is_some() {
+                         let path = item_path(module, &i.ident.to_string());
+                         self.traits.insert(path.clone());
++                        for item in &i.items {
++                            if let syn::TraitItem::Fn(method) = item {
++                                if method.default.is_some() {
++                                    self.trait_defaults.push(LocalTraitDefault {
++                                        trait_path: path.clone(), method: method.clone(), file: file.into(),
++                                    });
++                                }
++                            }
++                        }
+                         if matches!(i.vis, syn::Visibility::Public(_)) {
+                             self.public_items.insert(path);
+                         }
+@@ -903,16 +1044,31 @@
+                             generics: i.generics.clone(),
+                         }
+                     } else {
+-                        let syn::Type::Path(owner) = &*i.self_ty else {
+-                            continue;
+-                        };
+-                        if owner.qself.is_some() || segments(&owner.path).is_err() {
++                        // Match the nominal owner exactly as the later API
++                        // renderer does. Generic arguments do not change the
++                        // nominal identity (e.g. Either<L, R> -> Either).
++                        // Ambiguous specialized methods still fail the unique
++                        // contract-target check in public_contracts.
++                        if self.nominal_type(&i.self_ty, module)?.is_none() {
+                             continue;
+                         }
+                         CallableContext::Inherent {
+                             self_ty: (*i.self_ty).clone(),
+                         }
+                     };
++                    if matches!(context, CallableContext::TraitImpl { .. }) {
++                        let mut overrides = BTreeSet::new();
++                        for item in &i.items {
++                            if let syn::ImplItem::Fn(method) = item {
++                                if attrs(&method.attrs, self.project)?.is_some() {
++                                    overrides.insert(method.sig.ident.to_string());
++                                }
++                            }
++                        }
++                        self.trait_impls.push(LocalTraitImpl {
++                            module: module.to_vec(), context: context.clone(), overrides,
++                        });
++                    }
+                     for method in &i.items {
+                         if let syn::ImplItem::Fn(f) = method {
+                             self.function(
+@@ -1104,6 +1260,17 @@
+                 .collect();
+             ensure!(aliases.len() <= 1, "Ambiguous import {first}");
+             if let Some(i) = aliases.first() {
++                // rand_pcg/rand_xoshiro publicly reexport their external
++                // rand_core dependency under its unchanged root name. This is
++                // an external-crate identity binding, not an alias cycle. Keep
++                // the exception limited to this verified crate/root spelling;
++                // arbitrary identity imports and real cycles still fail.
++                if i.public && i.module.is_empty() && i.alias == "rand_core"
++                    && i.target.as_slice() == ["rand_core"]
++                {
++                    return Ok(std::iter::once("rand_core".to_owned())
++                        .chain(rest[1..].iter().cloned()).collect::<Vec<_>>().join("::"));
++                }
+                 let target = self.resolve(&i.target, &i.module, depth + 1)?;
+                 return Ok(std::iter::once(target)
+                     .chain(rest[1..].iter().cloned())
+@@ -1121,6 +1288,8 @@
+         creusot,
+         public_items: BTreeSet::new(),
+         traits: BTreeSet::new(),
++        trait_defaults: vec![],
++        trait_impls: vec![],
+         types: BTreeSet::new(),
+         functions: vec![],
+         imports: vec![],
+@@ -1131,6 +1300,7 @@
+ pub fn discover(project: &Project) -> Result<Vec<Contract>> {
+     let mut s = scanner(project, false);
+     s.file(&project.root_source, &[], true)?;
++    s.add_local_trait_defaults()?;
+     let mut functions = BTreeMap::<String, Vec<usize>>::new();
+     for (i, f) in s.functions.iter().enumerate() {
+         let path = match f.context.path(&s, &f.module, &f.name) {
+@@ -1340,12 +1510,13 @@
+         );
+     }
+     #[test]
+-    fn generic_local_nominal_identity_remains_erased() {
++    fn generic_local_nominal_alias_is_preserved_with_typed_identity() {
+         let c = creusot_contracts(
+             "pub struct S<U>(U); pub trait T {} impl<U> T for S<U> { #[requires(true)] fn m() {} }",
+             CreusotTarget::Annotated,
+         );
+-        assert_eq!(c[0].api_paths, ["<demo::S as demo::T>::m"]);
++        assert!(c[0].api_paths.contains(&"<demo::S as demo::T>::m".into()));
++        assert!(c[0].api_paths.contains(&"<demo::S<U> as demo::T>::m".into()));
+     }
+     #[test]
+     fn extracts_cfg_attrs_conditions_aliases_and_lines() {
+@@ -1455,6 +1626,166 @@
+         assert_eq!(all[0].api_paths, ["plain"]);
+     }
+     #[test]
++    fn typed_self_does_not_render_unexported_nominal_implementations() {
++        let (_d, p) = project(r#"
++struct Private<T>(T);
++impl<T> Clone for Private<T> { fn clone(&self) -> Self { todo!() } }
++mod hidden {
++    pub struct Unexported<T>(T);
++    impl<T> Clone for Unexported<T> { fn clone(&self) -> Self { todo!() } }
++}
++pub fn anchor() {}
++"#);
++        let selected = BTreeSet::from(["anchor".to_owned()]);
++        let c = public_contracts_for_apis(&p, &selected).unwrap();
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["anchor"]);
++    }
++
++    #[test]
++    fn typed_self_preserves_generic_owners_and_legacy_aliases() {
++        let c = creusot_contracts(r#"
++pub struct Endian<T>(T);
++impl From<u16> for Endian<u16> { fn from(x: u16) -> Self { Endian(x) } }
++impl From<u32> for Endian<u32> { fn from(x: u32) -> Self { Endian(x) } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 2);
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::Endian<u16> as From<u16>>::from".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::Endian<u32> as From<u32>>::from".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::Endian as From<u16>>::from".into())));
++    }
++
++    #[test]
++    fn typed_self_does_not_alias_foreign_self_to_owned_trait_argument() {
++        let c = creusot_contracts(r#"
++pub struct Endian<T>(T);
++impl From<Endian<u16>> for u16 { fn from(x: Endian<u16>) -> Self { x.0 } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["<u16 as From<demo::Endian<u16>>>::from"]);
++    }
++
++    #[test]
++    fn typed_self_resolves_public_type_reexports() {
++        let c = creusot_contracts(r#"
++mod hidden { pub struct Endian<T>(pub T); }
++pub use hidden::Endian as Public;
++impl From<u16> for hidden::Endian<u16> { fn from(x: u16) -> Self { hidden::Endian(x) } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert!(c[0].api_paths.contains(&"<demo::Public<u16> as From<u16>>::from".into()));
++        assert!(c[0].api_paths.contains(&"<demo::Public as From<u16>>::from".into()));
++        assert!(!c[0].api_paths.iter().any(|p| p.contains("hidden")));
++    }
++
++    #[test]
++    fn typed_self_keeps_erased_alias_ambiguity_visible() {
++        let (_d, p) = project(r#"
++pub struct Endian<T>(T);
++impl From<()> for Endian<u16> { fn from(_: ()) -> Self { Endian(0) } }
++impl From<()> for Endian<u32> { fn from(_: ()) -> Self { Endian(0) } }
++"#);
++        let exact = "<demo::Endian<u16> as From<()>>::from".to_owned();
++        let found = public_contracts_for_apis(&p, &BTreeSet::from([exact.clone()])).unwrap();
++        assert_eq!(found.len(), 1);
++        assert!(found[0].api_paths.contains(&exact));
++        let erased = "<demo::Endian as From<()>>::from".to_owned();
++        let found = public_contracts_for_apis(&p, &BTreeSet::from([erased.clone()])).unwrap();
++        assert_eq!(found.iter().filter(|c| c.api_paths.contains(&erased)).count(), 2,
++            "the final Aeneas exactly-one check must reject this erased alias");
++    }
++
++    #[test]
++    fn local_trait_default_bodies_follow_real_impls_and_overrides() {
++        let source = "pub trait Order {\nfn write(&self, x: u16) -> u16 { x }\nfn required(&self);\n}\npub struct A; pub struct B;\nimpl Order for A { fn required(&self) {} }\nimpl Order for B { fn required(&self) {} fn write(&self, x: u16) -> u16 { x + 1 } }\n";
++        let c = creusot_contracts(source, CreusotTarget::All);
++        assert_eq!(c.len(), 4);
++        let a = c.iter().find(|c| c.api_paths.contains(&"<demo::A as demo::Order>::write".into())).unwrap();
++        let b = c.iter().find(|c| c.api_paths.contains(&"<demo::B as demo::Order>::write".into())).unwrap();
++        assert_eq!(a.first_line, 2, "inherited body points to trait declaration");
++        assert_eq!(b.first_line, 7, "override retains its own defining body");
++        assert!(!c.iter().any(|c| c.api_paths.iter().any(|p| p.starts_with("Order::"))));
++    }
++
++    #[test]
++    fn local_generic_trait_defaults_preserve_each_impl_argument() {
++        let c = creusot_contracts(r#"
++pub trait Convert<T> { fn value(&self, x: T) -> T { x } }
++pub struct S;
++impl Convert<u8> for S {}
++impl Convert<u16> for S {}
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 2);
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::S as demo::Convert<u8>>::value".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::S as demo::Convert<u16>>::value".into())));
++    }
++
++    #[test]
++    fn local_trait_defaults_obey_reexports_visibility_and_cfg() {
++        let c = creusot_contracts(r#"
++mod hidden {
++    pub trait T { fn yes(&self) {} #[cfg(feature="absent")] fn disabled(&self) {} }
++    trait Private { fn no(&self) {} }
++    pub struct S;
++    impl T for S {}
++    impl Private for S {}
++}
++pub use hidden::{T as Trait, S as Public};
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["<demo::Public as demo::Trait>::yes"]);
++    }
++
++    #[test]
++    fn local_trait_defaults_do_not_invent_required_or_foreign_methods() {
++        let c = creusot_contracts(r#"
++pub trait Required { fn needed(&self); }
++pub struct S;
++impl Required for S { fn needed(&self) {} }
++impl Clone for S { fn clone(&self) -> Self { S } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 2);
++        assert!(!c.iter().any(|c| c.api_paths.iter().any(|p| p.ends_with("clone_from"))));
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::S as demo::Required>::needed".into())));
++    }
++
++    #[test]
++    fn foreign_self_trait_with_public_owned_argument() {
++        let source = r#"
++mod errors { pub enum Error { Encoding, Length } }
++pub use errors::Error;
++impl From<Error> for core::fmt::Error {
++    fn from(_: Error) -> Self { core::fmt::Error }
++}
++impl From<&Error> for u8 { fn from(_: &Error) -> Self { 0 } }
++"#;
++        let c = creusot_contracts(source, CreusotTarget::All);
++        assert_eq!(c.len(), 2);
++        assert!(c.iter().any(|c| c.api_paths.contains(
++            &"<core::fmt::Error as From<demo::Error>>::from".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(
++            &"<u8 as From<&demo::Error>>::from".into())));
++    }
++
++    #[test]
++    fn foreign_self_trait_rejects_unowned_private_or_shadowed_arguments() {
++        let source = r#"
++pub struct Local;
++struct Private;
++pub fn anchor() {}
++impl From<u8> for core::fmt::Error { fn from(_: u8) -> Self { core::fmt::Error } }
++impl From<Private> for u8 { fn from(_: Private) -> Self { 0 } }
++impl<Local> From<Local> for u16 { fn from(_: Local) -> Self { 0 } }
++impl core::fmt::Display for u32 {
++    fn fmt(&self, _: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { Ok(()) }
++}
++"#;
++        let c = creusot_contracts(source, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["anchor"]);
++    }
++
++    #[test]
+     fn creusot_public_methods_reexports_and_cfg() {
+         let c = creusot_contracts(
+             r#"
+@@ -1576,6 +1907,72 @@
+         assert_eq!(c[1].api_paths, ["<demo::S as demo::FromStr>::from_str"]);
+     }
+ 
++    #[test]
++    fn generic_inherent_methods_keep_nominal_public_api_identity() {
++        let (_d, p) = project("pub enum Either<L,R> { Left(L), Right(R) } impl<L,R> Either<L,R> { pub fn is_left(&self) -> bool { true } pub fn flip(self) -> Either<R,L> { panic!() } } pub struct Wrapper<T>(T); impl<T> Wrapper<T> { pub fn unwrap(self) -> T { self.0 } }");
++        let found = public_contracts(&p, false, CreusotTarget::All).unwrap();
++        assert_eq!(found.len(), 3);
++        for expected in ["Either::is_left", "Either::flip", "Wrapper::unwrap"] {
++            assert_eq!(found.iter().filter(|c| c.api_paths.contains(&expected.into())).count(), 1, "{expected}");
++        }
++    }
++    #[test]
++    fn generic_inherent_nominal_erasure_does_not_hide_ambiguous_specializations() {
++        let (_d, p) = project("pub struct Wrapper<T>(T); impl Wrapper<u8> { pub fn tag(&self) {} } impl Wrapper<u16> { pub fn tag(&self) {} }");
++        assert!(public_contracts(&p, false, CreusotTarget::All).unwrap_err().to_string().contains("Ambiguous contract target"));
++    }
++    #[test]
++    fn explicitly_selected_api_ignores_only_unrelated_nominal_ambiguity() {
++        let (_d, p) = project("pub struct Wrapper<T>(T); impl<T> Wrapper<T> { pub fn unwrap(self) -> T { self.0 } } impl Wrapper<u8> { pub fn tag(&self) {} } impl Wrapper<u16> { pub fn tag(&self) {} }");
++        let selected = BTreeSet::from(["Wrapper::unwrap".into()]);
++        let found = public_contracts_for_apis(&p, &selected).unwrap();
++        assert_eq!(found.len(), 1);
++        assert_eq!(found[0].api_paths, ["Wrapper::unwrap"]);
++        let ambiguous = BTreeSet::from(["Wrapper::tag".into()]);
++        assert!(public_contracts_for_apis(&p, &ambiguous).unwrap_err().to_string().contains("Ambiguous contract target"));
++    }
++    #[test]
++    fn verified_bitwise_catalog_aliases_are_limited_to_known_core_paths() {
++        for name in ["BitAnd", "BitOr", "BitXor"] {
++            for module in ["core::ops", "core::ops::bit"] {
++                let full = format!("{module}::{name}");
++                assert_eq!(external_trait_paths(&full), [full, name.into()]);
++            }
++            let other = format!("custom::{name}");
++            assert_eq!(external_trait_paths(&other), [other]);
++        }
++    }
++    #[test]
++    fn standard_optional_cfg_predicates_follow_recorded_cfg() {
++        let (_d, mut p) = project("pub fn f() {}");
++        for name in ["doctest", "miri", "docsrs"] {
++            let meta = syn::parse_str::<Meta>(name).unwrap();
++            assert!(!predicate(&meta, &p).unwrap(), "{name}");
++            p.cfg.insert(name.into());
++            assert!(predicate(&meta, &p).unwrap(), "{name}");
++            p.cfg.remove(name);
++        }
++        assert!(predicate(&syn::parse_str::<Meta>("unrecognized_build_mode").unwrap(), &p).is_err());
++    }
++    #[test]
++    fn root_rand_core_identity_reexport_is_not_an_alias_cycle() {
++        let (_d, p) = project("pub use rand_core; use rand_core::TryRng; pub struct S; impl TryRng for S { fn try_next_u32(&mut self) -> u32 { 0 } }");
++        let found = public_contracts(&p, false, CreusotTarget::All).unwrap();
++        assert_eq!(found.len(), 1);
++        assert!(found[0].api_paths.contains(&"<demo::S as rand_core::TryRng>::try_next_u32".into()));
++        assert!(found[0].api_paths.contains(&"<demo::S as TryRng>::try_next_u32".into()));
++    }
++    #[test]
++    fn rand_core_identity_exception_does_not_accept_arbitrary_alias_cycles() {
++        for source in [
++            "pub use custom; use custom::T; pub struct S; impl T for S { fn f() {} }",
++            "pub use b as a; pub use a as b; use a::T; pub struct S; impl T for S { fn f() {} }",
++            "pub mod nested { pub use rand_core; use rand_core::TryRng; pub struct S; impl TryRng for S { fn f() {} } }",
++        ] {
++            let (_d, p) = project(source);
++            assert!(public_contracts(&p, false, CreusotTarget::All).unwrap_err().to_string().contains("Cyclic"));
++        }
++    }
+     #[test]
+     fn standard_trait_catalog_aliases_are_explicit_and_limited() {
+         let c = creusot_contracts("use core::default::Default; pub struct S; impl Default for S { #[ensures(true)] fn default() -> Self { S } }", CreusotTarget::Annotated);
