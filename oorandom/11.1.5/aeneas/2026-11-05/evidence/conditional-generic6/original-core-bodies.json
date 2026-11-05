@@ -1,0 +1,258 @@
+{
+  "kind": "original core body structural audit; not a new formal semantics or proof of arbitrary callback behavior",
+  "rustc": "rustc 1.100.0-nightly (923c95cdf 2026-09-16)\nbinary: rustc\ncommit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8\ncommit-date: 2026-09-16\nhost: x86_64-unknown-linux-gnu\nrelease: 1.100.0-nightly\nLLVM version: 23.1.1\n",
+  "original_source_path": "/workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/convert/mod.rs",
+  "original_source_sha256": "aaab13973fa234bb93098ae621f3d22dd1a052744f12cf3190cef77c90f1dc4c",
+  "source_virtual_prefix_mapping": {
+    "/rustc/library": "/workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library"
+  },
+  "original_source_blocks": {
+    "Into": "const impl<T, U> Into<U> for T\nwhere\n    U: [const] From<T>,\n{\n    /// Calls `U::from(self)`.\n    ///\n    /// That is, this conversion is whatever the implementation of\n    /// <code>[From]&lt;T&gt; for U</code> chooses to do.\n    #[inline]\n    #[track_caller]\n    fn into(self) -> U {\n        U::from(self)\n    }\n}",
+    "TryInto": "const impl<T, U> TryInto<U> for T\nwhere\n    U: [const] TryFrom<T>,\n{\n    type Error = U::Error;\n\n    #[inline]\n    fn try_into(self) -> Result<U, U::Error> {\n        U::try_from(self)\n    }\n}",
+    "TryFrom": "const impl<T, U> TryFrom<U> for T\nwhere\n    U: [const] Into<T>,\n{\n    type Error = !;\n\n    #[inline]\n    fn try_from(value: U) -> Result<Self, !> {\n        Ok(U::into(value))\n    }\n}"
+  },
+  "llbc_sha256": "3caeb69952e95d6a5d7c598c6a0ffc75a2bee7513eff3dea7bc240c4d1966545",
+  "rows": [
+    {
+      "method": "into",
+      "def_id": 22,
+      "source_file": {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core",
+        "contents": null
+      },
+      "source_span": {
+        "file_id": 9,
+        "beg": {
+          "line": 779,
+          "col": 4
+        },
+        "end": {
+          "line": 779,
+          "col": 22
+        }
+      },
+      "source_generics": [
+        "T",
+        "U"
+      ],
+      "actual_trait": "core::convert::Into",
+      "actual_dictionary_trait": "core::convert::From",
+      "dictionary_parameter_order": [
+        1,
+        0
+      ],
+      "source_body_has_one_original_dictionary_call": true,
+      "statement_shape": [
+        "StorageLive",
+        "Call",
+        "StorageDead",
+        "Return"
+      ],
+      "body_sha256": "cbfb0f16c28cf8261557152742f0acb3fbe67157cd9d99d7f0200cc0b8dcfb15"
+    },
+    {
+      "method": "try_into",
+      "def_id": 23,
+      "source_file": {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core",
+        "contents": null
+      },
+      "source_span": {
+        "file_id": 9,
+        "beg": {
+          "line": 805,
+          "col": 4
+        },
+        "end": {
+          "line": 805,
+          "col": 44
+        }
+      },
+      "source_generics": [
+        "T",
+        "U",
+        "Clause0_Error"
+      ],
+      "actual_trait": "core::convert::TryInto",
+      "actual_dictionary_trait": "core::convert::TryFrom",
+      "dictionary_parameter_order": [
+        1,
+        0,
+        2
+      ],
+      "source_body_has_one_original_dictionary_call": true,
+      "statement_shape": [
+        "StorageLive",
+        "Call",
+        "StorageDead",
+        "Return"
+      ],
+      "body_sha256": "9100094ed68ab3963a365280f6145f982321904cce822770570cfd4e87a1a9ce"
+    },
+    {
+      "method": "try_from",
+      "def_id": 24,
+      "source_file": {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core",
+        "contents": null
+      },
+      "source_span": {
+        "file_id": 9,
+        "beg": {
+          "line": 821,
+          "col": 4
+        },
+        "end": {
+          "line": 821,
+          "col": 44
+        }
+      },
+      "source_generics": [
+        "T",
+        "U"
+      ],
+      "actual_trait": "core::convert::TryFrom",
+      "actual_dictionary_trait": "core::convert::Into",
+      "dictionary_parameter_order": [
+        1,
+        0
+      ],
+      "source_body_has_one_original_dictionary_call": true,
+      "statement_shape": [
+        "StorageLive",
+        "StorageLive",
+        "Call",
+        "Assign",
+        "StorageDead",
+        "StorageDead",
+        "Return"
+      ],
+      "body_sha256": "5fb20624e79e73e4fc237dfc72e70944de5624676e732e5cd4a0ba7d0e9a3300"
+    }
+  ],
+  "negative_guard_checks": [
+    {
+      "case": "into-wrong-argument",
+      "rejected": true
+    },
+    {
+      "case": "into-extra-instruction",
+      "rejected": true
+    },
+    {
+      "case": "tryinto-wrong-source-line",
+      "rejected": true
+    },
+    {
+      "case": "tryfrom-Err-variant",
+      "rejected": true
+    },
+    {
+      "case": "into-opaque",
+      "rejected": true
+    }
+  ],
+  "proof_status": {
+    "TryFrom_Rand32_Rand64": "direct original generated body proven, standard3 audit",
+    "Into_TryInto_four": "direct original generated bodies proven using separately patched default-off finite export2 translator; original Rust/IR unchanged; full coimport standard3"
+  },
+  "two_body_input_rows": [
+    {
+      "method": "into",
+      "def_id": 21,
+      "source_file": {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core",
+        "contents": null
+      },
+      "source_span": {
+        "file_id": 9,
+        "beg": {
+          "line": 779,
+          "col": 4
+        },
+        "end": {
+          "line": 779,
+          "col": 22
+        }
+      },
+      "source_generics": [
+        "T",
+        "U"
+      ],
+      "actual_trait": "core::convert::Into",
+      "actual_dictionary_trait": "core::convert::From",
+      "dictionary_parameter_order": [
+        1,
+        0
+      ],
+      "source_body_has_one_original_dictionary_call": true,
+      "statement_shape": [
+        "StorageLive",
+        "Call",
+        "StorageDead",
+        "Return"
+      ],
+      "body_sha256": "2e41a48871b8b4a9f1968e38cf1ab9f3f8a78d80690271f283ab17d2e181ca0a"
+    },
+    {
+      "method": "try_into",
+      "def_id": 22,
+      "source_file": {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core",
+        "contents": null
+      },
+      "source_span": {
+        "file_id": 9,
+        "beg": {
+          "line": 805,
+          "col": 4
+        },
+        "end": {
+          "line": 805,
+          "col": 44
+        }
+      },
+      "source_generics": [
+        "T",
+        "U",
+        "Clause0_Error"
+      ],
+      "actual_trait": "core::convert::TryInto",
+      "actual_dictionary_trait": "core::convert::TryFrom",
+      "dictionary_parameter_order": [
+        1,
+        0,
+        2
+      ],
+      "source_body_has_one_original_dictionary_call": true,
+      "statement_shape": [
+        "StorageLive",
+        "Call",
+        "StorageDead",
+        "Return"
+      ],
+      "body_sha256": "a74b0577554397e702299196749023942cd7f58fac29fe32a0097f90739bea10"
+    }
+  ],
+  "two_body_input_sha256": "0965b58d9e12b7946f61480b60654588d865adb33da837b764cf2cec372590a4"
+}

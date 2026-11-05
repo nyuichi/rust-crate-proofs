@@ -1,5 +1,7 @@
 import Oorandom
 import EstablishedRange
+import GenericConversionProofs
+import OriginalDelegationProofs
 open Aeneas Aeneas.Std Result
 open oorandom
 namespace Proofs

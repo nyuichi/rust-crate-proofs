@@ -20,3 +20,7 @@ lean_lib RangePartial32
 lean_lib RangePartial64
 lean_lib RangeComplete32
 lean_lib RangeComplete64
+lean_lib Generated
+lean_lib GeneratedDelegations
+lean_lib GenericConversionProofs
+lean_lib OriginalDelegationProofs

@@ -1,0 +1,101 @@
+diff --git a/src/Config.ml b/src/Config.ml
+index 87e3469..19feb58 100644
+--- a/src/Config.ml
++++ b/src/Config.ml
+@@ -31,6 +31,9 @@ let set_backend (b : string) : unit =
+     For instance, if the crate name is [foo] the namespace used for the
+     extracted code will be [foo] but the user might want to use [Foo] instead.
+ *)
++(** Experimental, default-off export of the two original core conversion bodies. *)
++let emit_original_core_conversion_bodies = ref false
++
+ let namespace : string option ref = ref None
+ 
+ let set_namespace (s : string) : unit = namespace := Some s
+diff --git a/src/Main.ml b/src/Main.ml
+index 3ba4be5..1bc91c9 100644
+--- a/src/Main.ml
++++ b/src/Main.ml
+@@ -105,6 +105,9 @@ let () =
+         Arg.String set_subdir,
+         " Extract the files in a sub-folder; this option has an impact on the \
+          import paths of the generated files" );
++      ( "-emit-original-core-conversion-bodies",
++        Arg.Set emit_original_core_conversion_bodies,
++        " Lean only: export exactly the original transparent core Into/TryInto blanket bodies without duplicate rust_fun registration (experimental)" );
+       ( "-use-lean-modules",
+         Arg.Bool (fun b -> use_lean_modules := b),
+         " Emit Lean files using the module system (default: true). Pass \
+diff --git a/src/Translate.ml b/src/Translate.ml
+index 74e7d22..fc16d83 100644
+--- a/src/Translate.ml
++++ b/src/Translate.ml
+@@ -950,7 +950,8 @@ let export_functions_group (fmt : Format.formatter) (config : gen_config)
+     let funs_map = builtin_funs_map () in
+     List.map
+       (fun (trans : pure_fun_translation) ->
+-        match_name_find_opt ctx.trans_ctx trans.f.item_meta.name funs_map
++        Option.is_none (Extract.original_core_conversion_export_kind ctx trans.f)
++        && match_name_find_opt ctx.trans_ctx trans.f.item_meta.name funs_map
+         <> None)
+       pure_ls
+   in
+@@ -1550,6 +1551,15 @@ let extract_translated_crate (filename : string) (dest_dir : string)
+       extracted_opaque;
+     }
+   in
++  (* The opt-in never silently falls back to existing registered models. *)
++  if !Config.emit_original_core_conversion_bodies then (
++    if Config.backend () <> Lean then
++      failwith "Original core conversion export supports only Lean";
++    let selected = List.filter_map (fun trans ->
++      Extract.original_core_conversion_export_kind ctx trans.f)
++      (FunDeclId.Map.values trans_funs) in
++    if List.sort String.compare selected <> ["into"; "try_into"] then
++      failwith "Original core conversion export requires exactly Into and TryInto" );
+   (* Initialize EmitJson. *)
+   EmitJson.init_if_enabled ~dest_dir;
+ 
+diff --git a/src/extract/Extract.ml b/src/extract/Extract.ml
+index dc667f4..0b87c41 100644
+--- a/src/extract/Extract.ml
++++ b/src/extract/Extract.ml
+@@ -2079,6 +2079,28 @@ let extract_fun_comment (ctx : extraction_ctx) (fmt : F.formatter)
+     exception** of opaque (builtin/declared) functions for HOL4.
+ 
+     See {!extract_fun_decl}. *)
++(** Select only the two original generic core bodies; no model/body/type rewrite. *)
++let original_core_conversion_export_kind (ctx : extraction_ctx)
++    (def : fun_decl) : string option =
++  if not !Config.emit_original_core_conversion_bodies || backend () <> Lean then None
++  else
++    let targets = [
++      ("into", "core::convert::{core::convert::Into<@T, @U>}::into");
++      ("try_into", "core::convert::{core::convert::TryInto<@T, @U, @Error>}::try_into")
++    ] in
++    match List.find_opt (fun (_, pattern) ->
++      ExtractName.match_name ctx.crate (Charon.NameMatcher.parse_pattern pattern)
++        def.item_meta.name) targets with
++    | None -> None
++    | Some (kind, _) ->
++        if def.item_meta.is_local || Option.is_none def.body
++           || def.loop_id <> None || def.num_loops <> 0 || def.is_global_decl_body
++           || List.length def.signature.inputs <> 1
++           || List.length def.signature.llbc_generics.types <>
++                (if kind = "into" then 2 else 3)
++        then failwith "Original core conversion export requires the exact external transparent generic body";
++        Some kind
++
+ let extract_fun_decl_gen (ctx : extraction_ctx) (fmt : F.formatter)
+     (kind : decl_kind) (has_decreases_clause : bool) (def : fun_decl) : unit =
+   [%sanity_check] def.item_meta.span (not def.is_global_decl_body);
+@@ -2133,7 +2155,8 @@ let extract_fun_decl_gen (ctx : extraction_ctx) (fmt : F.formatter)
+   let attributes = rust_attributes @ reduc_attribute @ trait_default in
+   extract_attributes span ctx fmt def.item_meta.name None attributes "rust_fun"
+     []
+-    ~is_external:(not def.item_meta.is_local);
++    ~is_external:(not def.item_meta.is_local &&
++      Option.is_none (original_core_conversion_export_kind ctx def));
+   F.pp_open_vbox fmt ctx.indent_incr;
+   (* For HOL4: we may need to put parentheses around the definition *)
+   let parenthesize = backend () = HOL4 && decl_is_not_last_from_group kind in
