@@ -9,3 +9,7 @@ lean_lib RandXoshiro
 @[default_target] lean_lib WrapperProofs
 lean_lib XoshiroApiRoots where
  roots := #[`XoshiroApiRoots.Types, `XoshiroApiRoots.Funs]
+
+@[default_target] lean_lib SeedProofs
+lean_lib Seed512 where
+ roots := #[`Seed512.Types, `Seed512.Funs]

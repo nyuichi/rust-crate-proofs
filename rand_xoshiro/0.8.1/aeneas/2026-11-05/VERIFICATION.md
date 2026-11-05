@@ -9,3 +9,7 @@ The Rust compiler, official Charon/Aeneas translation, official Aeneas array/sca
 Direct proofs: proofs/Proofs.lean and proofs/RandXoshiro.lean. Compiler-inlined caller proofs: proofs/WrapperProofs.lean and proofs/XoshiroApiRoots/. Exact forwarding source and per-API identity: evidence/selection-wrapper/src/lib.rs and api-bindings.json. Per-feature compiler/MIR provenance: evidence/selection-wrapper/compiler-provenance.json and default/mir/, serde/mir/.
 
 Run `./verify-all.bash`. Unknown external/axiom guards and all public transitive audits remain mandatory.
+
+## Seed512 direct bodies
+
+Default returns 64 zero bytes. AsRef preserves the complete stored byte sequence. AsMut preserves that initial view and its backward function writes back any legal 64-byte replacement. The fixed-length condition is the natural length invariant of a returned slice into this fixed-size array. iter initializes the official standard slice-iterator model at index zero over the full byte sequence; this proof does not separately body-verify standard Iterator methods. These four APIs add direct proofs, bringing the Aeneas total to 29 (20 direct plus 9 compiler-inlined calls). See proofs/SeedProofs.lean and evidence/seed512-equivalence.json.
