@@ -65,3 +65,17 @@ Keep every report title about its specific behavior. Its opening should identify
 For the source spreadsheet, retain the historical completion author cells as previous scoped results. H-cell prose should say `限定APIの検証済・全公開APIは棚卸し/拡張中`, followed by the actual API scope, report URL or quota-hold status, and important model constraints. Do not label a crate `全API完了` until the inventory obligations/configurations are closed. New proofs not yet published should be explicitly marked `追加証明済・公開未反映`, without a fabricated report URL. Exact cell edits require the final reviewed proof/publication delta.
 
 Rebuild locally with `python3 build-dashboard.py --source-root /workspace/full-api`. This reads the selected inventories only and does not run proofs or contact external services.
+
+## Explicit publication resumption
+
+The new seven crates remain held after the observed service `429 daily_limit`. No additional import request was made for these extended records. Published server source specifies five new imports per user per UTC day; matching the deployed revision and an actual quota reset remain unconfirmed. Existing-report revisions use their existing catalogues.
+
+Use this directory's latest `proof-updates.json` and `resume.py`, rather than the earlier ten-crate batch's configurations and run IDs. Preserve the exact SARIF hashes and source commits. With the documented CLI compatibility patches, authenticated cargo-proofs configuration and toolchain available, a plan performs no network writes:
+
+```sh
+python3 batches/2026-11-05-full-public-api/resume.py --crate bit_field
+```
+
+When intentionally resuming after reviewing the service quota, add `--publish`. Select each crate explicitly; at most five may be selected in one invocation. The script restores only the archived unchanged SARIF to the current manifest's state directory, supplies its explicit `--run`, performs dry-run then publish, stops on any error (including 429), and saves public readback. It contains no credentials and does not create another identity, schedule publication, or retry rejected imports. CLI source/config validation remains authoritative: regenerate a record if the current proof configuration differs from its recorded evidence. This script is not a proof builder.
+
+After each successful readback, update the source Sheet's existing row: replace the H-cell quota-hold wording with the exact report URL and reviewed scope, and set B to `nyuichi` following the existing convention. Preserve limitations and avoid `全API完了`. The script does not modify Sheets or require Sheets credentials.
