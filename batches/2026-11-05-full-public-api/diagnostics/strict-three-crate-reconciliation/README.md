@@ -128,3 +128,7 @@ The compile-only fixture and its positive/expected-negative logs are retained.
 Existing proof bodies/publications are unchanged. PUBLISHER-HANDOFF.md identifies
 where old counts need a Git-ledger correction; inspected report artifacts have
 no199/184 remaining-count prose needing a proof rerun solely for this correction.
+
+## Collection-scope addendum
+
+Counts189/50/80/128 reconcile the preserved input ledgers. Those input commands lack an explicit --document-hidden-items option; these counts are not established as an exhaustive catalogue of hidden/nightly APIs. Hidden and private filters differ. The later base16 inventory explicitly enables hidden-item documentation, so its population must not be silently compared as identical. No new collection/build is claimed here; existing14/66/1 source bindings and theorem domains are unchanged. Exact evidence and the append-only correction are in ../base16ct-strict-reconciliation/THREE-CRATE-COLLECTION-SCOPE-ADDENDUM.md.

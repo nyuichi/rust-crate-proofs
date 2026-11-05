@@ -1,0 +1,1 @@
+Any large JSON is stored as deterministic gzip with original names/lengths/SHA256 in ARCHIVE-INDEX.json; decompress before running archived scripts. This does not introduce proof runs or report changes.
