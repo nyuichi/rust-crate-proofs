@@ -1,3 +1,7 @@
+import WriteStrProofs
+import WriteStrNoStdDebug
+import WriteStrNoStdRelease
+import WriteStrStdRelease
 import PrefixProofs
 import WidePanicProofs
 import PrefixNoStdDebug
@@ -16,3 +20,8 @@ import PrefixStdRelease
 #print axioms PrefixStdRelease.exact_transition
 #print axioms PrefixStdRelease.wide_unsigned_panic
 #print axioms PrefixStdRelease.wide_signed_panic
+
+#print axioms WriteStrProofs.always_panics
+#print axioms WriteStrNoStdDebug.always_panics
+#print axioms WriteStrNoStdRelease.always_panics
+#print axioms WriteStrStdRelease.always_panics

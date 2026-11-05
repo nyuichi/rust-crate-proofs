@@ -27,3 +27,12 @@ lean_lib NohashNostdDebug
 lean_lib NohashNostdRelease
 lean_lib NohashStdReleaseAll
 lean_lib HasherFamilyAudit
+
+lean_lib WriteStrNoStdDebug
+lean_lib NohashStringNostdDebug
+lean_lib WriteStrNoStdRelease
+lean_lib NohashStringNostdRelease
+lean_lib WriteStrProofs
+lean_lib NohashStringInline
+lean_lib WriteStrStdRelease
+lean_lib NohashStringStdRelease
