@@ -1,0 +1,1 @@
+A32/A64 Z3 now SUCCESS:66checks each0fail2.728/30.898s. B32/B64 fullword purehelper priorSUCCESS:11checks each0fail. See COMPOSITION.md for exact logical connection, source/helper identity, and limits. EarlierCadical A/directtimeouts retained unchanged. No addedstub/model/originalsource change. Directjoint Z3 not yet authorized/executed.

@@ -1,0 +1,248 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling oorandom v11.1.5 (/workspace/full-api/prng/sources/oorandom-11.1.5)
+warning: use of deprecated constant `core::f32::MANTISSA_DIGITS`: replaced by the `MANTISSA_DIGITS` associated constant on `f32`
+   --> /workspace/full-api/prng/sources/oorandom-11.1.5/src/lib.rs:115:43
+    |
+115 |         const PRECISION: u32 = core::f32::MANTISSA_DIGITS;
+    |                                           ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated constant `core::f64::MANTISSA_DIGITS`: replaced by the `MANTISSA_DIGITS` associated constant on `f64`
+   --> /workspace/full-api/prng/sources/oorandom-11.1.5/src/lib.rs:232:43
+    |
+232 |         const PRECISION: u32 = core::f64::MANTISSA_DIGITS;
+    |                                           ^^^^^^^^^^^^^^^
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling oorandom-external16-checks v0.1.0 (/workspace/full-api/prng/oorandom-external16)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
+Checking harness concrete_identity_rand32...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/prng/oorandom-external16/target/kani/x86_64-unknown-linux-gnu/debug/build/oorandom-external16-checks/09bc7f706d744232/out/oorandom_external16_checks-09bc7f706d744232__RNvCseTuoyFhWzOy_26oorandom_external16_checks24concrete_identity_rand32.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0173183s
+size of program expression: 955 steps
+slicing removed 433 assignments
+Generated 158 VCC(s), 8 remaining after simplification
+Runtime Postprocess Equation: 0.000274895s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00287089s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 6.56e-06s
+Solving with CaDiCaL 3.0.0
+2991 variables, 3934 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000106271s
+Runtime decision procedure: 0.00308588s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+2992 variables, 3935 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 8.0431e-05s
+Runtime decision procedure: 0.000283373s
+
+RESULTS:
+Check 1: concrete_identity_rand32.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: converted.state() == state"
+	 - Location: src/lib.rs:11:2 in function concrete_identity_rand32
+
+Check 2: concrete_identity_rand32.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: borrowed.state() == state"
+	 - Location: src/lib.rs:13:2 in function concrete_identity_rand32
+
+Check 3: concrete_identity_rand32.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: mutable.state() == state"
+	 - Location: src/lib.rs:17:3 in function concrete_identity_rand32
+
+Check 4: concrete_identity_rand32.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: destination.state() == replacement"
+	 - Location: src/lib.rs:20:2 in function concrete_identity_rand32
+
+Check 5: concrete_identity_rand32.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:18:3 in function concrete_identity_rand32
+
+Check 6: concrete_identity_rand32.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:18:3 in function concrete_identity_rand32
+
+Check 7: concrete_identity_rand32.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:18:3 in function concrete_identity_rand32
+
+Check 8: concrete_identity_rand32.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:18:3 in function concrete_identity_rand32
+
+Check 9: concrete_identity_rand32.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:18:3 in function concrete_identity_rand32
+
+Check 10: concrete_identity_rand32.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:18:3 in function concrete_identity_rand32
+
+Check 11: oorandom::Rand32::state.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 12: oorandom::Rand32::state.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 13: oorandom::Rand32::state.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 14: oorandom::Rand32::state.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 15: oorandom::Rand32::state.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 16: oorandom::Rand32::state.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 17: oorandom::Rand32::state.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 18: oorandom::Rand32::state.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 19: oorandom::Rand32::state.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 20: oorandom::Rand32::state.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 21: oorandom::Rand32::state.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 22: oorandom::Rand32::state.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 23: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 24: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 25: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 26: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 27: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 28: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 29: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 30: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 31: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 32: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 33: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 34: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+
+SUMMARY:
+ ** 0 of 34 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.07548971s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.

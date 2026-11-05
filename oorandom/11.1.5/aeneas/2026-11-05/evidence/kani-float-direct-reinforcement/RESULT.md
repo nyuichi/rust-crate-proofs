@@ -1,0 +1,5 @@
+# Oorandom float exactbits/publicword attempt — incomplete
+
+Both authorized exactbit/publicstate composition harnesses timed out at60s (exit124) with no proof result or APIcounterexample. Rand32 domain allu64state/inc (128bits); Rand64 allu128state/inc (256bits). No input assumptions, source edits, privateobserver or models. Independent normalizedIEEE reference uses top24/53wordbits and integer exponent/mantissa construction; actual float compares exactbits/range/statepair vs one actualpublicwordcall. Tool trust includes Kani IEEE implementation and compiler.
+
+Initial cfg(kani) compilation caught a referencef64 exponent-width typing error; archived under compile-error. Corrected u32 exponent widened to u64 before bitposition52. No solver ran before that correction. Ordinary cargo check did not typecheck cfg(kani)body. After correction each harness ran once60s and timed out; no solver retry. Old range-only33check successes remain unchanged and are not promoted to exactbits/state proof. Parent may use separate nativeAeneas wordproof as complementary evidence, but these attempted assertions remain unverified.

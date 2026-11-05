@@ -1,0 +1,428 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: use of deprecated constant `core::f32::MANTISSA_DIGITS`: replaced by the `MANTISSA_DIGITS` associated constant on `f32`
+   --> /workspace/full-api/prng/sources/oorandom-11.1.5/src/lib.rs:115:43
+    |
+115 |         const PRECISION: u32 = core::f32::MANTISSA_DIGITS;
+    |                                           ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated constant `core::f64::MANTISSA_DIGITS`: replaced by the `MANTISSA_DIGITS` associated constant on `f64`
+   --> /workspace/full-api/prng/sources/oorandom-11.1.5/src/lib.rs:232:43
+    |
+232 |         const PRECISION: u32 = core::f64::MANTISSA_DIGITS;
+    |                                           ^^^^^^^^^^^^^^^
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+Checking harness checks::original_rand32_float_public_word_exact_bits...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/prng/kani-oorandom-float-range/target/kani/x86_64-unknown-linux-gnu/debug/build/oorandom-float-public-word-bits-checks/0340d3e8b901f5b2/out/oorandom_float_public_word_bits_checks-0340d3e8b901f5b2__RNvNtCsgC10byFQNAK_38oorandom_float_public_word_bits_checks6checks44original_rand32_float_public_word_exact_bits.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0233027s
+size of program expression: 1102 steps
+slicing removed 505 assignments
+Generated 150 VCC(s), 42 remaining after simplification
+Runtime Postprocess Equation: 0.00040447s
+Passing problem to SMT2 QF_AUFBV using Z3
+converting SSA
+Runtime Convert SSA: 0.00847346s
+Running SMT2 QF_AUFBV using Z3
+Runtime Solver: 0.35033s
+Runtime decision procedure: 0.359399s
+Running SMT2 QF_AUFBV using Z3
+Runtime Solver: 4.13175s
+Runtime decision procedure: 4.1319s
+
+RESULTS:
+Check 1: <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.assume.1
+	 - Status: SUCCESS
+	 - Description: "Rust intrinsic assumption failed"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:195:26 in function <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 2: <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:208:56 in function <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 3: <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:208:29 in function <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 4: <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.arithmetic_overflow.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:209:29 in function <u32 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 5: std::intrinsics::rotate_right::<u32>.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to multiply with overflow"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:49 in function std::intrinsics::rotate_right::<u32>
+
+Check 6: std::intrinsics::rotate_right::<u32>.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:41 in function std::intrinsics::rotate_right::<u32>
+
+Check 7: std::intrinsics::rotate_right::<u32>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:41 in function std::intrinsics::rotate_right::<u32>
+
+Check 8: checks::bits32.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: src/lib.rs:5:47 in function checks::bits32
+
+Check 9: checks::bits32.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to add with overflow"
+	 - Location: src/lib.rs:5:81 in function checks::bits32
+
+Check 10: checks::bits32.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: src/lib.rs:5:81 in function checks::bits32
+
+Check 11: checks::bits32.assertion.4
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:5:91 in function checks::bits32
+
+Check 12: checks::bits32.assertion.5
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: src/lib.rs:5:111 in function checks::bits32
+
+Check 13: checks::bits32.assertion.6
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:5:107 in function checks::bits32
+
+Check 14: oorandom::Rand32::rand_u32.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:93:33 in function oorandom::Rand32::rand_u32
+
+Check 15: oorandom::Rand32::rand_u32.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:93:31 in function oorandom::Rand32::rand_u32
+
+Check 16: oorandom::Rand32::rand_u32.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:94:24 in function oorandom::Rand32::rand_u32
+
+Check 17: checks::original_rand32_float_public_word_exact_bits.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:10:63 in function checks::original_rand32_float_public_word_exact_bits
+
+Check 18: checks::original_rand32_float_public_word_exact_bits.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: actual.to_bits() == bits32(integer)"
+	 - Location: src/lib.rs:11:3 in function checks::original_rand32_float_public_word_exact_bits
+
+Check 19: checks::original_rand32_float_public_word_exact_bits.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: actual>=0.0&&actual<1.0"
+	 - Location: src/lib.rs:11:48 in function checks::original_rand32_float_public_word_exact_bits
+
+Check 20: checks::original_rand32_float_public_word_exact_bits.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: a.state() == b.state()"
+	 - Location: src/lib.rs:11:81 in function checks::original_rand32_float_public_word_exact_bits
+
+Check 21: oorandom::Rand32::rand_float.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:118:15 in function oorandom::Rand32::rand_float
+
+Check 22: oorandom::Rand32::rand_float.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:118:9 in function oorandom::Rand32::rand_float
+
+Check 23: <u32 as std::intrinsics::fallback::DisjointBitOr>::disjoint_bitor.assume.1
+	 - Status: SUCCESS
+	 - Description: "Rust intrinsic assumption failed"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:138:26 in function <u32 as std::intrinsics::fallback::DisjointBitOr>::disjoint_bitor
+
+Check 24: std::intrinsics::rotate_right::<u32>.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:41 in function std::intrinsics::rotate_right::<u32>
+
+Check 25: oorandom::Rand32::state.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 26: oorandom::Rand32::state.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 27: oorandom::Rand32::state.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 28: oorandom::Rand32::state.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 29: oorandom::Rand32::state.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 30: oorandom::Rand32::state.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:10 in function oorandom::Rand32::state
+
+Check 31: oorandom::Rand32::state.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 32: oorandom::Rand32::state.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 33: oorandom::Rand32::state.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 34: oorandom::Rand32::state.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 35: oorandom::Rand32::state.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 36: oorandom::Rand32::state.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:76:22 in function oorandom::Rand32::state
+
+Check 37: oorandom::Rand32::rand_u32.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:89:29 in function oorandom::Rand32::rand_u32
+
+Check 38: oorandom::Rand32::rand_u32.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:89:29 in function oorandom::Rand32::rand_u32
+
+Check 39: oorandom::Rand32::rand_u32.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:89:29 in function oorandom::Rand32::rand_u32
+
+Check 40: oorandom::Rand32::rand_u32.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:89:29 in function oorandom::Rand32::rand_u32
+
+Check 41: oorandom::Rand32::rand_u32.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:89:29 in function oorandom::Rand32::rand_u32
+
+Check 42: oorandom::Rand32::rand_u32.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:89:29 in function oorandom::Rand32::rand_u32
+
+Check 43: oorandom::Rand32::rand_u32.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:92:27 in function oorandom::Rand32::rand_u32
+
+Check 44: oorandom::Rand32::rand_u32.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:92:27 in function oorandom::Rand32::rand_u32
+
+Check 45: oorandom::Rand32::rand_u32.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:92:27 in function oorandom::Rand32::rand_u32
+
+Check 46: oorandom::Rand32::rand_u32.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:92:27 in function oorandom::Rand32::rand_u32
+
+Check 47: oorandom::Rand32::rand_u32.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:92:27 in function oorandom::Rand32::rand_u32
+
+Check 48: oorandom::Rand32::rand_u32.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:92:27 in function oorandom::Rand32::rand_u32
+
+Check 49: oorandom::Rand32::rand_u32.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:90:9 in function oorandom::Rand32::rand_u32
+
+Check 50: oorandom::Rand32::rand_u32.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:90:9 in function oorandom::Rand32::rand_u32
+
+Check 51: oorandom::Rand32::rand_u32.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:90:9 in function oorandom::Rand32::rand_u32
+
+Check 52: oorandom::Rand32::rand_u32.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:90:9 in function oorandom::Rand32::rand_u32
+
+Check 53: oorandom::Rand32::rand_u32.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:90:9 in function oorandom::Rand32::rand_u32
+
+Check 54: oorandom::Rand32::rand_u32.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:90:9 in function oorandom::Rand32::rand_u32
+
+Check 55: <oorandom::Rand32 as std::clone::Clone>::clone.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:28:16 in function <oorandom::Rand32 as std::clone::Clone>::clone
+
+Check 56: <oorandom::Rand32 as std::clone::Clone>::clone.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:28:16 in function <oorandom::Rand32 as std::clone::Clone>::clone
+
+Check 57: <oorandom::Rand32 as std::clone::Clone>::clone.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:28:16 in function <oorandom::Rand32 as std::clone::Clone>::clone
+
+Check 58: <oorandom::Rand32 as std::clone::Clone>::clone.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:28:16 in function <oorandom::Rand32 as std::clone::Clone>::clone
+
+Check 59: <oorandom::Rand32 as std::clone::Clone>::clone.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:28:16 in function <oorandom::Rand32 as std::clone::Clone>::clone
+
+Check 60: <oorandom::Rand32 as std::clone::Clone>::clone.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/oorandom-11.1.5/src/lib.rs:28:16 in function <oorandom::Rand32 as std::clone::Clone>::clone
+
+Check 61: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 62: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 63: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 64: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 65: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 66: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 67: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 68: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 69: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 70: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 71: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 72: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+
+SUMMARY:
+ ** 0 of 72 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 4.6473107s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.
