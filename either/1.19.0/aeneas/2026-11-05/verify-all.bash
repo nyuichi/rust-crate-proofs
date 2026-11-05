@@ -9,14 +9,14 @@ sha256sum proofs/Generated/{Either.lean,translation.json} > evidence/generated-b
 python3 tools/extract.py
 sha256sum --check evidence/generated-before.sha256
 if rg -n '\bsorry\b|\baxiom\b' proofs --glob '*.lean' --glob '!**/.lake/**'; then exit 1; fi
-(cd proofs; lake build +BothProofs +CallbackProofs +DefaultProofs +IntoEitherProofs +IteratorProofs +NextBackProofs +FactorProofs +IntoIterProofs +IterSharedProofs +MapInspectProofs +Proofs +ResultProofs) 2>&1 | tee evidence/verification.log
+(cd proofs; lake build +BothProofs +CallbackProofs +DefaultProofs +IntoEitherProofs +IteratorProofs +NextBackProofs +FactorProofs +IntoIterProofs +IterSharedProofs +FactorIterSharedProofs +MapInspectProofs +Proofs +ResultProofs) 2>&1 | tee evidence/verification.log
 python3 - <<'INNER'
 from pathlib import Path
 import re
-rows=re.findall(r"'((?:Proofs|CallbackProofs|IntoEitherProofs|ResultProofs|DefaultProofs|BothProofs|MapInspectProofs|IteratorProofs|NextBackProofs|FactorProofs|IntoIterProofs|IterSharedProofs)\.\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
-assert len({name for name, _ in rows})==141,rows
+rows=re.findall(r"'((?:Proofs|CallbackProofs|IntoEitherProofs|ResultProofs|DefaultProofs|BothProofs|MapInspectProofs|IteratorProofs|NextBackProofs|FactorProofs|IntoIterProofs|IterSharedProofs|FactorIterSharedProofs)\.\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
+assert len({name for name, _ in rows})==148,rows
 for n,a in rows:assert set(a.split(', '))<={'propext','Classical.choice','Quot.sound'},(n,a)
-print('All one hundred forty-one theorem transitive axiom audits passed')
+print('All one hundred forty-eight theorem transitive axiom audits passed')
 INNER
 
 python3 tools/audit-all.py . evidence/machine-claims-audit

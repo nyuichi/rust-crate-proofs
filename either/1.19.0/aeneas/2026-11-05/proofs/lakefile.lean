@@ -33,3 +33,5 @@ lean_lib FactorProofs
 lean_lib IntoIterProofs
 
 lean_lib IterSharedProofs
+
+lean_lib FactorIterSharedProofs
