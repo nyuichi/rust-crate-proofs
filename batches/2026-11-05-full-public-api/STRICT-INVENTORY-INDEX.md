@@ -6,7 +6,7 @@ This index covers all13 final scoped ledger reconciliations. Public reports curr
 |---|---|---:|---:|
 | ascii 1.1.0 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [28 / 9](https://proofs.rs/report/28) | 51 |
 | base16ct 1.0.0 | [base16](diagnostics/base16ct-strict-reconciliation/README.md) | [31 / 5](https://proofs.rs/report/31) | 3 |
-| bit_field 0.10.3 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [34 / 7](https://proofs.rs/report/34) | 27 |
+| bit_field 0.10.3 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [34 / 8](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [32 / 5](https://proofs.rs/report/32) | 42 |
 | byteorder-lite 0.1.0 | [strict-four](diagnostics/strict-four-crate-reconciliation/README.md) | [33 / 5](https://proofs.rs/report/33) | 64 |
 | either 1.19.0 | [either](diagnostics/either-strict-reconciliation/README.md) | [27 / 10](https://proofs.rs/report/27) | 44 |

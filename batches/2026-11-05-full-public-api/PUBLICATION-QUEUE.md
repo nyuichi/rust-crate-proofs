@@ -7,7 +7,7 @@ Thirteen public reports contain427 scoped model contracts. This is not full API 
 | ASCII report28 rev9 |51|Original scalar35 plus Error2/staticDefault1 Kani evidence; earlier evidence retained|
 | PCG report29 rev6 |25|MCGserde592, PCG32composition81, externalRng158+393; constructor-image domains distinct from arbitrary serde wire states|
 | Either report27 rev10 |44|next_back, two conversions and shared iter add4 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
-| BitField report34 rev7 |27|RangeFull24 plus four unsigned Range get/set pairs and platform64 usize getter;145 independent audits; usize setter/generic RangeBounds remain unproved|
+| BitField report34 rev8 |27|RangeFull24 plus five unsigned Range get/set pairs and platform64 usize getter;178 independent audits; usize setter/generic RangeBounds remain unproved|
 | Xoshiro report30 rev4 |69|Seed512 public tuple construction/all64 input bytes and full64-byte replacement through actual AsMut;84Kani checks; existing views are not recounted|
 | NoHash report23 rev5 |14|Four compiler-inlined caller API families across four configurations: prior13 declarations plus newwrite_str4 equals17 unique audits; Kani900 remains separate/narrower|
 | Xorshift report24 rev8 |1|584 seed-image and656 concrete serde-wire scalar delegation checks; primary transition unchanged|
@@ -34,3 +34,5 @@ Xorshift report24 revision8 is published with584 public-seed-image and656 concre
 Base16 report31 revision5 is published with two HexDisplay tuple data operations and three kernel theorems: construction, field projection and roundtrip preserve every modeled byte-slice view. These are not function cards or formatting/physical-alias guarantees. Primary3/Error58/Display1910/codec1484 retain all earlier conditions.
 
 Either report27 revision10 is published with44 primary mappings, preserving the old43 exact IDs/positions/preconditions and adding only shared-reference iter. The higher-ranked dictionaries have equal Item and separate returned iterator types; callback Result delegation is conditional, with physical alias/lifetime/Drop/global-effect guarantees outside the proof. The formal run records141 primary/helper audits plus6 reference4 audits. Mutable iter_mut remains unsupported.
+
+BitField report34 revision8 adds the independent u128 checked Range<usize> get/set workspace to the existing five environments. All178 audits are mandatory in the formal run. Primary27/RangeFull24 remain unchanged, new Kani runs0, and signed/generic/unchecked-profile/usize-setter/physical-memory guarantees remain outside the result.
