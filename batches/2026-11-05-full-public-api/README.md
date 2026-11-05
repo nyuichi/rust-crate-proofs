@@ -6,11 +6,11 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Current public results
 
-**Thirteen reports contain 398 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 400 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
-| ascii 1.1.0 | [28 / 2](https://proofs.rs/report/28) | 35 |
+| ascii 1.1.0 | [28 / 3](https://proofs.rs/report/28) | 37 |
 | base16ct 1.0.0 | [31 / 3](https://proofs.rs/report/31) | 3 |
 | bit_field 0.10.3 | [34 / 5](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |

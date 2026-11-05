@@ -1,0 +1,723 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #28 — ASCII classification, string views and sequence updates · proofs.rs</title><meta name="description" content="For ascii 1.1.0, as_byte returns the exact ASCII code for every valid AsciiChar. The eleven classification methods are correct for all 128 characters: digits ar"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="ASCII classification, string views and sequence updates · ascii 1.1.0 · proofs.rs"><meta property="og:description" content="For ascii 1.1.0, as_byte returns the exact ASCII code for every valid AsciiChar. The eleven classification methods are correct for all 128 characters: digits ar"><meta property="og:url" content="https://proofs.rs/report/28?v=3"><meta property="og:image" content="https://proofs.rs/og/report/28/3.png"><meta property="og:image:alt" content="ASCII classification, string views and sequence updates · ascii 1.1.0"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ASCII classification, string views and sequence updates · ascii 1.1.0 · proofs.rs"><meta name="twitter:description" content="For ascii 1.1.0, as_byte returns the exact ASCII code for every valid AsciiChar. The eleven classification methods are correct for all 128 characters: digits ar"><meta name="twitter:image" content="https://proofs.rs/og/report/28/3.png"><meta name="twitter:image:alt" content="ASCII classification, string views and sequence updates · ascii 1.1.0"><link rel="canonical" href="https://proofs.rs/report/28"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F28">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/ascii?version=1.1.0">ascii 1.1.0</a> <span aria-hidden="true">/</span> <a href="/crate/ascii?version=1.1.0#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #28 — ASCII classification, string views and sequence updates</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">37 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 04:39 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=ASCII%20classification%2C%20string%20views%20and%20sequence%20updates%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F28%3Fv%3D3"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=ASCII%20classification%2C%20string%20views%20and%20sequence%20updates%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F28%3Fv%3D3"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/28?v=3" aria-current="page">v3</a> · <a href="/report/28?v=2">v2</a> · <a href="/report/28?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For ascii 1.1.0, as_byte returns the exact ASCII code for every valid AsciiChar. The eleven classification methods are correct for all 128 characters: digits are characters '0' through '9'; alphabetic is A-Z or a-z; alphanumeric additionally accepts digits; lowercase and uppercase accept a-z and A-Z respectively; hexdigit accepts 0-9, A-F or a-f. Graphic accepts byte codes 33-126 and printable accepts 32-126. Blank accepts space or tab; whitespace accepts space, tab, LF, CR and FF, rejecting vertical tab; control accepts codes 0-31 or 127. eq_ignore_ascii_case returns exactly whether the two codes are equal after mapping A-Z to a-z and leaving other codes unchanged; the independent mathematical equivalence is proved for all 128 squared valid pairs. For the AsciiChar implementation of ToAsciiChar, the checked method always returns Ok of the same value and the unchecked method returns that same value. is_ascii_punctuation accepts exactly ASCII intervals 33-47, 58-64, 91-96 and 123-126. The hand-written Default implementation returns the NUL enum value. AsAsciiStrError::valid_up_to returns its stored index; this does not establish that a separate validator found the first invalid byte. The public is_alphabetic, is_alphanumeric, is_lowercase and is_uppercase methods satisfy the same letter/digit predicates. is_whitespace accepts space, tab, LF, CR, VT and FF. For every u32 radix, is_digit returns normally at radix 0-36 and accepts exactly characters whose digit value (0-9 or case-independent A-Z values 10-35) is below the radix; other characters return false. Thus radix 0 always returns false and radix 1 accepts only character '0'. Every radix above 36 panics. The other twenty-three character/error bodies terminate normally in the model. AsciiStr::as_slice preserves the complete character sequence; as_mut_slice supplies that initial view and its generated backward function writes every valid same-length replacement back exactly. AsciiStr::len gives the exact sequence length and is_empty is equivalent to an empty sequence. For an already valid AsciiStr receiver, the AsAsciiStr checked conversion returns Ok with the unchanged view, its unchecked conversion is the same view, and the AsMutAsciiStr unchecked conversion preserves the initial view and exact same-length valid replacement writeback. These original implementations are identities, not raw byte casts or validation of other input types. AsciiString::new produces an empty sequence, len returns its exact length, and is_empty is equivalent to an empty sequence. push writes back the original sequence followed by the supplied character below the model length limit; at model length usizeMAX it fails with maximumSizeExceeded. Separately, Kani directly checked the original checked ToAsciiChar bodies for u8, i8, u16, u32 and char over their complete type domains: Ok exactly for ASCII-range inputs, preserving the codepoint, and Err otherwise. Those five body-check results are separate evidence and are not additional Lean API claims. Seven separate Kani checks also verify original case conversion and mutable writeback, as_char, case-insensitive equality and printable control pictures over all 128 valid characters (all pairs for equality). These establish A-Z/a-z mapping, exact receiver updates, ASCII code preservation and U+2400 control pictures with DEL at U+2421. For every FromAsciiError&lt;O&gt; with arbitrary owner type O, ascii_error returns exactly its stored AsAsciiStrError and into_source consumes the wrapper and returns exactly its stored original owner. Both terminate normally with no Clone/Copy requirement on O and no validation or conversion. The stored error index is merely projected; these methods do not establish that a separate validator found an invalid byte.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (37)</h2><section class="api-category"><h3>Associated functions</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">AsciiString</span></code></h4><div class="catalog-row" data-api-path="ascii::AsciiString::new" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/1d48e933ca05216438e8ebe985f9f909047878b7bcb9206f6f5b1d60e005a34c">new</a>() -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1499a524-7467-481b-831e-eb597307783a?report_revision=3">Claim #25</a></span></div></div></section></section><section class="api-category"><h3>Methods</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">AsAsciiStrError</span></code></h4><div class="catalog-row" data-api-path="ascii::AsAsciiStrError::valid_up_to" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/5fd1c311ef900d78b9949c4b2935cd0577c5fd1ebe4095efbcf9ae6e9c451b41">valid_up_to</a>(self: Self) -&gt; usize</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/317046bf-fca4-41b3-a758-b2945f9a1151?report_revision=3">Claim #24</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">AsciiChar</span></code></h4><div class="catalog-row" data-api-path="ascii::AsciiChar::as_byte" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/8af8c9b0d25a05fe5bb2402ca638bff2cab29ba7e52f9a2215341433f34ebc20">as_byte</a>(self: Self) -&gt; u8</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0d24b98d-8330-446d-b258-2a3f6d167438?report_revision=3">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::eq_ignore_ascii_case" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/3b2ee854e940256a7f869b01f1a7b30d41137251a1fe00cc3a4f4206edbef1c2">eq_ignore_ascii_case</a>(self: &amp;Self, other: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/98c36f17-6e75-4866-be2e-a1252ec5d4d8?report_revision=3">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_alphabetic" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/bba420d5ccb80403436c14e50d9fedfe2959001afebd4e075ea9913339d44472">is_alphabetic</a>(self: Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9d6b2e48-eaef-4ec0-b5fa-0a6dcb84e5ca?report_revision=3">Claim #16</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_alphanumeric" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/c5a18ff94cdb718a5f9c2974703f7387abadc7420063dcff58fdfa5c37c12501">is_alphanumeric</a>(self: Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/730b756b-7064-4c92-9645-9bf5d03067f8?report_revision=3">Claim #17</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_alphabetic" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/130832212b9c3aba0112595010f3510b519a911b121fec1fc36b1c214877f96d">is_ascii_alphabetic</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/04c94028-8beb-4804-b2c7-fc892aaaed45?report_revision=3">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_alphanumeric" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/a2032a75685cb6c93f70fcbdb69a744c4310301f6e50228086936768d3e45a7d">is_ascii_alphanumeric</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/050886fd-d55f-49c0-8369-b35d63760d8d?report_revision=3">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_blank" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/16b1056a5d3b35cb28b81318da35e64772147f5446d62af327b875f06ca11623">is_ascii_blank</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d99df08f-7499-4c23-8f47-63a05c616df9?report_revision=3">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_control" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/995c42fd7620f69d0ea72fbae0f471b201b892cc579d42db0ff6f14a01438185">is_ascii_control</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/bca99d0b-ab7d-48f0-b750-9f960ab61009?report_revision=3">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_digit" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/6f7bfd0cce02dd8db5caf40ab100d6cc11d60f5c434b77e2abf332fe5a0f1b6b">is_ascii_digit</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/b9cd2f83-6661-4c10-b0bb-46b233ba8880?report_revision=3">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_graphic" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/1bb0133483d84862b5693d45c4f7891cf5df2fe757ce71949b2d20486a74e68c">is_ascii_graphic</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6925a1d0-0f5f-4fc2-81d2-9af4051f74b3?report_revision=3">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_hexdigit" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/cdc8762e383820daa9b453e9514ae216b56a93d8a07fe91b7a56c58e915b9ee3">is_ascii_hexdigit</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d2416ff0-65cb-4bae-8776-a9261478f5df?report_revision=3">Claim #11</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_lowercase" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/51933f2340a3dd979cb0b5bd53894440f9735b500d487d647b52a31beecd7068">is_ascii_lowercase</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/93431e39-15c4-42e3-99ee-e3aabe140fce?report_revision=3">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_printable" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/336387686a04b227b77e4b48a59f224b8c53252d16c167019aecf9cad57873d7">is_ascii_printable</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1f320bca-672c-4360-84af-09397c92e084?report_revision=3">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_punctuation" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/85912f3db54084928d3eaea977ebb60693622a7921b5bc7e7af96d4f6eda4d50">is_ascii_punctuation</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e097900d-42c1-4a48-89d1-f3a802a06456?report_revision=3">Claim #22</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_uppercase" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/0a599ccbc51cf1bd157c73b89729216c3f72101f216d6e6fe599cf3fe63ebbab">is_ascii_uppercase</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0ddb2a94-b7a7-411a-aa72-707a16b0563b?report_revision=3">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_ascii_whitespace" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/4e5acc741fa79dafc870225e837a00ec59414d82a37b8dabe1895ae7e78b6f4f">is_ascii_whitespace</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3ef78ce6-2128-457c-bb36-5ddf80abb54b?report_revision=3">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_digit" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9cae1840708ea3aad8edd2e149a72c5bbe980e9594b3b2454f2adfd37252b5f1">is_digit</a>(self: Self, radix: u32) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8cdc5925-f39f-447b-ae35-22b412a90fe0?report_revision=3">Claim #21</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_lowercase" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/262484678922038578327a553bd5034eee5f82cfa58fcbf1f2a41ec89038492f">is_lowercase</a>(self: Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6162be0b-7f05-4700-a878-81ac0dd15eec?report_revision=3">Claim #18</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_uppercase" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/423993c3c639677ba934f50d770df16902218c56ec3ca77db716cdce22ffd53f">is_uppercase</a>(self: Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/911cc521-6b0b-414b-8690-60adb0d69d00?report_revision=3">Claim #19</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiChar::is_whitespace" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/b53f188553085c133c3ec79dece4a3e278783f3afd6cb5a8f204fb9fa2964bb2">is_whitespace</a>(self: Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7ed35a39-37bf-4be2-9897-653567844da1?report_revision=3">Claim #20</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">AsciiStr</span></code></h4><div class="catalog-row" data-api-path="ascii::AsciiStr::as_mut_slice" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/334aeba5c23e8cca480d99f6f141d3a6199110ab21905d6badd583f73b5f8857">as_mut_slice</a>(self: &amp;mut Self) -&gt; &amp;mut [AsciiChar]</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1e77e567-7308-494d-b340-e8478a7d6bdf?report_revision=3">Claim #30</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiStr::as_slice" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/11e2b0f2e5cb5a844eff68abe92739d5f2291a730ce7c30098dd594657e56c72">as_slice</a>(self: &amp;Self) -&gt; &amp;[AsciiChar]</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0d80b392-c8f3-43b3-8944-568b0ddde6de?report_revision=3">Claim #29</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiStr::is_empty" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/96367afd0a5da683452513d8c1d7a318b2e0c5fdd35ad59112e2986c7c8cf3c6">is_empty</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0ed7d167-2694-4ff7-b918-b12111b9ffc7?report_revision=3">Claim #32</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiStr::len" data-claims="1"><span><code class="api-signature">pub const fn <a class="api-name" href="/api/19b808a45140223755409cbe28afbf2c1591562324d11b83ef9d14dbc2ef324d">len</a>(self: &amp;Self) -&gt; usize</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/62c50095-1221-492e-9258-3ee1baedc632?report_revision=3">Claim #31</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">AsciiString</span></code></h4><div class="catalog-row" data-api-path="ascii::AsciiString::is_empty" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9f34df47b482a66b251a75cb5552117f3cbba632dfdac653944128b662ee0c03">is_empty</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f50610de-2c04-46ba-b2d2-1521c267ef4b?report_revision=3">Claim #27</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiString::len" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/e893d7eb96fb2f14b9a49c1a3dbf62e628ba6a8f0a219774b4b76511eb444a10">len</a>(self: &amp;Self) -&gt; usize</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/df83fac2-d9d9-42a6-a952-9d5870c088fa?report_revision=3">Claim #26</a></span></div></div><div class="catalog-row" data-api-path="ascii::AsciiString::push" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/0c245ecb4b1c8e64eede97fcff5a29a31f6c8c77df67b2e6b6025dacebab4e55">push</a>(self: &amp;mut Self, ch: AsciiChar)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d7cfe094-f307-487e-8817-b0ecadae1b8f?report_revision=3">Claim #28</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">FromAsciiError&lt;O&gt;</span></code></h4><div class="catalog-row" data-api-path="ascii::FromAsciiError::ascii_error" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/90a070bdd85fe8b471da550e64a4c508fd5e3f13858df9db4b2aac1f38488615">ascii_error</a>(self: &amp;Self) -&gt; AsAsciiStrError</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a04f3f7c-2f9d-4732-8169-3db155327ef0?report_revision=3">Claim #36</a></span></div></div><div class="catalog-row" data-api-path="ascii::FromAsciiError::into_source" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/eb1a90b8e402f9ee1552c2407d60d5610cbd96aeb34deece70755205c477f9bf">into_source</a>(self: Self) -&gt; O</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/bc50bbaa-6b3c-4720-9dec-ea778d0286dd?report_revision=3">Claim #37</a></span></div></div></section></section><section class="api-category"><h3>Trait implementations</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">ascii::AsAsciiStr</span><span class="api-keyword"> for </span><span class="kind-type">AsciiStr</span></code></h4><div class="catalog-row" data-api-path="&lt;ascii::AsciiStr as ascii::AsAsciiStr&gt;::as_ascii_str" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/ff74134d404a83c248ab7a604ea52886d3175cac3bf4859f07555c58bf47f766">as_ascii_str</a>(self: &amp;Self) -&gt; Result&lt;&amp;AsciiStr, AsAsciiStrError&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d49f302c-282c-4710-8d66-4636c875514f?report_revision=3">Claim #33</a></span></div></div><div class="catalog-row" data-api-path="&lt;ascii::AsciiStr as ascii::AsAsciiStr&gt;::as_ascii_str_unchecked" data-claims="1"><span><code class="api-signature">pub <strong class="unsafe">unsafe</strong> fn <a class="api-name" href="/api/0fabf0b9eb169be243cce8b75d4c1c0ce6b515fb93a520440c883e246eb3307b">as_ascii_str_unchecked</a>(self: &amp;Self) -&gt; &amp;AsciiStr</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/64572956-563d-436e-b78d-0b749fd3579f?report_revision=3">Claim #34</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">ascii::AsMutAsciiStr</span><span class="api-keyword"> for </span><span class="kind-type">AsciiStr</span></code></h4><div class="catalog-row" data-api-path="&lt;ascii::AsciiStr as ascii::AsMutAsciiStr&gt;::as_mut_ascii_str_unchecked" data-claims="1"><span><code class="api-signature">pub <strong class="unsafe">unsafe</strong> fn <a class="api-name" href="/api/3b745a44cc356f8fd2b818f7b8322480d2a318c7620e0112106a79a64001c64b">as_mut_ascii_str_unchecked</a>(self: &amp;mut Self) -&gt; &amp;mut AsciiStr</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8033e4fe-26ba-4bfb-a9a7-f1aedcc7dfc1?report_revision=3">Claim #35</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">ascii::ToAsciiChar</span><span class="api-keyword"> for </span><span class="kind-type">AsciiChar</span></code></h4><div class="catalog-row" data-api-path="&lt;ascii::AsciiChar as ascii::ToAsciiChar&gt;::to_ascii_char" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/2ededabf4e64b44dd9d0c71d4708da21de570cbefe448ac2521d516badacf36a">to_ascii_char</a>(self: Self) -&gt; Result&lt;AsciiChar, ToAsciiCharError&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7f871ae5-fa36-4cde-8b42-78ff8f744597?report_revision=3">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="&lt;ascii::AsciiChar as ascii::ToAsciiChar&gt;::to_ascii_char_unchecked" data-claims="1"><span><code class="api-signature">pub <strong class="unsafe">unsafe</strong> fn <a class="api-name" href="/api/157166e2569545df7f1d3002a5fa3c2d5067fb6c3b0b618642c89fa3cadba12b">to_ascii_char_unchecked</a>(self: Self) -&gt; AsciiChar</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9a32213a-c483-43bb-a56f-201cc5fbcdc4?report_revision=3">Claim #15</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">core::default::Default</span><span class="api-keyword"> for </span><span class="kind-type">AsciiChar</span></code></h4><div class="catalog-row" data-api-path="&lt;ascii::AsciiChar as Default&gt;::default" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/a3ca18238ee65c964cff7517ae0c2e1a38bdac917db5866ae220e5aaaf9fc44a">default</a>() -&gt; AsciiChar</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/10b9b9c9-1844-4d41-9ee5-420680fc7bd1?report_revision=3">Claim #23</a></span></div></div></section></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/e3df71e182b8f9166abb6fb9463a4c5357553d75" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/e3df71e182b8f9166abb6fb9463a4c5357553d75</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-28-source-1
+git -C report-28-source-1 checkout --detach e3df71e182b8f9166abb6fb9463a4c5357553d75
+git -C report-28-source-1 submodule update --init --recursive --checkout
+cd report-28-source-1/ascii/1.1.0/aeneas/2026-11-05/proofs
+
+lake build +ErrorProjectionProofs +Proofs +SliceProofs +StringProofs
+
+printf &#39;%s&#39; &#39;import Lean
+import ErrorProjectionProofs
+import Proofs
+import SliceProofs
+import StringProofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_blank_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_blank_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_blank_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_blank_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_digit_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_digit_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_digit_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_digit_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_whitespace_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_whitespace_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_whitespace_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_whitespace_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_control_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_control_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_control_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_control_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_alphabetic_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_alphabetic_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_alphabetic_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_alphabetic_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_alphanumeric_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_alphanumeric_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_alphanumeric_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_alphanumeric_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_graphic_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_graphic_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_graphic_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_graphic_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_printable_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_printable_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_printable_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_printable_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_lowercase_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_lowercase_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_lowercase_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_lowercase_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_uppercase_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_uppercase_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_uppercase_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_uppercase_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_hexdigit_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_hexdigit_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_hexdigit_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_hexdigit_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.as_byte_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.as_byte_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.as_byte_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.as_byte_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.eq_ignore_ascii_case_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.eq_ignore_ascii_case_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.eq_ignore_ascii_case_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.eq_ignore_ascii_case_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.to_ascii_char_identity_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.to_ascii_char_identity_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.to_ascii_char_identity_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.to_ascii_char_identity_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.to_ascii_char_unchecked_identity_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.to_ascii_char_unchecked_identity_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.to_ascii_char_unchecked_identity_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.to_ascii_char_unchecked_identity_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_alphabetic_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_alphabetic_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_alphabetic_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_alphabetic_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_alphanumeric_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_alphanumeric_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_alphanumeric_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_alphanumeric_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_lowercase_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_lowercase_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_lowercase_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_lowercase_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_uppercase_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_uppercase_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_uppercase_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_uppercase_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_whitespace_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_whitespace_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_whitespace_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_whitespace_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_digit_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_digit_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_digit_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_digit_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_ascii_punctuation_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_ascii_punctuation_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_ascii_punctuation_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_ascii_punctuation_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.default_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.default_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.default_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.default_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.valid_up_to_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.valid_up_to_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.valid_up_to_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.valid_up_to_spec&quot;
+
+run_cmd do
+  let theorem_name := `StringProofs.new_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: StringProofs.new_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in StringProofs.new_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:StringProofs.new_spec&quot;
+
+run_cmd do
+  let theorem_name := `StringProofs.len_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: StringProofs.len_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in StringProofs.len_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:StringProofs.len_spec&quot;
+
+run_cmd do
+  let theorem_name := `StringProofs.is_empty_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: StringProofs.is_empty_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in StringProofs.is_empty_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:StringProofs.is_empty_spec&quot;
+
+run_cmd do
+  let theorem_name := `StringProofs.push_full_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: StringProofs.push_full_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in StringProofs.push_full_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:StringProofs.push_full_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.as_slice_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.as_slice_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.as_slice_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.as_slice_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.as_mut_slice_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.as_mut_slice_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.as_mut_slice_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.as_mut_slice_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.len_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.len_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.len_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.len_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.is_empty_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.is_empty_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.is_empty_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.is_empty_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.as_ascii_str_identity_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.as_ascii_str_identity_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.as_ascii_str_identity_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.as_ascii_str_identity_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.as_ascii_str_unchecked_identity_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.as_ascii_str_unchecked_identity_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.as_ascii_str_unchecked_identity_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.as_ascii_str_unchecked_identity_spec&quot;
+
+run_cmd do
+  let theorem_name := `SliceProofs.as_mut_ascii_str_unchecked_identity_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SliceProofs.as_mut_ascii_str_unchecked_identity_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SliceProofs.as_mut_ascii_str_unchecked_identity_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SliceProofs.as_mut_ascii_str_unchecked_identity_spec&quot;
+
+run_cmd do
+  let theorem_name := `ErrorProjectionProofs.ascii_error_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: ErrorProjectionProofs.ascii_error_exact&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in ErrorProjectionProofs.ascii_error_exact: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:ErrorProjectionProofs.ascii_error_exact&quot;
+
+run_cmd do
+  let theorem_name := `ErrorProjectionProofs.into_source_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: ErrorProjectionProofs.into_source_exact&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in ErrorProjectionProofs.into_source_exact: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:ErrorProjectionProofs.into_source_exact&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/e3df71e182b8f9166abb6fb9463a4c5357553d75">Source on GitHub</a> · <a href="/api/v1/runs/040721a1-0f98-46e5-8132-0d6295872dcf/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 37 checks passed · 0 failed</p><p class="meta">2026-11-05T08:51:21.330631125+00:00 · 182.7 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e69735f61736369695f626c616e6b5f73706563"><td>Lean checked theorem Proofs.is_ascii_blank_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_blank_spec</code></div></td><td>Passed</td><td><a href="/claim/d99df08f-7499-4c23-8f47-63a05c616df9?report_revision=3">Claim #1</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f64696769745f73706563"><td>Lean checked theorem Proofs.is_ascii_digit_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_digit_spec</code></div></td><td>Passed</td><td><a href="/claim/b9cd2f83-6661-4c10-b0bb-46b233ba8880?report_revision=3">Claim #2</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f776869746573706163655f73706563"><td>Lean checked theorem Proofs.is_ascii_whitespace_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_whitespace_spec</code></div></td><td>Passed</td><td><a href="/claim/3ef78ce6-2128-457c-bb36-5ddf80abb54b?report_revision=3">Claim #3</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f636f6e74726f6c5f73706563"><td>Lean checked theorem Proofs.is_ascii_control_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_control_spec</code></div></td><td>Passed</td><td><a href="/claim/bca99d0b-ab7d-48f0-b750-9f960ab61009?report_revision=3">Claim #4</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f616c70686162657469635f73706563"><td>Lean checked theorem Proofs.is_ascii_alphabetic_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_alphabetic_spec</code></div></td><td>Passed</td><td><a href="/claim/04c94028-8beb-4804-b2c7-fc892aaaed45?report_revision=3">Claim #5</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f616c7068616e756d657269635f73706563"><td>Lean checked theorem Proofs.is_ascii_alphanumeric_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_alphanumeric_spec</code></div></td><td>Passed</td><td><a href="/claim/050886fd-d55f-49c0-8369-b35d63760d8d?report_revision=3">Claim #6</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f677261706869635f73706563"><td>Lean checked theorem Proofs.is_ascii_graphic_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_graphic_spec</code></div></td><td>Passed</td><td><a href="/claim/6925a1d0-0f5f-4fc2-81d2-9af4051f74b3?report_revision=3">Claim #7</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f7072696e7461626c655f73706563"><td>Lean checked theorem Proofs.is_ascii_printable_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_printable_spec</code></div></td><td>Passed</td><td><a href="/claim/1f320bca-672c-4360-84af-09397c92e084?report_revision=3">Claim #8</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f6c6f776572636173655f73706563"><td>Lean checked theorem Proofs.is_ascii_lowercase_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_lowercase_spec</code></div></td><td>Passed</td><td><a href="/claim/93431e39-15c4-42e3-99ee-e3aabe140fce?report_revision=3">Claim #9</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f7570706572636173655f73706563"><td>Lean checked theorem Proofs.is_ascii_uppercase_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_uppercase_spec</code></div></td><td>Passed</td><td><a href="/claim/0ddb2a94-b7a7-411a-aa72-707a16b0563b?report_revision=3">Claim #10</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f68657864696769745f73706563"><td>Lean checked theorem Proofs.is_ascii_hexdigit_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_hexdigit_spec</code></div></td><td>Passed</td><td><a href="/claim/d2416ff0-65cb-4bae-8776-a9261478f5df?report_revision=3">Claim #11</a></td></tr><tr id="check-50726f6f66732e61735f627974655f73706563"><td>Lean checked theorem Proofs.as_byte_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.as_byte_spec</code></div></td><td>Passed</td><td><a href="/claim/0d24b98d-8330-446d-b258-2a3f6d167438?report_revision=3">Claim #12</a></td></tr><tr id="check-50726f6f66732e65715f69676e6f72655f61736369695f636173655f73706563"><td>Lean checked theorem Proofs.eq_ignore_ascii_case_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.eq_ignore_ascii_case_spec</code></div></td><td>Passed</td><td><a href="/claim/98c36f17-6e75-4866-be2e-a1252ec5d4d8?report_revision=3">Claim #13</a></td></tr><tr id="check-50726f6f66732e746f5f61736369695f636861725f6964656e746974795f73706563"><td>Lean checked theorem Proofs.to_ascii_char_identity_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.to_ascii_char_identity_spec</code></div></td><td>Passed</td><td><a href="/claim/7f871ae5-fa36-4cde-8b42-78ff8f744597?report_revision=3">Claim #14</a></td></tr><tr id="check-50726f6f66732e746f5f61736369695f636861725f756e636865636b65645f6964656e746974795f73706563"><td>Lean checked theorem Proofs.to_ascii_char_unchecked_identity_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.to_ascii_char_unchecked_identity_spec</code></div></td><td>Passed</td><td><a href="/claim/9a32213a-c483-43bb-a56f-201cc5fbcdc4?report_revision=3">Claim #15</a></td></tr><tr id="check-50726f6f66732e69735f616c70686162657469635f73706563"><td>Lean checked theorem Proofs.is_alphabetic_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_alphabetic_spec</code></div></td><td>Passed</td><td><a href="/claim/9d6b2e48-eaef-4ec0-b5fa-0a6dcb84e5ca?report_revision=3">Claim #16</a></td></tr><tr id="check-50726f6f66732e69735f616c7068616e756d657269635f73706563"><td>Lean checked theorem Proofs.is_alphanumeric_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_alphanumeric_spec</code></div></td><td>Passed</td><td><a href="/claim/730b756b-7064-4c92-9645-9bf5d03067f8?report_revision=3">Claim #17</a></td></tr><tr id="check-50726f6f66732e69735f6c6f776572636173655f73706563"><td>Lean checked theorem Proofs.is_lowercase_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_lowercase_spec</code></div></td><td>Passed</td><td><a href="/claim/6162be0b-7f05-4700-a878-81ac0dd15eec?report_revision=3">Claim #18</a></td></tr><tr id="check-50726f6f66732e69735f7570706572636173655f73706563"><td>Lean checked theorem Proofs.is_uppercase_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_uppercase_spec</code></div></td><td>Passed</td><td><a href="/claim/911cc521-6b0b-414b-8690-60adb0d69d00?report_revision=3">Claim #19</a></td></tr><tr id="check-50726f6f66732e69735f776869746573706163655f73706563"><td>Lean checked theorem Proofs.is_whitespace_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_whitespace_spec</code></div></td><td>Passed</td><td><a href="/claim/7ed35a39-37bf-4be2-9897-653567844da1?report_revision=3">Claim #20</a></td></tr><tr id="check-50726f6f66732e69735f64696769745f73706563"><td>Lean checked theorem Proofs.is_digit_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_digit_spec</code></div></td><td>Passed</td><td><a href="/claim/8cdc5925-f39f-447b-ae35-22b412a90fe0?report_revision=3">Claim #21</a></td></tr><tr id="check-50726f6f66732e69735f61736369695f70756e6374756174696f6e5f73706563"><td>Lean checked theorem Proofs.is_ascii_punctuation_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_ascii_punctuation_spec</code></div></td><td>Passed</td><td><a href="/claim/e097900d-42c1-4a48-89d1-f3a802a06456?report_revision=3">Claim #22</a></td></tr><tr id="check-50726f6f66732e64656661756c745f73706563"><td>Lean checked theorem Proofs.default_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.default_spec</code></div></td><td>Passed</td><td><a href="/claim/10b9b9c9-1844-4d41-9ee5-420680fc7bd1?report_revision=3">Claim #23</a></td></tr><tr id="check-50726f6f66732e76616c69645f75705f746f5f73706563"><td>Lean checked theorem Proofs.valid_up_to_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.valid_up_to_spec</code></div></td><td>Passed</td><td><a href="/claim/317046bf-fca4-41b3-a758-b2945f9a1151?report_revision=3">Claim #24</a></td></tr><tr id="check-537472696e6750726f6f66732e6e65775f73706563"><td>Lean checked theorem StringProofs.new_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>StringProofs.new_spec</code></div></td><td>Passed</td><td><a href="/claim/1499a524-7467-481b-831e-eb597307783a?report_revision=3">Claim #25</a></td></tr><tr id="check-537472696e6750726f6f66732e6c656e5f73706563"><td>Lean checked theorem StringProofs.len_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>StringProofs.len_spec</code></div></td><td>Passed</td><td><a href="/claim/df83fac2-d9d9-42a6-a952-9d5870c088fa?report_revision=3">Claim #26</a></td></tr><tr id="check-537472696e6750726f6f66732e69735f656d7074795f73706563"><td>Lean checked theorem StringProofs.is_empty_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>StringProofs.is_empty_spec</code></div></td><td>Passed</td><td><a href="/claim/f50610de-2c04-46ba-b2d2-1521c267ef4b?report_revision=3">Claim #27</a></td></tr><tr id="check-537472696e6750726f6f66732e707573685f66756c6c5f73706563"><td>Lean checked theorem StringProofs.push_full_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>StringProofs.push_full_spec</code></div></td><td>Passed</td><td><a href="/claim/d7cfe094-f307-487e-8817-b0ecadae1b8f?report_revision=3">Claim #28</a></td></tr><tr id="check-536c69636550726f6f66732e61735f736c6963655f73706563"><td>Lean checked theorem SliceProofs.as_slice_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.as_slice_spec</code></div></td><td>Passed</td><td><a href="/claim/0d80b392-c8f3-43b3-8944-568b0ddde6de?report_revision=3">Claim #29</a></td></tr><tr id="check-536c69636550726f6f66732e61735f6d75745f736c6963655f73706563"><td>Lean checked theorem SliceProofs.as_mut_slice_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.as_mut_slice_spec</code></div></td><td>Passed</td><td><a href="/claim/1e77e567-7308-494d-b340-e8478a7d6bdf?report_revision=3">Claim #30</a></td></tr><tr id="check-536c69636550726f6f66732e6c656e5f73706563"><td>Lean checked theorem SliceProofs.len_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.len_spec</code></div></td><td>Passed</td><td><a href="/claim/62c50095-1221-492e-9258-3ee1baedc632?report_revision=3">Claim #31</a></td></tr><tr id="check-536c69636550726f6f66732e69735f656d7074795f73706563"><td>Lean checked theorem SliceProofs.is_empty_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.is_empty_spec</code></div></td><td>Passed</td><td><a href="/claim/0ed7d167-2694-4ff7-b918-b12111b9ffc7?report_revision=3">Claim #32</a></td></tr><tr id="check-536c69636550726f6f66732e61735f61736369695f7374725f6964656e746974795f73706563"><td>Lean checked theorem SliceProofs.as_ascii_str_identity_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.as_ascii_str_identity_spec</code></div></td><td>Passed</td><td><a href="/claim/d49f302c-282c-4710-8d66-4636c875514f?report_revision=3">Claim #33</a></td></tr><tr id="check-536c69636550726f6f66732e61735f61736369695f7374725f756e636865636b65645f6964656e746974795f73706563"><td>Lean checked theorem SliceProofs.as_ascii_str_unchecked_identity_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.as_ascii_str_unchecked_identity_spec</code></div></td><td>Passed</td><td><a href="/claim/64572956-563d-436e-b78d-0b749fd3579f?report_revision=3">Claim #34</a></td></tr><tr id="check-536c69636550726f6f66732e61735f6d75745f61736369695f7374725f756e636865636b65645f6964656e746974795f73706563"><td>Lean checked theorem SliceProofs.as_mut_ascii_str_unchecked_identity_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SliceProofs.as_mut_ascii_str_unchecked_identity_spec</code></div></td><td>Passed</td><td><a href="/claim/8033e4fe-26ba-4bfb-a9a7-f1aedcc7dfc1?report_revision=3">Claim #35</a></td></tr><tr id="check-4572726f7250726f6a656374696f6e50726f6f66732e61736369695f6572726f725f6578616374"><td>Lean checked theorem ErrorProjectionProofs.ascii_error_exact; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>ErrorProjectionProofs.ascii_error_exact</code></div></td><td>Passed</td><td><a href="/claim/a04f3f7c-2f9d-4732-8169-3db155327ef0?report_revision=3">Claim #36</a></td></tr><tr id="check-4572726f7250726f6a656374696f6e50726f6f66732e696e746f5f736f757263655f6578616374"><td>Lean checked theorem ErrorProjectionProofs.into_source_exact; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>ErrorProjectionProofs.into_source_exact</code></div></td><td>Passed</td><td><a href="/claim/bc50bbaa-6b3c-4720-9dec-ea778d0286dd?report_revision=3">Claim #37</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T08:51:21.330631125+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T08:54:24.029256003+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">ascii/1.1.0/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">e3df71e182b8f9166abb6fb9463a4c5357553d75</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/178] Built AeneasMeta.Simp.RegisterCommand (38s)
+✔ [122/464] Built AeneasMeta.UtilsCore (38s)
+✔ [149/464] Built AeneasMeta.BvEnumToBitVec (38s)
+✔ [448/787] Built Aeneas.Std.Global (38s)
+✔ [1575/1802] Built AeneasMeta.OptionConfig (39s)
+✔ [1797/1802] Built Generated.Ascii (2.7s)
+ℹ [1798/1802] Built SliceProofs (2.6s)
+info: SliceProofs.lean:33:0: &#39;SliceProofs.as_slice_spec&#39; depends on axioms: [propext, Quot.sound]
+info: SliceProofs.lean:34:0: &#39;SliceProofs.as_mut_slice_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SliceProofs.lean:35:0: &#39;SliceProofs.len_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SliceProofs.lean:36:0: &#39;SliceProofs.is_empty_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SliceProofs.lean:38:0: &#39;SliceProofs.as_ascii_str_identity_spec&#39; depends on axioms: [propext, Quot.sound]
+info: SliceProofs.lean:39:0: &#39;SliceProofs.as_ascii_str_unchecked_identity_spec&#39; depends on axioms: [propext, Quot.sound]
+info: SliceProofs.lean:40:0: &#39;SliceProofs.as_mut_ascii_str_unchecked_identity_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1799/1802] Built StringProofs (2.7s)
+warning: StringProofs.lean:16:37: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+warning: StringProofs.lean:22:45: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+warning: StringProofs.lean:27:20: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: StringProofs.lean:27:20: Used `tac1 &lt;;&gt; tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+warning: StringProofs.lean:28:42: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+info: StringProofs.lean:37:0: &#39;StringProofs.new_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StringProofs.lean:38:0: &#39;StringProofs.len_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StringProofs.lean:39:0: &#39;StringProofs.is_empty_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StringProofs.lean:40:0: &#39;StringProofs.push_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StringProofs.lean:41:0: &#39;StringProofs.push_maximum_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StringProofs.lean:43:0: &#39;StringProofs.push_full_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1800/1802] Built ErrorProjectionProofs (2.7s)
+info: ErrorProjectionProofs.lean:12:0: &#39;ErrorProjectionProofs.ascii_error_exact&#39; depends on axioms: [propext, Quot.sound]
+info: ErrorProjectionProofs.lean:13:0: &#39;ErrorProjectionProofs.into_source_exact&#39; depends on axioms: [propext, Quot.sound]
+⚠ [1801/1802] Built DigitProofs (42s)
+warning: DigitProofs.lean:145:16: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+warning: DigitProofs.lean:152:18: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+warning: DigitProofs.lean:157:31: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+warning: DigitProofs.lean:165:39: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: DigitProofs.lean:165:43: Unused tactic linter: `scalar_tac` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: DigitProofs.lean:165:43: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: DigitProofs.lean:167:29: Local variable &#39;c&#39; resembles constructor &#39;ascii.ascii_char.AsciiChar.c&#39; - write &#39;.c&#39; (with a dot) or &#39;ascii.ascii_char.AsciiChar.c&#39; to use the constructor.
+
+Note: This linter can be disabled with `set_option linter.constructorNameAsVariable false`
+info: DigitProofs.lean:175:0: &#39;DigitProofs.is_digit_success_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: DigitProofs.lean:176:0: &#39;DigitProofs.is_digit_panic_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1802/1802] Built Proofs (48s)
+warning: Proofs.lean:142:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:142:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:142:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:144:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:144:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:144:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:146:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:146:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:146:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:148:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:148:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:148:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:150:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:150:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:150:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:152:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:152:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:152:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:154:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:154:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:154:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:159:33: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:159:37: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:159:37: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:161:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:161:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:161:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:163:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:163:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:163:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:165:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:165:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:165:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:167:629: Unused tactic linter: `&lt;;&gt;` should be replaced with `;` or be removed.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:167:633: Unused tactic linter: `(simp only [UScalar.val, UScalarTy.U8_numBits_eq] &lt;;&gt; decide)` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:167:633: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:190:3: Unused tactic linter: `exact hprop` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+info: Proofs.lean:227:0: &#39;Proofs.as_byte_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:228:0: &#39;Proofs.is_ascii_blank_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:229:0: &#39;Proofs.is_ascii_digit_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:230:0: &#39;Proofs.is_ascii_whitespace_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:231:0: &#39;Proofs.is_ascii_control_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:232:0: &#39;Proofs.is_ascii_alphabetic_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:233:0: &#39;Proofs.is_ascii_alphanumeric_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:234:0: &#39;Proofs.is_ascii_graphic_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:235:0: &#39;Proofs.is_ascii_printable_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:236:0: &#39;Proofs.is_ascii_lowercase_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:237:0: &#39;Proofs.is_ascii_uppercase_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:238:0: &#39;Proofs.is_ascii_hexdigit_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:239:0: &#39;Proofs.eq_ignore_ascii_case_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:240:0: &#39;Proofs.to_ascii_char_identity_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:241:0: &#39;Proofs.to_ascii_char_unchecked_identity_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:242:0: &#39;Proofs.caseEqBits&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:243:0: &#39;Proofs.is_alphabetic_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:244:0: &#39;Proofs.is_alphanumeric_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:245:0: &#39;Proofs.is_lowercase_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:246:0: &#39;Proofs.is_uppercase_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:247:0: &#39;Proofs.is_whitespace_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:249:0: &#39;Proofs.is_digit_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:251:0: &#39;Proofs.is_ascii_punctuation_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:252:0: &#39;Proofs.default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:253:0: &#39;Proofs.valid_up_to_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:255:0: &#39;StringProofs.new_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:256:0: &#39;StringProofs.len_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:257:0: &#39;StringProofs.is_empty_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:258:0: &#39;StringProofs.push_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:259:0: &#39;StringProofs.push_maximum_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:260:0: &#39;StringProofs.push_full_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:262:0: &#39;SliceProofs.as_slice_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:263:0: &#39;SliceProofs.as_mut_slice_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:264:0: &#39;SliceProofs.len_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:265:0: &#39;SliceProofs.is_empty_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:267:0: &#39;SliceProofs.as_ascii_str_identity_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:268:0: &#39;SliceProofs.as_ascii_str_unchecked_identity_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:269:0: &#39;SliceProofs.as_mut_ascii_str_unchecked_identity_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1802 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.is_ascii_blank_spec
+proofs.rs:checked:Proofs.is_ascii_digit_spec
+proofs.rs:checked:Proofs.is_ascii_whitespace_spec
+proofs.rs:checked:Proofs.is_ascii_control_spec
+proofs.rs:checked:Proofs.is_ascii_alphabetic_spec
+proofs.rs:checked:Proofs.is_ascii_alphanumeric_spec
+proofs.rs:checked:Proofs.is_ascii_graphic_spec
+proofs.rs:checked:Proofs.is_ascii_printable_spec
+proofs.rs:checked:Proofs.is_ascii_lowercase_spec
+proofs.rs:checked:Proofs.is_ascii_uppercase_spec
+proofs.rs:checked:Proofs.is_ascii_hexdigit_spec
+proofs.rs:checked:Proofs.as_byte_spec
+proofs.rs:checked:Proofs.eq_ignore_ascii_case_spec
+proofs.rs:checked:Proofs.to_ascii_char_identity_spec
+proofs.rs:checked:Proofs.to_ascii_char_unchecked_identity_spec
+proofs.rs:checked:Proofs.is_alphabetic_spec
+proofs.rs:checked:Proofs.is_alphanumeric_spec
+proofs.rs:checked:Proofs.is_lowercase_spec
+proofs.rs:checked:Proofs.is_uppercase_spec
+proofs.rs:checked:Proofs.is_whitespace_spec
+proofs.rs:checked:Proofs.is_digit_spec
+proofs.rs:checked:Proofs.is_ascii_punctuation_spec
+proofs.rs:checked:Proofs.default_spec
+proofs.rs:checked:Proofs.valid_up_to_spec
+proofs.rs:checked:StringProofs.new_spec
+proofs.rs:checked:StringProofs.len_spec
+proofs.rs:checked:StringProofs.is_empty_spec
+proofs.rs:checked:StringProofs.push_full_spec
+proofs.rs:checked:SliceProofs.as_slice_spec
+proofs.rs:checked:SliceProofs.as_mut_slice_spec
+proofs.rs:checked:SliceProofs.len_spec
+proofs.rs:checked:SliceProofs.is_empty_spec
+proofs.rs:checked:SliceProofs.as_ascii_str_identity_spec
+proofs.rs:checked:SliceProofs.as_ascii_str_unchecked_identity_spec
+proofs.rs:checked:SliceProofs.as_mut_ascii_str_unchecked_identity_spec
+proofs.rs:checked:ErrorProjectionProofs.ascii_error_exact
+proofs.rs:checked:ErrorProjectionProofs.into_source_exact
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Original crates.io ascii 1.1.0 Rust files and Cargo.toml, archive-compared; default features, x86_64-unknown-linux-gnu. The upstream bindings_with_variant_name lint is disabled through RUSTFLAGS and corresponding official rustdoc doctest-build arguments, without source changes. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. One union extraction supplies all thirty-seven API proofs, with full normal/panic radix partitioning in DigitProofs. Panic message payloads are not specified; the generated failure code for the out-of-range branch is assertionFailure. The independent casefold equivalence is checked by Lean kernel reduction over Fin 128 pairs, without native_decide/bv_decide trust. Separate original conversion body checks use Kani 0.68.0, CBMC 6.11.0 and nightly-2026-08-21; source/archive and direct path-dependency provenance are recorded in evidence/kani-conversions.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>Borrowed slice contracts use the generated value and backward-function semantics. They do not independently establish Rust pointer identity, lifetime or aliasing rules, and no resizing through a mutable slice is claimed. The Rust compiler, official Charon/Aeneas translation, standard-library scalar models and Lean kernel are trusted. Proofs split the complete finite AsciiChar type and use kernel-checked logical reduction and proved scalar arithmetic, without native-evaluation trust. The byte-code table contains each actual ASCII variant in code order. Transitive axioms are limited to propext, Classical.choice and Quot.sound; no custom models or local axioms are introduced. Separate Kani body checks trust Kani/CBMC, their standard/intrinsic semantics and their pinned Rust compiler; no mechanized cross-tool equivalence is claimed.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Thirty-seven API mappings are Lean-proved; the other explicitly described scalar/case results are separate Kani body checks. The identity proofs for unsafe methods apply only to their original AsciiChar and AsciiStr receiver implementations, which perform no raw cast. They establish nothing about unchecked conversions from integers, char, byte slices, str or other trait implementations. The Lean mathematical code-fold is not a proof of the separate case-conversion APIs; those original bodies instead have the separately recorded full-domain Kani checks. General input validation, the remaining AsciiStr/AsciiString APIs, allocation, serde and arbitrary unsafe conversions remain unproved. The official Vec model stores only element sequences and a length bound. It does not represent capacity, Rust isizeMAX allocation limits, allocator availability, OS failure or OOM. Thus the push result and failure partition are properties of that model; no exact physical allocation/panic behavior or capacity preservation is claimed. Case conversion and printable-picture behavior have separate Kani evidence, not Lean proofs. Invalid enum representations are outside the input domain. The original is_digit_strange_radixes test fails on the pinned modern Rust because char::is_digit panics at radix 0/1; the crate is_digit API is covered separately for all radix values; the failed test comparison invokes std char::is_digit at radix 0/1. Remaining original tests pass with only that test excluded. The five checked scalar conversion bodies and the stated case/character bodies have separate Kani evidence, rather than additional Lean claims. The original AsciiChar::new constructor is checked only on ASCII inputs by the generator; its non-ASCII panic domain remains unproved. All-feature/no-default configurations and other targets were not proved.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (2)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde" target="_blank" rel="noopener noreferrer"><code>serde</code></a> <code>^1.0.25</code> · optional</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde_test" target="_blank" rel="noopener noreferrer"><code>serde_test</code></a> <code>^1.0</code> · optional</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F28">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>
