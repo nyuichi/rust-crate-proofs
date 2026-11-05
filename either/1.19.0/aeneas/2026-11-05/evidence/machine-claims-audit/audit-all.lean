@@ -3,6 +3,7 @@ import BothProofs
 import CallbackProofs
 import DefaultProofs
 import IntoEitherProofs
+import MapInspectProofs
 import Proofs
 import ResultProofs
 open Lean Elab Command
@@ -391,3 +392,47 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in BothProofs.either_into_spec: {ax}"
   liftIO <| IO.println "proofs.rs:checked:BothProofs.either_into_spec"
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.map_either_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: MapInspectProofs.map_either_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in MapInspectProofs.map_either_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:MapInspectProofs.map_either_spec"
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.map_either_with_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: MapInspectProofs.map_either_with_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in MapInspectProofs.map_either_with_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:MapInspectProofs.map_either_with_spec"
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.inspect_left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: MapInspectProofs.inspect_left_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in MapInspectProofs.inspect_left_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:MapInspectProofs.inspect_left_spec"
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.inspect_right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: MapInspectProofs.inspect_right_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in MapInspectProofs.inspect_right_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:MapInspectProofs.inspect_right_spec"
