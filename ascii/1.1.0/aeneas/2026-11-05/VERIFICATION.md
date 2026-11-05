@@ -25,3 +25,7 @@ The union now includes is_alphabetic/is_alphanumeric/is_lowercase/is_uppercase, 
 ## Additional original API bodies
 
 All 24 original roots are extracted together. is_ascii_punctuation returns exactly the four standard punctuation intervals; handwritten Default returns NUL. valid_up_to returns the stored usize field for every representable index; the theorem is a getter specification, not a proof that error constructors identify the first bad byte. Existing separate Kani checks remain distinct.
+
+## Four original AsciiString APIs
+
+The union extracts 28 original roots without Rust adaptations. The official sequence-based Vec model establishes new has no elements, len is exact, is_empty iff no elements, and push appends exactly one supplied character with complete receiver writeback. The push theorem covers all model lengths: below usizeMAX it appends; at usizeMAX it fails maximumSizeExceeded. Capacity, the real isizeMAX allocation bound, OOM and arbitrary allocator failure are not represented or verified. No real Rust panic partition is inferred from the model partition. Unsupported original pop/clear/truncate external models remain unproved and are not included.

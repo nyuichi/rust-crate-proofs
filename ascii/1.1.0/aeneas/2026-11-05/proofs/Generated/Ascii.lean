@@ -578,4 +578,41 @@ def ascii_str.AsAsciiStrError.valid_up_to
   (self : ascii_str.AsAsciiStrError) : Result Std.Usize := do
   ok self
 
+/-- [ascii::ascii_string::AsciiString]
+    Source: 'src/ascii_string.rs', lines 25:0-27:1
+    Visibility: public -/
+structure ascii_string.AsciiString where
+  vec : alloc.vec.Vec ascii_char.AsciiChar
+
+/-- [ascii::ascii_string::{ascii::ascii_string::AsciiString}::new]:
+    Source: 'src/ascii_string.rs', lines 39:4-41:5
+    Visibility: public -/
+def ascii_string.AsciiString.new : Result ascii_string.AsciiString := do
+  ok { vec := (alloc.vec.Vec.new ascii_char.AsciiChar) }
+
+/-- [ascii::ascii_string::{ascii::ascii_string::AsciiString}::push]:
+    Source: 'src/ascii_string.rs', lines 284:4-286:5
+    Visibility: public -/
+def ascii_string.AsciiString.push
+  (self : ascii_string.AsciiString) (ch : ascii_char.AsciiChar) :
+  Result ascii_string.AsciiString
+  := do
+  let v ← alloc.vec.Vec.push self.vec ch
+  ok { vec := v }
+
+/-- [ascii::ascii_string::{ascii::ascii_string::AsciiString}::len]:
+    Source: 'src/ascii_string.rs', lines 377:4-379:5
+    Visibility: public -/
+def ascii_string.AsciiString.len
+  (self : ascii_string.AsciiString) : Result Std.Usize := do
+  ok (alloc.vec.Vec.len self.vec)
+
+/-- [ascii::ascii_string::{ascii::ascii_string::AsciiString}::is_empty]:
+    Source: 'src/ascii_string.rs', lines 393:4-395:5
+    Visibility: public -/
+def ascii_string.AsciiString.is_empty
+  (self : ascii_string.AsciiString) : Result Bool := do
+  let i ← ascii_string.AsciiString.len self
+  ok (i = 0#usize)
+
 end ascii

@@ -1,3 +1,4 @@
+import StringProofs
 import Generated.Ascii
 import DigitProofs
 open Aeneas Aeneas.Std
@@ -249,3 +250,10 @@ end Proofs
 #print axioms Proofs.is_ascii_punctuation_spec
 #print axioms Proofs.default_spec
 #print axioms Proofs.valid_up_to_spec
+
+#print axioms StringProofs.new_spec
+#print axioms StringProofs.len_spec
+#print axioms StringProofs.is_empty_spec
+#print axioms StringProofs.push_spec
+#print axioms StringProofs.push_maximum_spec
+#print axioms StringProofs.push_full_spec
