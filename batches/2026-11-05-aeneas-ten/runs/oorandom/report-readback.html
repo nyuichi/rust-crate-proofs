@@ -1,0 +1,147 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #25 — Exact next-word output and state update in Rand32 · proofs.rs</title><meta name="description" content="For the unchanged Rand32::rand_u32 body, every u64 state s and increment i returns the PCG-XSH-RR output rotate_right(low32(((s &gt;&gt; 18) XOR s) &gt;&gt; 27), low32(s &gt;&gt;"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Exact next-word output and state update in Rand32 · oorandom 11.1.5 · proofs.rs"><meta property="og:description" content="For the unchanged Rand32::rand_u32 body, every u64 state s and increment i returns the PCG-XSH-RR output rotate_right(low32(((s &gt;&gt; 18) XOR s) &gt;&gt; 27), low32(s &gt;&gt;"><meta property="og:url" content="https://proofs.rs/report/25?v=1"><meta property="og:image" content="https://proofs.rs/og/report/25/1.png"><meta property="og:image:alt" content="Exact next-word output and state update in Rand32 · oorandom 11.1.5"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Exact next-word output and state update in Rand32 · oorandom 11.1.5 · proofs.rs"><meta name="twitter:description" content="For the unchanged Rand32::rand_u32 body, every u64 state s and increment i returns the PCG-XSH-RR output rotate_right(low32(((s &gt;&gt; 18) XOR s) &gt;&gt; 27), low32(s &gt;&gt;"><meta name="twitter:image" content="https://proofs.rs/og/report/25/1.png"><meta name="twitter:image:alt" content="Exact next-word output and state update in Rand32 · oorandom 11.1.5"><link rel="canonical" href="https://proofs.rs/report/25"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F25">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/oorandom?version=11.1.5">oorandom 11.1.5</a> <span aria-hidden="true">/</span> <a href="/crate/oorandom?version=11.1.5#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #25 — Exact next-word output and state update in Rand32</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">1 verified claim · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 01:07 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Exact%20next-word%20output%20and%20state%20update%20in%20Rand32%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F25%3Fv%3D1"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Exact%20next-word%20output%20and%20state%20update%20in%20Rand32%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F25%3Fv%3D1"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/25?v=1" aria-current="page">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For the unchanged Rand32::rand_u32 body, every u64 state s and increment i returns the PCG-XSH-RR output rotate_right(low32(((s &gt;&gt; 18) XOR s) &gt;&gt; 27), low32(s &gt;&gt; 59)), and updates the state to (6364136223846793005*s+i) modulo 2^64 while preserving the increment. Right shifts are logical. The call terminates without model failure. Original crate Rust source and Cargo manifest are unchanged; official Aeneas scalar and array primitives supply all library operations, without custom external models.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (1)</h2><section class="api-category"><h3>Methods</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Rand32</span></code></h4><div class="catalog-row" data-api-path="oorandom::Rand32::rand_u32" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/fb1efbf278bbcfe9a0fabb5c322ac92855c1a2d465027ea90afda077c4fe7d45">rand_u32</a>(self: &amp;mut Self) -&gt; u32</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/00eaa6af-42cf-4c76-97cb-8d648baa647a?report_revision=1">Claim #1</a></span></div></div></section></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/db2a5c20a4999ca201db13c682ee3d2699790bda" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/db2a5c20a4999ca201db13c682ee3d2699790bda</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-25-source-1
+git -C report-25-source-1 checkout --detach db2a5c20a4999ca201db13c682ee3d2699790bda
+git -C report-25-source-1 submodule update --init --recursive --checkout
+cd report-25-source-1/oorandom/11.1.5/aeneas/2026-11-05/proofs
+
+lake build +Proofs
+
+printf &#39;%s&#39; &#39;import Lean
+import Proofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.rand_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.rand_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.rand_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.rand_u32_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/db2a5c20a4999ca201db13c682ee3d2699790bda">Source on GitHub</a> · <a href="/api/v1/runs/d968322a-8abb-4ff3-a696-3242aa92dff6/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 1 checks passed · 0 failed</p><p class="meta">2026-11-05T01:03:31.194622462+00:00 · 175.3 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e72616e645f7533325f73706563"><td>Lean checked theorem Proofs.rand_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.rand_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/00eaa6af-42cf-4c76-97cb-8d648baa647a?report_revision=1">Claim #1</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T01:03:31.194622462+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T01:06:26.485825813+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">oorandom/11.1.5/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">db2a5c20a4999ca201db13c682ee3d2699790bda</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/61] Built AeneasMeta.Simp.RegisterCommand (747ms)
+✔ [4/61] Built Aeneas.Std.Global (798ms)
+✔ [5/61] Built AeneasMeta.UtilsCore (966ms)
+✔ [6/61] Built AeneasMeta.BvEnumToBitVec (896ms)
+✔ [7/62] Built AeneasMeta.Simp.RegisterCommand:c.o (263ms)
+✔ [8/62] Built AeneasMeta.UtilsCore:c.o (97ms)
+✔ [9/62] Built AeneasMeta.Simp.RegisterCommand:dynlib (62ms)
+✔ [10/64] Built AeneasMeta.UtilsCore:dynlib (94ms)
+✔ [11/65] Built AeneasMeta.BvEnumToBitVec:c.o (597ms)
+✔ [12/65] Built AeneasMeta.BvEnumToBitVec:dynlib (122ms)
+✔ [13/67] Built Aeneas.Data.Coinductive.Effect (807ms)
+✔ [15/67] Built Aeneas.Tactic.Solver.Grind.Attribute (638ms)
+✔ [16/71] Built AeneasMeta.OptionConfig (2.3s)
+✔ [19/71] Built Qq.ForLean.ReduceEval (605ms)
+✔ [20/72] Built Qq.ForLean.ToExpr (860ms)
+✔ [21/73] Built AeneasMeta.OptionConfig:c.o (2.1s)
+✔ [22/78] Built AeneasMeta.OptionConfig:dynlib (84ms)
+✔ [23/78] Built Qq.Typ (780ms)
+✔ [24/78] Built Aeneas.Tactic.Solver.Grind.Init (2.6s)
+✔ [25/83] Built Qq.ForLean.Do (603ms)
+✔ [26/83] Built Qq.SortLocalDecls (663ms)
+✔ [29/92] Built Aeneas.Data.Coinductive.CoInd (5.8s)
+✔ [30/92] Built Batteries.CodeAction.Deprecated (1.1s)
+✔ [31/92] Built Batteries.Util.LibraryNote (1.1s)
+✔ [33/92] Built Batteries.Tactic.Lint.Basic (1.2s)
+✔ [34/92] Built Aeneas.Data.Coinductive.ITree (1.6s)
+✔ [36/95] Built Batteries.Tactic.Alias (2.4s)
+✔ [37/95] Built Batteries.Tactic.Lint.Misc (1.2s)
+✔ [38/95] Built ImportGraph.Lean.Syntax (413ms)
+✔ [39/95] Built ImportGraph.Lean.MessageData (470ms)
+✔ [40/98] Built AeneasMeta.Utils (8.8s)
+✔ [41/98] Built Qq.Macro (5.1s)
+✔ [42/98] Built Batteries.Tactic.HelpCmd (2.5s)
+✔ [43/98] Built Qq.Commands (1.6s)
+✔ [44/98] Built Qq.Delab (1.7s)
+✔ [45/101] Built ImportGraph.Imports.Pretty (1.0s)
+✔ [46/101] Built ImportGraph.Shake.Core (727ms)
+✔ [47/102] Built ImportGraph.Lean.EnvExtension (428ms)
+✔ [48/102] Built Qq.MetaM (827ms)
+✔ [49/105] Built ImportGraph.Shake.EnvExtension (750ms)
+✔ [50/105] Built Batteries.Util.ProofWanted (3.6s)
+✔ [51/105] Built ImportGraph.Lean.Json (929ms)
+✔ [52/105] Built ImportGraph.Shake.Basic (1.4s)
+✔ [53/106] Built Qq.MatchImpl (646ms)
+✔ [54/106] Built Qq.Simp (691ms)
+✔ [55/111] Built Qq.AssertInstancesCommute (1.5s)
+✔ [56/111] Built ImportGraph.Util.Modules (886ms)
+✔ [57/112] Built ImportGraph.Shake.Algebra (1.8s)
+✔ [58/114] Built ImportGraph.WorkspaceModel.Base (1.7s)
+✔ [59/114] Built ImportGraph.Imports.ImportGraph (574ms)
+✔ [60/115] Built ImportGraph.WorkspaceModel.Summary.Core (1.4s)
+✔ [61/116] Built ImportGraph.WorkspaceModel.Model (1.5s)
+✔ [62/117] Built ImportGraph.Lean.Environment (808ms)
+✔ [63/117] Built ImportGraph.WorkspaceModel.Summary.Cache (954ms)
+✔ [64/117] Built ImportGraph.Graph.TransitiveClosure (1.3s)
+✔ [65/119] Built ImportGraph.Shake.DeclNeeds (5.7s)
+✔ [70/119] Built ImportGraph.Imports.RequiredModules (99s)
+✔ [71/119] Built ImportGraph.Widget.Collapsible (99s)
+✔ [301/699] Built ImportGraph.Widget.Copy (99s)
+✔ [766/1801] Built Qq.Match (106s)
+✔ [1545/1801] Built AeneasMeta.Utils:c.o (114s)
+✔ [1800/1801] Built Oorandom (2.8s)
+⚠ [1801/1801] Built Proofs (3.6s)
+warning: Proofs.lean:20:4: This simp argument is unused:
+  UScalar.xor
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [oorandom.Rand32.rand_u32, oorandom.Rand32.MULTIPLIER, HShiftRight.hShiftRight,
+    UScalar.shiftRight_IScalar, UScalar.shiftRight, pcgOutput, pcgState, U64.wrapping_mul, U64.wrapping_add,
+    core.num.U64.wrapping_mul, core.num.U64.wrapping_add, core.num.U32.rotate_right]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: Proofs.lean:26:0: &#39;Proofs.rand_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1801 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.rand_u32_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Targeted original-body extraction via official --start-from. Source/archive hashes, regenerated translation comparison, tests and transitive axiom audit are retained in evidence.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, Charon/Aeneas translation, official Aeneas scalar/array models and Lean kernel are trusted. Standard-library operator implementations are modeled by the official Aeneas library, rather than individually body-proved. The public theorem has no extra local axioms; transitive dependencies allow only propext, Classical.choice and Quot.sound.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Only Rand32::rand_u32 is verified, for the default feature configuration on x86_64-unknown-linux-gnu. Seed constructors, state access/restoration, other generators, signed/floating/ranged output, advancement, buffer filling, serialization and inherited wrappers are outside this proof. No period, distribution, independence, nonzero-state invariant or cryptographic property is established.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (4)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand_core" target="_blank" rel="noopener noreferrer"><code>rand_core</code></a> <code>^0.5</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand_pcg" target="_blank" rel="noopener noreferrer"><code>rand_pcg</code></a> <code>^0.2</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/random-fast-rng" target="_blank" rel="noopener noreferrer"><code>random-fast-rng</code></a> <code>^0.1</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/randomize" target="_blank" rel="noopener noreferrer"><code>randomize</code></a> <code>^3.0.0</code> · dev</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F25">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer></body></html>

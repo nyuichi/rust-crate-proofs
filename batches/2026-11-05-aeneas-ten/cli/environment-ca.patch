@@ -1,0 +1,10 @@
+--- a/src/api.rs
++++ b/src/api.rs
+@@ -47,6 +47,7 @@
+         Ok(Self {
+             server: server.into(),
+             client: Client::builder()
++                .add_root_certificate(reqwest::Certificate::from_pem(&fs::read("/usr/local/share/ca-certificates/environment-proxy-ca.crt")?)?)
+                 .timeout(Duration::from_secs(60))
+                 .redirect(Policy::none())
+                 .user_agent(concat!("cargo-proofs/", env!("CARGO_PKG_VERSION")))

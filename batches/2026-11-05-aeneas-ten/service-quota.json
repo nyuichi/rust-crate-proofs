@@ -1,0 +1,66 @@
+{
+  "source_repository": "https://github.com/proofs-rs/proofs-rs",
+  "source_revision": "0a39304e702b196e6dff917bbf17c63dc01abcc6",
+  "source_checkout": "/workspace/proofs-rs-server-readonly",
+  "reviewed_at_utc": "2026-11-05T01:25:23Z",
+  "deployment_identity": "The deployed source revision was not independently established; public source behavior agrees with observed 200-ready and 429-daily_limit responses.",
+  "endpoint": "POST /api/v1/publish/prepare",
+  "limits": [
+    {
+      "kind": "import",
+      "subject": "authenticated user id",
+      "maximum_new_jobs_per_utc_day": 5,
+      "source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/imports.ts#L756"
+    },
+    {
+      "kind": "import_ip",
+      "subject": "SHA-256(CF-Connecting-IP header), falling back to user id if header absent",
+      "maximum_new_jobs_per_utc_day": 50,
+      "source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/imports.ts#L757-L761"
+    }
+  ],
+  "bucket": {
+    "expression": "new Date().toISOString().slice(0, 10)",
+    "timezone": "UTC",
+    "semantics": "calendar date, not rolling 24 hours",
+    "source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/core.ts#L72",
+    "quota_source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/core.ts#L134-L147"
+  },
+  "observed_server_date": "Thu, 05 Nov 2026 01:17:53 GMT",
+  "observed_date_evidence": "/workspace/batch-ten/service-limit-details.json",
+  "next_utc_bucket": "2026-11-06T00:00:00Z",
+  "early_return_no_new_quota": {
+    "current_catalogue": "200 ready",
+    "existing_job_states": [
+      "pending",
+      "running",
+      "retry"
+    ],
+    "existing_job_response_status": 202,
+    "source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/imports.ts#L739-L746"
+  },
+  "quota_failure": {
+    "http_status": 429,
+    "code": "daily_limit",
+    "database_check": "used<=lim",
+    "constraint_source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/migrations/0001_schema.sql#L21",
+    "fault_source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/core.ts#L119-L125"
+  },
+  "retry_after": {
+    "application_sets_header": false,
+    "actual_429_headers_archived": false,
+    "source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/worker.ts#L238-L243",
+    "note": "Application Fault handler sets JSON body/status only. An upstream layer could add headers; actual 429 raw headers were not archived."
+  },
+  "old_bucket_cleanup": {
+    "after_days": 7,
+    "not_required_for_reset": true,
+    "source": "https://github.com/proofs-rs/proofs-rs/blob/0a39304e702b196e6dff917bbf17c63dc01abcc6/src/jobs.ts#L50-L58"
+  },
+  "remaining_uncertainty": [
+    "The generic error does not reveal whether the user or IP bucket is exhausted.",
+    "No production counter values were read.",
+    "Next-day capacity can also be affected by other imports under the same user/IP."
+  ],
+  "actions": "Public source clone/search only; no production configuration or quota changes, no circumvention."
+}

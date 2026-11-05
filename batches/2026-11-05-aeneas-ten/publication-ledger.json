@@ -1,0 +1,500 @@
+{
+  "repository": "https://github.com/nyuichi/rust-crate-proofs",
+  "branch": "proofs/batch-ten-aeneas-2026-11-05",
+  "crate_count": 10,
+  "policy": "Original source unchanged; only explicitly mapped API guarantees; no new-import quota bypass or alternate identity.",
+  "service_limit": {
+    "new_imports_per_user_per_utc_day": 5,
+    "next_reset_utc": "2026-11-06T00:00:00Z",
+    "ready_catalogues_do_not_consume_new_import_quota": true,
+    "source_evidence": "service-quota.md",
+    "remaining_new_imports": 7,
+    "deployment_revision_confirmed": false,
+    "reset_is_source_based_expectation": true
+  },
+  "crates": [
+    {
+      "crate": "oorandom",
+      "version": "11.1.5",
+      "artifact_path": "oorandom/11.1.5/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "Rand32::rand_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_u32_spec",
+          "precondition": "Any u64 internal state and increment, including even increments."
+        }
+      ],
+      "report": {
+        "title": "Exact next-word output and state update in Rand32",
+        "explanation": "For the unchanged Rand32::rand_u32 body, every u64 state s and increment i returns the PCG-XSH-RR output rotate_right(low32(((s >> 18) XOR s) >> 27), low32(s >> 59)), and updates the state to (6364136223846793005*s+i) modulo 2^64 while preserving the increment. Right shifts are logical. The call terminates without model failure. Original crate Rust source and Cargo manifest are unchanged; official Aeneas scalar and array primitives supply all library operations, without custom external models.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, official Aeneas scalar/array models and Lean kernel are trusted. Standard-library operator implementations are modeled by the official Aeneas library, rather than individually body-proved. The public theorem has no extra local axioms; transitive dependencies allow only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only Rand32::rand_u32 is verified, for the default feature configuration on x86_64-unknown-linux-gnu. Seed constructors, state access/restoration, other generators, signed/floating/ranged output, advancement, buffer filling, serialization and inherited wrappers are outside this proof. No period, distribution, independence, nonzero-state invariant or cryptographic property is established.",
+        "environment": "Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Targeted original-body extraction via official --start-from. Source/archive hashes, regenerated translation comparison, tests and transitive axiom audit are retained in evidence."
+      },
+      "fresh_record_log": "runs/oorandom/record.log",
+      "fresh_record_passed": true,
+      "run_id": "d968322a-8abb-4ff3-a696-3242aa92dff6",
+      "source_commit": "db2a5c20a4999ca201db13c682ee3d2699790bda",
+      "publication_status": "published",
+      "report_url": "https://proofs.rs/report/25",
+      "report_id": 25,
+      "revision": 1,
+      "archived_sarif_sha256": "d98a4a92a12bec21ccd96a0c7599c64666321589ba0e059c271c4e6328965af0",
+      "archived_sarif": "runs/oorandom/run.sarif.json",
+      "readback_passed": true
+    },
+    {
+      "crate": "endian-type",
+      "version": "0.2.0",
+      "artifact_path": "endian-type/0.2.0/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "<endian_type::BigEndian as core::ops::BitAnd>::bitand",
+          "module": "Proofs",
+          "theorem": "Proofs.bigendian_bitand_spec",
+          "precondition": "Arbitrary well-typed operands and arbitrary underlying Rust operator implementation, represented by its Aeneas trait dictionary. Wrapper equivalence preserves the underlying result; no assumption of callback success is required."
+        },
+        {
+          "api": "<endian_type::BigEndian as core::ops::BitOr>::bitor",
+          "module": "Proofs",
+          "theorem": "Proofs.bigendian_bitor_spec",
+          "precondition": "Arbitrary well-typed operands and arbitrary underlying Rust operator implementation, represented by its Aeneas trait dictionary. Wrapper equivalence preserves the underlying result; no assumption of callback success is required."
+        },
+        {
+          "api": "<endian_type::BigEndian as core::ops::BitXor>::bitxor",
+          "module": "Proofs",
+          "theorem": "Proofs.bigendian_bitxor_spec",
+          "precondition": "Arbitrary well-typed operands and arbitrary underlying Rust operator implementation, represented by its Aeneas trait dictionary. Wrapper equivalence preserves the underlying result; no assumption of callback success is required."
+        },
+        {
+          "api": "<endian_type::LittleEndian as core::ops::BitAnd>::bitand",
+          "module": "Proofs",
+          "theorem": "Proofs.littleendian_bitand_spec",
+          "precondition": "Arbitrary well-typed operands and arbitrary underlying Rust operator implementation, represented by its Aeneas trait dictionary. Wrapper equivalence preserves the underlying result; no assumption of callback success is required."
+        },
+        {
+          "api": "<endian_type::LittleEndian as core::ops::BitOr>::bitor",
+          "module": "Proofs",
+          "theorem": "Proofs.littleendian_bitor_spec",
+          "precondition": "Arbitrary well-typed operands and arbitrary underlying Rust operator implementation, represented by its Aeneas trait dictionary. Wrapper equivalence preserves the underlying result; no assumption of callback success is required."
+        },
+        {
+          "api": "<endian_type::LittleEndian as core::ops::BitXor>::bitxor",
+          "module": "Proofs",
+          "theorem": "Proofs.littleendian_bitxor_spec",
+          "precondition": "Arbitrary well-typed operands and arbitrary underlying Rust operator implementation, represented by its Aeneas trait dictionary. Wrapper equivalence preserves the underlying result; no assumption of callback success is required."
+        }
+      ],
+      "report": {
+        "title": "Bitwise wrapper operations preserve the underlying operator result",
+        "explanation": "For endian-type 0.2.0, the handwritten BitAnd, BitOr, and BitXor implementations of BigEndian<T> and LittleEndian<T> apply the corresponding underlying T operator and wrap its successful output. Each of the six proved contracts quantifies arbitrary operand and output types, operands, and operator dictionaries: the translated wrapper result equals the underlying operator result. This includes propagation of failure or divergence represented in the Aeneas result model. The wrappers add no independent failure in that model. These contracts prove the unchanged published wrapper bodies; they do not prove any user-supplied T operator implementation.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted. Underlying operator behavior is represented by an arbitrary trait dictionary, rather than asserted to implement a particular integer operation. The theorems have only propext, Classical.choice, and Quot.sound as transitive axioms.",
+        "limitations": "Only six handwritten generic bitwise operator method bodies are covered. No endian conversion, integer From implementation, byte representation, raw-pointer/slice access, transmute safety, derived standard trait implementation, or complete crate memory-safety claim is established. Concrete integer operator dictionaries are not independently proved here. Extraction/build used x86_64-unknown-linux-gnu; other targets were not checked.",
+        "environment": "Unmodified crates.io endian-type 0.2.0, no_std library, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official method-root selection, no source/IR/tool modifications. Six generic method-body equality theorems. cargo-proofs API discovery uses a documented official-rustc macro-expansion compatibility fallback and recognizes cfg(doctest) as false; proof compilation, exactly-one API resolution, and axiom policy are unchanged. Exact standard bit-operator catalogue basename aliases preserve distinct self type/method/ID matching."
+      },
+      "fresh_record_log": "runs/endian-type/record.log",
+      "fresh_record_passed": true,
+      "run_id": "00506d31-6b43-43b9-a10e-af38e3e0e56f",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "published",
+      "report_url": "https://proofs.rs/report/26",
+      "report_id": 26,
+      "revision": 1,
+      "archived_sarif_sha256": "176bf94b259d35658c462abc8f26bd0dad33460f33f276dbd9ccfe688c86085e",
+      "archived_sarif": "runs/endian-type/run.sarif.json",
+      "readback_passed": true
+    },
+    {
+      "crate": "rand_pcg",
+      "version": "0.10.2",
+      "artifact_path": "rand_pcg/0.10.2/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "<rand_pcg::Lcg64Xsh32 as rand_core::TryRng>::try_next_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.try_next_u32_spec",
+          "precondition": "Any u64 internal state and increment, including even increments."
+        }
+      ],
+      "report": {
+        "title": "Exact next-word output and state update in Lcg64Xsh32",
+        "explanation": "For the unchanged Lcg64Xsh32::try_next_u32 body, every u64 state s and increment i returns the PCG-XSH-RR output rotate_right(low32(((s >> 18) XOR s) >> 27), low32(s >> 59)), and updates the state to (6364136223846793005*s+i) modulo 2^64 while preserving the increment. Right shifts are logical. The call terminates without model failure and returns Ok. Original crate Rust source and Cargo manifest are unchanged; official Aeneas scalar and array primitives supply all library operations, without custom external models.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, official Aeneas scalar/array models and Lean kernel are trusted. Standard-library operator implementations are modeled by the official Aeneas library, rather than individually body-proved. The public theorem has no extra local axioms; transitive dependencies allow only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only Lcg64Xsh32::try_next_u32 is verified, for the default feature configuration on x86_64-unknown-linux-gnu. Seed constructors, state access/restoration, other generators, signed/floating/ranged output, advancement, buffer filling, serialization and inherited wrappers are outside this proof. No period, distribution, independence, nonzero-state invariant or cryptographic property is established.",
+        "environment": "Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Targeted original-body extraction via official --start-from. Source/archive hashes, regenerated translation comparison, tests and transitive axiom audit are retained in evidence. cargo-proofs uses a narrowly documented rand_core identity-reexport discovery correction; exactly-one API resolution and proof/axiom audits are unchanged."
+      },
+      "fresh_record_log": "runs/rand_pcg/record.log",
+      "fresh_record_passed": true,
+      "run_id": "3d363f91-3bef-4772-8f3c-ed4eef7d3da7",
+      "source_commit": "c1907945b2c28c59a4f45ab5d182ec34da2159a7",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "a7fd6539de884f5ebe78bfcc4c49e1ddf23a9cc3249009721ac15de9fc69ac1a",
+      "archived_sarif": "runs/rand_pcg/run.sarif.json"
+    },
+    {
+      "crate": "rand_xoshiro",
+      "version": "0.8.1",
+      "artifact_path": "rand_xoshiro/0.8.1/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "<rand_xoshiro::Xoshiro128Plus as rand_core::TryRng>::try_next_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.xoshiro_next_spec",
+          "precondition": "Any four u32 internal state words, including all zero; the state is represented by state4."
+        }
+      ],
+      "report": {
+        "title": "Exact next-word output and state update in Xoshiro128Plus",
+        "explanation": "For the unchanged Xoshiro128Plus::try_next_u32 body, every choice of four u32 words (a,b,c,d), including all zero, returns Ok(a+d modulo 2^32). Put c1=c XOR a and d1=d XOR b. The new state is (a XOR d1, b XOR c1, c1 XOR (b << 9), rotate_left(d1,11)), with 32-bit operations. The call terminates without model failure. Original crate Rust source and Cargo manifest are unchanged; official Aeneas scalar and array primitives supply all library operations, without custom external models.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, official Aeneas scalar/array models and Lean kernel are trusted. Standard-library operator implementations are modeled by the official Aeneas library, rather than individually body-proved. The public theorem has no extra local axioms; transitive dependencies allow only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only Xoshiro128Plus::try_next_u32 is verified, for the default feature configuration on x86_64-unknown-linux-gnu. Seeds, other generators, jumps, u64 output, buffer filling, serde, and inherited wrappers are not verified. No period, distribution, independence, nonzero-state invariant or cryptographic property is established.",
+        "environment": "Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Targeted original-body extraction via official --start-from. Source/archive hashes, regenerated translation comparison, tests and transitive axiom audit are retained in evidence. cargo-proofs uses a narrowly documented rand_core identity-reexport discovery correction; exactly-one API resolution and proof/axiom audits are unchanged."
+      },
+      "fresh_record_log": "runs/rand_xoshiro/record.log",
+      "fresh_record_passed": true,
+      "run_id": "14057656-f885-436d-a7f0-2be3acf3b914",
+      "source_commit": "c1907945b2c28c59a4f45ab5d182ec34da2159a7",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "dbcae3a0130d616e906acb91813c9aaad4e863298f6b98156fb55e61c8ee034e",
+      "archived_sarif": "runs/rand_xoshiro/run.sarif.json"
+    },
+    {
+      "crate": "either",
+      "version": "1.19.0",
+      "artifact_path": "either/1.19.0/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "Either::is_left",
+          "module": "Proofs",
+          "theorem": "Proofs.is_left_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::is_right",
+          "module": "Proofs",
+          "theorem": "Proofs.is_right_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::left",
+          "module": "Proofs",
+          "theorem": "Proofs.left_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::right",
+          "module": "Proofs",
+          "theorem": "Proofs.right_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::flip",
+          "module": "Proofs",
+          "theorem": "Proofs.flip_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::left_or",
+          "module": "Proofs",
+          "theorem": "Proofs.left_or_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::right_or",
+          "module": "Proofs",
+          "theorem": "Proofs.right_or_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        }
+      ],
+      "report": {
+        "title": "Exact branch tests, payload projections and swapping in Either",
+        "explanation": "For either 1.19.0, is_left and is_right report the actual variant for every Either value. left and right return Some of exactly the corresponding payload or None for the opposite branch. left_or and right_or return the matching payload or the supplied default. flip swaps Left and Right while preserving the payload; a separate composition theorem proves that flipping twice returns the original value. These seven original method bodies terminate normally in the Aeneas model for arbitrary payload types and values, without inspecting or modifying payloads.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, standard-library models and Lean kernel are trusted. Transitive theorem axioms are limited to propext, Classical.choice and Quot.sound; no local trusted helper contracts or custom models are used.",
+        "limitations": "Coverage is limited to the seven named methods and the two-flip composition. Closure-taking maps, iterators, pinning, borrowed mutable projections, formatting, serde and other trait implementations are not verified. Rust destructor behavior and resource consumption are outside the pure value model. Other targets and feature configurations were not checked.",
+        "environment": "Original crates.io either 1.19.0 Rust sources and Cargo.toml, byte-compared with the archived release; default features on x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. cargo-proofs uses documented generic-owner discovery and checks uniqueness of the explicitly selected APIs; unrelated overloaded methods are not claimed, and proof/axiom audits are unchanged. Official start-from selection extracts the actual methods without source changes."
+      },
+      "fresh_record_log": "runs/either/record.log",
+      "fresh_record_passed": true,
+      "run_id": "7f576a8b-610d-4c8d-b735-0639369e7a5e",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "published",
+      "report_url": "https://proofs.rs/report/27",
+      "report_id": 27,
+      "revision": 1,
+      "archived_sarif_sha256": "ac8a86c711c8272281355dbe04d10b3450d79fea4ba659fbb215aa69362c8df8",
+      "archived_sarif": "runs/either/run.sarif.json",
+      "readback_passed": true
+    },
+    {
+      "crate": "base16ct",
+      "version": "1.0.0",
+      "artifact_path": "base16ct/1.0.0/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "encoded_len",
+          "module": "Proofs",
+          "theorem": "Proofs.encoded_len_spec",
+          "precondition": "Input length at most usize::MAX / 2; default features, x86_64, debug assertions enabled."
+        },
+        {
+          "api": "decoded_len",
+          "module": "Proofs",
+          "theorem": "Proofs.decoded_len_spec",
+          "precondition": "Every well-typed input slice, regardless of byte contents; default features, x86_64, debug assertions enabled."
+        }
+      ],
+      "report": {
+        "title": "Base16 buffer length calculations and odd-length rejection",
+        "explanation": "For base16ct 1.0.0, decoded_len terminates normally for every input slice. It returns Ok of exactly half the input length when that length is even, and Err(InvalidLength) exactly when it is odd. It examines length only, so this result does not validate hexadecimal characters. encoded_len returns exactly twice the input length without a panic when the length is at most usize::MAX / 2. These are body proofs of the unchanged published length helper APIs, over arbitrary slice lengths representable in the model.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, standard-library slice/scalar models and Lean kernel are trusted. The proofs add no local axioms or custom standard-library models. Transitive theorem dependencies use only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only decoded_len and encoded_len are covered. Hexadecimal encoding, decoding, character validation, destination writes, allocation and encode_str's unchecked UTF-8 conversion are not verified. encoded_len behavior above usize::MAX / 2 is outside the proved precondition. Other targets, feature configurations and release overflow behavior were not checked.",
+        "environment": "Original crates.io base16ct 1.0.0 source files and Cargo.toml, byte-compared against the archived release; default features, debug assertions enabled, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. Official targeted extraction; no Rust or generated Lean changes."
+      },
+      "fresh_record_log": "runs/base16ct/record.log",
+      "fresh_record_passed": true,
+      "run_id": "0d5baa22-bd56-4b94-a0ff-17ff4472f548",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "5925299a662ea92ecd05d291359dd55ce7519f9040627970c2b9dd00010bed63",
+      "archived_sarif": "runs/base16ct/run.sarif.json"
+    },
+    {
+      "crate": "ascii",
+      "version": "1.1.0",
+      "artifact_path": "ascii/1.1.0/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "AsciiChar::is_ascii_blank",
+          "module": "Proofs",
+          "theorem": "Proofs.blank_spec",
+          "precondition": "Every valid AsciiChar variant; default features on x86_64."
+        },
+        {
+          "api": "AsciiChar::is_ascii_digit",
+          "module": "Proofs",
+          "theorem": "Proofs.is_ascii_digit_spec",
+          "precondition": "Every valid AsciiChar variant; default features on x86_64."
+        },
+        {
+          "api": "AsciiChar::is_ascii_whitespace",
+          "module": "Proofs",
+          "theorem": "Proofs.is_ascii_whitespace_spec",
+          "precondition": "Every valid AsciiChar variant; default features on x86_64."
+        },
+        {
+          "api": "AsciiChar::is_ascii_control",
+          "module": "Proofs",
+          "theorem": "Proofs.is_ascii_control_spec",
+          "precondition": "Every valid AsciiChar variant; default features on x86_64."
+        }
+      ],
+      "report": {
+        "title": "Exact ASCII digit, blank, whitespace and control classification",
+        "explanation": "For ascii 1.1.0, the original AsciiChar classification methods return exact results for every one of the 128 valid characters. is_ascii_digit accepts exactly the characters '0' through '9'; is_ascii_blank accepts space and tab; is_ascii_whitespace accepts space, tab, line feed, carriage return and form feed, and rejects vertical tab. is_ascii_control accepts exactly character codes 0 through 31 and 127. The four generated method bodies, including the call from whitespace classification to blank classification, terminate normally in the model.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, standard-library scalar models and Lean kernel are trusted. Proofs exhaustively split the full finite AsciiChar type and use kernel-checked reduction. Transitive axioms are limited to propext, Classical.choice and Quot.sound; no extra local axioms or custom models are used.",
+        "limitations": "Only the four named character classification methods are verified. Byte/string conversion, validation, allocation, case conversion, AsciiStr, AsciiString and unsafe implementation paths are not covered. Invalid enum representations are outside the well-typed input domain. The original is_digit_strange_radixes test fails on the pinned modern Rust because char::is_digit now panics at radix 0/1; that distinct is_digit API is outside these proofs. Remaining original tests pass with only that test excluded. Other targets and feature configurations were not checked.",
+        "environment": "Original crates.io ascii 1.1.0 Rust files and Cargo.toml, byte-compared against the archived release; default features, x86_64-unknown-linux-gnu. RUSTFLAGS=-A bindings_with_variant_name and the corresponding rustdoc doctest-build arguments disable a modern compiler lint that otherwise rejects upstream macro bindings; this does not change Rust bodies. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0."
+      },
+      "fresh_record_log": "runs/ascii/record.log",
+      "fresh_record_passed": true,
+      "run_id": "d9a593e1-307e-4af2-b00f-772fc4f9e4b7",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "3f59b86aa52f7b266c3c783e4d3e036df91ad9a12030f900263d96ae9732c3e9",
+      "archived_sarif": "runs/ascii/run.sarif.json"
+    },
+    {
+      "crate": "byteorder",
+      "version": "1.5.0",
+      "artifact_path": "byteorder/1.5.0/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        }
+      ],
+      "report": {
+        "title": "Exact endian integer writes and preservation of trailing bytes",
+        "explanation": "For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
+        "limitations": "This report covers eight integer-write methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.",
+        "trusted_assumptions": "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound.",
+        "environment": "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
+      },
+      "fresh_record_log": "runs/byteorder/record.log",
+      "fresh_record_passed": true,
+      "run_id": "d2fbb5cc-696b-4a3f-8b72-e11fbcbda918",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "24a361a1a013836c4e15ca06e375bb4766637a6f500f4c2568caca7478f0bfde",
+      "archived_sarif": "runs/byteorder/run.sarif.json"
+    },
+    {
+      "crate": "byteorder-lite",
+      "version": "0.1.0",
+      "artifact_path": "byteorder-lite/0.1.0/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        }
+      ],
+      "report": {
+        "title": "Exact endian integer writes and preservation of trailing bytes",
+        "explanation": "For byteorder-lite 0.1.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
+        "limitations": "This report covers eight integer-write methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.",
+        "trusted_assumptions": "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound.",
+        "environment": "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
+      },
+      "fresh_record_log": "runs/byteorder-lite/record.log",
+      "fresh_record_passed": true,
+      "run_id": "94239dc1-ddb9-4485-9014-fa6101a15881",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "514fdba1dda19e8ccb8087bf0e59581f14b65feab0f1ea33ed8708bce546c24e",
+      "archived_sarif": "runs/byteorder-lite/run.sarif.json"
+    },
+    {
+      "crate": "bit_field",
+      "version": "0.10.3",
+      "artifact_path": "bit_field/0.10.3/aeneas/2026-11-05",
+      "claims": [
+        {
+          "api": "<u8 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.get_bit_spec",
+          "precondition": "Any u8 value; bit index less than 8. Uses the explicitly guarded u8-only size_of model."
+        },
+        {
+          "api": "<u8 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.set_bit_spec",
+          "precondition": "Any u8 value; bit index less than 8. Uses the explicitly guarded u8-only size_of model."
+        }
+      ],
+      "report": {
+        "title": "Exact bit reading and bit setting for u8",
+        "explanation": "For bit_field 0.10.3, get_bit returns the requested bit for every byte and index 0 through 7. set_bit produces x OR (1 << bit) for true and x AND NOT (1 << bit) for false, with 8-bit operations, and returns a mutable reference to that updated byte. Its translated backward function is the identity: a later write through the returned reference updates the original byte to that value. Both unchanged method bodies terminate normally in the model on these inputs. One manual executable size_of::<u8>() = 1 model is supplied, with extraction guards restricting its use to the sole u8 instantiation. Kani independently checks the original Rust methods against the reference formulas and returned-reference behavior, and checks the u8 layout value.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, official scalar models, Lean kernel, and Kani/CBMC are trusted. One manual executable external model supplies size_of::<u8>() = 1. Its generic Lean signature comes from extraction but does not model arbitrary types: guards inspect all serialized LLBC functions and generated Lean modules and reject any non-u8 size_of call or additional translated methods. Kani checks the Rust u8 layout value; its correspondence to the Lean model is a reviewed bridge, not an in-Lean proof of Rust standard-library layout. Public theorems use only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only the u8 implementations of get_bit and set_bit at valid indices 0 through 7 are covered, on x86_64-unknown-linux-gnu with default features and debug overflow checks. Invalid indices, other integer types, get_bits/set_bits, BitArray methods, other targets and release behavior are not verified. No generic size_of property is established. Kani uses a different Rust nightly from Aeneas extraction; its layout and body checks do not prove the extraction toolchain itself.",
+        "environment": "Original crates.io bit_field 0.10.3 Rust sources and Cargo.toml, archive-compared without changes. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official wildcard roots plus explicit exclusion of every non-u8 primitive implementation restrict extraction. Kani 0.68.0/CBMC 6.11.0/Rust nightly-2026-08-21 checks two supplementary harnesses."
+      },
+      "fresh_record_log": "runs/bit_field/record.log",
+      "fresh_record_passed": true,
+      "run_id": "f516332a-cf27-4c49-86d8-080fbc81126f",
+      "source_commit": "3213c669b1a3c5d8448b2750849526c388250f54",
+      "publication_status": "awaiting_new_catalogue_quota",
+      "report_url": null,
+      "blocker": "New catalogue import quota is 5 per user per UTC date; HTTP 429 daily_limit was observed for rand_pcg; exact API lookups and public catalogue listing did not find these versions.",
+      "next_quota_reset_utc": "2026-11-06T00:00:00Z",
+      "archived_sarif_sha256": "dcf6ebf64db797989e06aa68189e2840ea0314a2e8a82fde5636f4358408264d",
+      "archived_sarif": "runs/bit_field/run.sarif.json"
+    }
+  ]
+}
