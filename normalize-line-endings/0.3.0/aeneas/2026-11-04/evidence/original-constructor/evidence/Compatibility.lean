@@ -1,0 +1,5 @@
+import Proofs
+import OriginalConstructorSupplement
+#check normalize_line_endings.normalized
+#check OriginalConstructorGenerated.normalized
+#check OriginalConstructorSupplement.initializes

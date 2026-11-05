@@ -1,0 +1,53 @@
+Aeneas: verification of Rust programs by translation to pure lambda calculus
+
+Usage: aeneas [OPTIONS] FILE
+
+  -version                  Print the version (git commit) and exit
+  -print-error-emitters     Whenever reporting an error, print the span of the source code of Aeneas which emitted the error
+  -borrow-check             Only borrow-check the program and do not generate any translation
+  -backend {fstar|coq|rocq|lean|hol4}
+                            Specify the target backend (fstar, coq, rocq, lean, hol4)
+  -namespace                Set the namespace of the definitions in the pure model
+  -dest                     Specify the output directory
+  -subdir                   Extract the files in a sub-folder; this option has an impact on the import paths of the generated files
+  -use-lean-modules         Emit Lean files using the module system (default: true). Pass `-use-lean-modules false` to emit files that don't use the module system.
+  -test-units               Test the unit functions with the concrete (i.e., not symbolic) interpreter
+  -decreases-clauses        Use decreases clauses/termination measures for the recursive definitions
+  -use-fuel                 Use a fuel parameter to control divergence
+  -no-template-clauses      Do not generate templates for the required decreases clauses/termination measures, in a dedicated file, if you also put the option -decreases-clauses
+  -split-files              Split the definitions between different files for types, functions, etc.
+  -checks                   Activate extensive sanity checks (warning: causes a ~100 times slow down).
+  -gen-lib-entry            Add an entry point file to the generated library (only valid if the crate is split between different files)
+  -lean-default-lakefile    Generate a default lakefile.lean (Lean only)
+  -emit-json                Emit a translation.json file alongside the Lean files (Lean only)
+  -print-llbc               Print the imported LLBC
+  -abort-on-error           Abort on the first encountered error
+  -warnings-as-errors       Treat warnings as errors
+  -tuple-nested-proj        Use nested projectors for tuples (e.g., (0, 1, 2).snd.fst instead of (0, 1, 2).1).
+  -print-unknown-externals  Print all the external definitions which are not listed in the builtin functions
+  -log                      Activate trace log for a given logger designated by its name. It is possible to specifiy a list of names if they are separated by commas without spaces; for instance: '-log Interp,SymbolicToPure'. The existing loggers are: {BorrowCheck, Builtin, Contexts, Deps, Errors, Extract, FunsAnalysis, Interp, InterpAbs, InterpBorrows, InterpExpansion, InterpExpressions, InterpJoin, InterpLoops, InterpLoopsFixedPoint, InterpMatchCtxs, InterpPaths, InterpProjectors, InterpReduceCollapse, InterpStatements, Invariants, MainLogger, PrePasses, PureMicroPasses, PureMicroPasses.simplify_aggregates_unchanged_fields, PureTypeCheck, PureUtils, RegionsHierarchy, ReorderDecls, SCC, SymbolicToPure, SymbolicToPureAbs, SymbolicToPureExpressions, SymbolicToPureTypes, SymbolicToPureValues, Translate, TypesAnalysis}
+  -log-debug                Same as '-log' but sets the level to the more verbose 'debug' rather than 'trace'
+  -log-error                Activate error log for a given logger designated by its name. It is possible to specifiy a list of names if they are separated by commas without spaces; for instance: '-log Interp,SymbolicToPure'. The existing loggers are: {BorrowCheck, Builtin, Contexts, Deps, Errors, Extract, FunsAnalysis, Interp, InterpAbs, InterpBorrows, InterpExpansion, InterpExpressions, InterpJoin, InterpLoops, InterpLoopsFixedPoint, InterpMatchCtxs, InterpPaths, InterpProjectors, InterpReduceCollapse, InterpStatements, Invariants, MainLogger, PrePasses, PureMicroPasses, PureMicroPasses.simplify_aggregates_unchanged_fields, PureTypeCheck, PureUtils, RegionsHierarchy, ReorderDecls, SCC, SymbolicToPure, SymbolicToPureAbs, SymbolicToPureExpressions, SymbolicToPureTypes, SymbolicToPureValues, Translate, TypesAnalysis}
+  -mark-ids                 For developers: mark some identifiers to throw an exception if we generate them; this is useful to insert breakpoints when debugging by using the log. For example, one can mark the symbolic value ids 1 and 2 with '-mark-ids s1,s2', or '-mark-ids s@1, s@2. The supported prefixes are: 's' (symbolic value id), 'b' (borrow id), 'a' (abstraction id), 'r' (region id), 'f' (pure free variable id).
+  -sequential               Execute sequentially
+  -no-progress-bar          Do not display a progress bar
+  -max-error-spans          Maximum number of local uses of an external definition which triggered an error that we print (if < 0 we print them all)
+  -strict-joins             Report an error whenever joining contexts fails rather than duplicating the code after the branching statement
+  -color                    Use colors when printing log messages
+  -borrow-check-globals     Borrow-check globals - an over-simplification in the LLBC provided by Charon for the global initialization functions currently prevents us from borrow-checking globals which contain static references
+  -print-error-diagnostics  Print additional diagnostics about the kind of errors encountered
+  -impl-namespace           For Lean: always prefix method names with "impl" to avoid collisions with field projectors. Example: the `len` method in `impl Struct { fn len(&self) -> usize { ... } }` would be named `Struct.impl.len`.
+  -filter-trait-methods     When extracting a trait impl, filter out the methods which are absent from the model of the trait declaration in the target backend (e.g., Lean). Trait declarations which have no model are not affected.
+  -all-computable           For Lean: do not insert `noncomputable section` at the top of the extracted files if there are external definitions not covered by the standard library.
+  -loops-to-rec             Always extract loops to recursive functions.
+  -feature-gates            For Lean: introduce an assertion at the beginning of the functions annotated with `#[target_feature(enable = "...")]`, to check that the required target features are available.
+  -loops-no-rec             Never attempt to extract loops to recursive functions.
+  -max-heartbeats For       Lean: set the value of the `set_option maxHeartBeats ...` command at the top of the generated files
+  -max-recdepth For         Lean: set the value of the `set_option maxRecDepth ...` command at the top of the generated files
+  -eval-drops Evaluate      the drops. By default we do not borrow-check them by treating them as no-ops.
+  -diagnose-translation     Measure the time it takes to translate every function and print the results sorted from longest to shortest
+  -diagnose-micro-passes    Measure the time it takes to apply the micro-passes on every function and print them from longest to shortest
+  -diagnose-detailed        In combination with -diagnose-micro-passes, compute per-function, per -micro-pass time measurements
+  -diagnose-limit           Upper bound on the number of lines printed for the -diagnose options. If positive, print at most this many lines. If negative, print everything
+  -help                     Display this list of options
+  --help                    Display this list of options

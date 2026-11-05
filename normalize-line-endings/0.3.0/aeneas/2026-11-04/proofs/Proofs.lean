@@ -1,3 +1,4 @@
+import OriginalConstructorSupplement
 import Generated.NormalizeLineEndings
 import NormalizationSpec
 

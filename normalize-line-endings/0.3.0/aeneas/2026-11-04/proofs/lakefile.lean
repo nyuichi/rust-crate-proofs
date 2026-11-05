@@ -6,3 +6,6 @@ package nleproofs
 @[default_target] lean_lib Proofs
 lean_lib Generated
 lean_lib NormalizationSpec
+
+lean_lib OriginalConstructorGenerated
+lean_lib OriginalConstructorSupplement

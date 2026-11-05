@@ -151,136 +151,6 @@
       "archived_sarif_sha256": "2787999cdb0031da09f6eb0496bf8378df0c95c6064d025afb414c4d710597e7"
     },
     {
-      "id": "oorandom-expanded-default-x86_64",
-      "crate": "oorandom",
-      "version": "11.1.5",
-      "artifact_path": "oorandom/11.1.5/aeneas/2026-11-05",
-      "prior_mapping_count": 1,
-      "new_mapping_count": 12,
-      "added_mappings": [
-        "Rand32::from_state",
-        "Rand32::new",
-        "Rand32::new_inc",
-        "Rand32::rand_i32",
-        "Rand32::state",
-        "Rand64::from_state",
-        "Rand64::new",
-        "Rand64::new_inc",
-        "Rand64::rand_i64",
-        "Rand64::rand_u64",
-        "Rand64::state"
-      ],
-      "retained_mappings": [
-        "Rand32::rand_u32"
-      ],
-      "original_source_and_manifest_unchanged": true,
-      "original_hashes": {
-        "src/lib.rs": "2543317e21d94f1b579b31d92882d7c3a088a6b6bd43362861468f078b455a4e",
-        "Cargo.toml": "c2d20a6c59f36e8ce5912d434a19dd4946f1599ce36556d4879e2043c7dd1d14"
-      },
-      "proof_mappings": [
-        {
-          "api": "Rand32::rand_u32",
-          "module": "Proofs",
-          "theorem": "Proofs.rand_u32_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand32::rand_i32",
-          "module": "Proofs",
-          "theorem": "Proofs.rand_i32_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand32::state",
-          "module": "Proofs",
-          "theorem": "Proofs.state32_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand32::from_state",
-          "module": "Proofs",
-          "theorem": "Proofs.from_state32_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand32::new_inc",
-          "module": "Proofs",
-          "theorem": "Proofs.new_inc32_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand32::new",
-          "module": "Proofs",
-          "theorem": "Proofs.new32_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand64::rand_u64",
-          "module": "Proofs",
-          "theorem": "Proofs.rand_u64_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand64::rand_i64",
-          "module": "Proofs",
-          "theorem": "Proofs.rand_i64_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand64::state",
-          "module": "Proofs",
-          "theorem": "Proofs.state64_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand64::from_state",
-          "module": "Proofs",
-          "theorem": "Proofs.from_state64_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand64::new_inc",
-          "module": "Proofs",
-          "theorem": "Proofs.new_inc64_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        },
-        {
-          "api": "Rand64::new",
-          "module": "Proofs",
-          "theorem": "Proofs.new64_spec",
-          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
-        }
-      ],
-      "report": {
-        "title": "Exact integer generation, seed initialization and state restoration in Rand32 and Rand64",
-        "explanation": "For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output method for both Rand32 and Rand64. For arbitrary seed and increment input, new_inc normalizes the stream to ((increment << 1) OR 1), starts at zero, performs one PCG state update, adds the seed modulo the state width, then performs a second PCG state update. new uses the published DEFAULT_INC. state returns the exact current state and increment, and from_state restores those values unchanged; two additional composition theorems establish save/restore identity. Unsigned generation returns the exact PCG-XSH-RR output permutation of the old state and advances to multiplier*state+increment modulo 2^64 or 2^128. Signed generation preserves that updated state and reinterprets the unsigned result bits as i32 or i64. Each covered call terminates normally in the Aeneas model for every scalar input, including zero states and even restored increments.",
-        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models or local trusted helper contracts are used. All fourteen public and supplementary theorem dependency audits permit only propext, Classical.choice and Quot.sound. Standard-library wrapping, casts, shifts and rotations use official Aeneas models, rather than body proofs of Rust std implementations.",
-        "limitations": "The proof covers twelve integer/state APIs on x86_64-unknown-linux-gnu with the original default configuration. rand_float and rand_range for both generators remain unproved, as do non-excluded inherited/default and external blanket methods. The save/restore composition theorem establishes pure state identity; no arbitrary user callback or destructor behavior is modeled. No period, statistical distribution, independence or cryptographic guarantee is established. Other targets were not checked.",
-        "environment": "Original crates.io oorandom 11.1.5 src/Cargo.toml, archive-compared without changes. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all twelve original bodies and their shared callees. Original tests, regeneration hashes and integrated Lean/axiom audits are retained in evidence."
-      },
-      "existing_report_to_update": 25,
-      "author_integrated_verification": "passed",
-      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
-      "publisher_fresh_record_status": "passed",
-      "publisher_run_id": "1a8a39c6-536f-47b0-8ae3-6451e63b7fbf",
-      "source_commit": "a533a3edfd8327d552e2b072773161dc4408e27e",
-      "publication_status": "published",
-      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
-      "configuration_scope": [
-        "default features",
-        "x86_64-unknown-linux-gnu",
-        "debug extraction"
-      ],
-      "full_crate_completion": false,
-      "report_id": 25,
-      "report_revision": 2,
-      "report_url": "https://proofs.rs/report/25",
-      "readback_passed": true,
-      "archived_sarif": "runs/oorandom/1a8a39c6-536f-47b0-8ae3-6451e63b7fbf/run.sarif.json",
-      "archived_sarif_sha256": "c7278b2964e00a62025ef627156da99e1b247dd60da3df5cd201d89547d8fb38"
-    },
-    {
       "id": "base16ct-expanded-default-x86_64",
       "crate": "base16ct",
       "version": "1.0.0",
@@ -348,151 +218,6 @@
       "additional_publication_identity_obstacle": "Correct Rust self core::fmt::Error. Inspected server nominal-type route may mis-key reverse From impl as base16ct::Error; exact live catalogue identity must be checked after lawful import. No incorrect-self alias is permitted.",
       "archived_sarif": "runs/base16ct/ba5bdefe-109b-48e1-9e0c-7ce57a7770fb/run.sarif.json",
       "archived_sarif_sha256": "f460b9e742ba8cfe32e1467a0e03831ce14692ba545aad3c9647fa7cc8c920f6"
-    },
-    {
-      "id": "nohash-hasher-expanded-default-x86_64",
-      "crate": "nohash-hasher",
-      "version": "0.2.0",
-      "artifact_path": "nohash-hasher/0.2.0/aeneas/2026-11-05",
-      "prior_mapping_count": 14,
-      "new_mapping_count": 14,
-      "added_mappings": [],
-      "retained_mappings": [
-        "<nohash_hasher::NoHashHasher as Clone>::clone",
-        "<nohash_hasher::NoHashHasher as Default>::default",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8",
-        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize"
-      ],
-      "original_source_and_manifest_unchanged": true,
-      "original_hashes": {
-        "src/lib.rs": "9dc267d4c90c83b86b47da5e58961e7ea6d4c2b659448a383293bfbc08961fa9",
-        "Cargo.toml": "cc6743a78a5e9dca05dc2db923c8d1b3f1dfb81510d9731e4357d88f024db790"
-      },
-      "proof_mappings": [
-        {
-          "api": "<nohash_hasher::NoHashHasher as Default>::default",
-          "module": "Proofs",
-          "theorem": "Proofs.default_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as Clone>::clone",
-          "module": "Proofs",
-          "theorem": "Proofs.clone_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write",
-          "module": "Proofs",
-          "theorem": "Proofs.write_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish",
-          "module": "Proofs",
-          "theorem": "Proofs.finish_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8",
-          "module": "Proofs",
-          "theorem": "Proofs.write_u8_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16",
-          "module": "Proofs",
-          "theorem": "Proofs.write_u16_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32",
-          "module": "Proofs",
-          "theorem": "Proofs.write_u32_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64",
-          "module": "Proofs",
-          "theorem": "Proofs.write_u64_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize",
-          "module": "Proofs",
-          "theorem": "Proofs.write_usize_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8",
-          "module": "Proofs",
-          "theorem": "Proofs.write_i8_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16",
-          "module": "Proofs",
-          "theorem": "Proofs.write_i16_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32",
-          "module": "Proofs",
-          "theorem": "Proofs.write_i32_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64",
-          "module": "Proofs",
-          "theorem": "Proofs.write_i64_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        },
-        {
-          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize",
-          "module": "Proofs",
-          "theorem": "Proofs.write_isize_spec",
-          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
-        }
-      ],
-      "report": {
-        "title": "Exact integer writes and misuse checks in NoHashHasher",
-        "explanation": "For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stored integer. Each of the ten integer write methods stores the Rust conversion of its input to u64: unsigned values are widened and signed values are converted modulo 2^64. With debug assertions enabled, the first integer write succeeds and a later write fails its assertion. With debug assertions disabled, each integer write replaces the stored value. The generic byte-slice write always panics in both configurations. These are exact per-method state and result contracts over all inputs, proved from unchanged published Rust bodies.",
-        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted. The checked theorems use no extra local axioms; their transitive dependencies are limited to Lean's propext, Classical.choice, and Quot.sound.",
-        "limitations": "Coverage consists of Default, Clone, ten integer writers, write, and finish in the stated debug/release configurations. The handwritten Debug formatter, inherited Hasher default methods, full trait-instance integration, custom Hash implementations, BuildHasherDefault, and HashMap/HashSet behavior are not verified. In particular, this does not establish that a custom IsEnabled type obeys the required single-integer-write Hash protocol. Other targets were not checked. The upstream no-std IsEnabled doctest refers to the std-only IntMap alias and does not compile; the no-std unit tests and proved method bodies pass. A supplementary clone_from theorem composes the actual clone body with the official standard-library default model and proves exact replacement by source; it is not an independent std-body proof or a separate published API claim.",
-        "environment": "Unmodified crates.io nohash-hasher 0.2.0; x86_64-unknown-linux-gnu, std enabled and disabled; debug_assertions true and false. Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Rust nightly-2026-09-17, Lean 4.35.0. Official start-from roots select the actual method bodies; the official namespace option separates debug/release translations. Fourteen public theorems each conjoin all four std/no-std and debug/release configurations. The supplementary clone_from composition is included in the fresh Lean build without adding an API mapping. cargo-proofs 0.4.1 has the documented TLS-CA and upstream audit-variable compatibility fixes; the allowed-axiom policy is unchanged."
-      },
-      "existing_report_to_update": 23,
-      "author_integrated_verification": "passed",
-      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
-      "publisher_fresh_record_status": "passed",
-      "publisher_run_id": "6be71b78-ef9c-4fb6-8970-f2fe2198586f",
-      "source_commit": "061639c5f9b4627263cf1d4da1f5022e5bb9ff08",
-      "publication_status": "published",
-      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
-      "configuration_scope": [
-        "std/default debug",
-        "std/default release",
-        "no-default-features debug",
-        "no-default-features release"
-      ],
-      "full_crate_completion": false,
-      "supplementary_model_composition": "clone_from destination update in all four configurations, conditional on official std Clone::clone_from model; no original std-body proof and no additional mapped API claim.",
-      "report_id": 23,
-      "report_revision": 2,
-      "report_url": "https://proofs.rs/report/23",
-      "readback_passed": true,
-      "archived_sarif": "runs/nohash-hasher/6be71b78-ef9c-4fb6-8970-f2fe2198586f/run.sarif.json",
-      "archived_sarif_sha256": "1b950dae2d08ecb310163998a4b0b63ab74bde716afa82fa97585248b1e2dd78"
     },
     {
       "id": "rand_pcg-expanded-default-x86_64",
@@ -2048,9 +1773,9 @@
       "existing_report_to_update": null,
       "author_integrated_verification": "passed",
       "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
-      "publisher_fresh_record_status": "pending",
-      "publisher_run_id": null,
-      "source_commit": null,
+      "publisher_fresh_record_status": "passed",
+      "publisher_run_id": "11848dd4-1855-4b55-8ed5-6f45334bab5e",
+      "source_commit": "3f89e2b9c96089b0c29eaa0aeddf3a4592ef8aef",
       "publication_status": "new_catalogue_quota_hold",
       "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
       "configuration_scope": [
@@ -2058,7 +1783,10 @@
         "x86_64-unknown-linux-gnu",
         "debug extraction"
       ],
-      "full_crate_completion": false
+      "full_crate_completion": false,
+      "archived_sarif": "runs/ascii/11848dd4-1855-4b55-8ed5-6f45334bab5e/run.sarif.json",
+      "archived_sarif_sha256": "751f134ec83fb29aeff1e18a3f5d56e0ab1f1b751d83917dc59613ecd4e2993d",
+      "report_editorial_delta": "evidence/editorial-correction.md; stale is_digit limitation only; recorded tool/proof/config/source remain unchanged"
     },
     {
       "id": "rand_xoshiro-expanded-default-x86_64",
@@ -2344,6 +2072,314 @@
         "publisher_discovery_status": "blocked; not counted as registered machine claims",
         "note": "Original compiler-inlined body evidence preserved in this historical immutable commit; current30 excludes those25 mapping entries."
       }
+    },
+    {
+      "id": "nohash-hasher-expanded-default-x86_64",
+      "crate": "nohash-hasher",
+      "version": "0.2.0",
+      "artifact_path": "nohash-hasher/0.2.0/aeneas/2026-11-05",
+      "prior_mapping_count": 14,
+      "new_mapping_count": 14,
+      "added_mappings": [],
+      "retained_mappings": [
+        "<nohash_hasher::NoHashHasher as Clone>::clone",
+        "<nohash_hasher::NoHashHasher as Default>::default",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/lib.rs": "9dc267d4c90c83b86b47da5e58961e7ea6d4c2b659448a383293bfbc08961fa9",
+        "Cargo.toml": "cc6743a78a5e9dca05dc2db923c8d1b3f1dfb81510d9731e4357d88f024db790"
+      },
+      "proof_mappings": [
+        {
+          "api": "<nohash_hasher::NoHashHasher as Default>::default",
+          "module": "Proofs",
+          "theorem": "Proofs.default_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as Clone>::clone",
+          "module": "Proofs",
+          "theorem": "Proofs.clone_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write",
+          "module": "Proofs",
+          "theorem": "Proofs.write_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish",
+          "module": "Proofs",
+          "theorem": "Proofs.finish_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u8_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u16_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u32_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u64_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize",
+          "module": "Proofs",
+          "theorem": "Proofs.write_usize_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i8_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i16_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i32_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i64_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize",
+          "module": "Proofs",
+          "theorem": "Proofs.write_isize_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        }
+      ],
+      "report": {
+        "title": "Exact integer writes and misuse checks in NoHashHasher",
+        "explanation": "For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stored integer. Each of the ten integer write methods stores the Rust conversion of its input to u64: unsigned values are widened and signed values are converted modulo 2^64. With debug assertions enabled, the first integer write succeeds and a later write fails its assertion. With debug assertions disabled, each integer write replaces the stored value. The generic byte-slice write always panics in both configurations. These are exact per-method state and result contracts over all inputs, proved from unchanged published Rust bodies. Separate original-body Kani evidence checks handwritten Debug::fmt for NoHashHasher<u8> after Default or one arbitrary write_u8, using default {:?} formatting into a fixed 64-byte writer. Successful output has exact tuple delimiters, canonical decimal state and, in debug mode, the correct written flag. A writer that errors on its first call propagates Err and leaves its buffer unchanged. Debug and release dependency configurations pass 2175 and 2143 checks respectively. This is a bounded formatter/input-domain supplement, not another Aeneas API claim or a proof for arbitrary stored u64 values, writers, formatting options or partial-write failures.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted. The checked theorems use no extra local axioms; their transitive dependencies are limited to Lean's propext, Classical.choice, and Quot.sound.",
+        "limitations": "Coverage consists of Default, Clone, ten integer writers, write, and finish in the stated debug/release configurations. General Debug behavior beyond the separate u8/default-format/fixed-writer Kani domain, inherited Hasher default methods, full trait-instance integration, custom Hash implementations, BuildHasherDefault, and HashMap/HashSet behavior are not verified. In particular, this does not establish that a custom IsEnabled type obeys the required single-integer-write Hash protocol. Other targets were not checked. The upstream no-std IsEnabled doctest refers to the std-only IntMap alias and does not compile; the no-std unit tests and proved method bodies pass. A supplementary clone_from theorem composes the actual clone body with the official standard-library default model and proves exact replacement by source; it is not an independent std-body proof or a separate published API claim.",
+        "environment": "Unmodified crates.io nohash-hasher 0.2.0; x86_64-unknown-linux-gnu, std enabled and disabled; debug_assertions true and false. Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Rust nightly-2026-09-17, Lean 4.35.0. Official start-from roots select the actual method bodies; the official namespace option separates debug/release translations. Fourteen public theorems each conjoin all four std/no-std and debug/release configurations. The supplementary clone_from composition is included in the fresh Lean build without adding an API mapping. cargo-proofs 0.4.1 has the documented TLS-CA and upstream audit-variable compatibility fixes; the allowed-axiom policy is unchanged."
+      },
+      "existing_report_to_update": 23,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending_supplement_integration",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "previous_report_revision_published; supplements_not_yet_updated",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "std/default debug",
+        "std/default release",
+        "no-default-features debug",
+        "no-default-features release"
+      ],
+      "full_crate_completion": false,
+      "supplementary_model_composition": "clone_from destination update in all four configurations, conditional on official std Clone::clone_from model; no original std-body proof and no additional mapped API claim.",
+      "report_id": 23,
+      "report_revision": 2,
+      "report_url": "https://proofs.rs/report/23",
+      "readback_passed": true,
+      "prior_publisher_evidence": {
+        "publisher_run_id": "6be71b78-ef9c-4fb6-8970-f2fe2198586f",
+        "source_commit": "061639c5f9b4627263cf1d4da1f5022e5bb9ff08",
+        "archived_sarif": "runs/nohash-hasher/6be71b78-ef9c-4fb6-8970-f2fe2198586f/run.sarif.json",
+        "archived_sarif_sha256": "1b950dae2d08ecb310163998a4b0b63ab74bde716afa82fa97585248b1e2dd78"
+      }
+    },
+    {
+      "id": "oorandom-expanded-default-x86_64",
+      "crate": "oorandom",
+      "version": "11.1.5",
+      "artifact_path": "oorandom/11.1.5/aeneas/2026-11-05",
+      "prior_mapping_count": 1,
+      "new_mapping_count": 12,
+      "added_mappings": [
+        "Rand32::from_state",
+        "Rand32::new",
+        "Rand32::new_inc",
+        "Rand32::rand_i32",
+        "Rand32::state",
+        "Rand64::from_state",
+        "Rand64::new",
+        "Rand64::new_inc",
+        "Rand64::rand_i64",
+        "Rand64::rand_u64",
+        "Rand64::state"
+      ],
+      "retained_mappings": [
+        "Rand32::rand_u32"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/lib.rs": "2543317e21d94f1b579b31d92882d7c3a088a6b6bd43362861468f078b455a4e",
+        "Cargo.toml": "c2d20a6c59f36e8ce5912d434a19dd4946f1599ce36556d4879e2043c7dd1d14"
+      },
+      "proof_mappings": [
+        {
+          "api": "Rand32::rand_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_u32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::rand_i32",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_i32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::new_inc",
+          "module": "Proofs",
+          "theorem": "Proofs.new_inc32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::rand_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_u64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::rand_i64",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_i64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::new_inc",
+          "module": "Proofs",
+          "theorem": "Proofs.new_inc64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        }
+      ],
+      "report": {
+        "title": "Exact integer generation, seed initialization and state restoration in Rand32 and Rand64",
+        "explanation": "For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output method for both Rand32 and Rand64. For arbitrary seed and increment input, new_inc normalizes the stream to ((increment << 1) OR 1), starts at zero, performs one PCG state update, adds the seed modulo the state width, then performs a second PCG state update. new uses the published DEFAULT_INC. state returns the exact current state and increment, and from_state restores those values unchanged; two additional composition theorems establish save/restore identity. Unsigned generation returns the exact PCG-XSH-RR output permutation of the old state and advances to multiplier*state+increment modulo 2^64 or 2^128. Signed generation preserves that updated state and reinterprets the unsigned result bits as i32 or i64. Each covered call terminates normally in the Aeneas model for every scalar input, including zero states and even restored increments. Separate Kani harnesses directly check both original rand_float methods after restoring arbitrary complete state and increment, including zero states and even increments. Each returns an IEEE value greater than or equal to zero and strictly less than one (two harnesses, 33 checks each). This is a separate range-only body guarantee; exact float bits and poststate were not established, and no cross-tool equivalence or Aeneas machine claim is added.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models or local trusted helper contracts are used. All fourteen public and supplementary theorem dependency audits permit only propext, Classical.choice and Quot.sound. Standard-library wrapping, casts, shifts and rotations use official Aeneas models, rather than body proofs of Rust std implementations.",
+        "limitations": "The proof covers twelve integer/state APIs on x86_64-unknown-linux-gnu with the original default configuration. Exact rand_float output bits/poststate and rand_range for both generators remain unproved; separate Kani evidence establishes only the rand_float output range, as do non-excluded inherited/default and external blanket methods. The save/restore composition theorem establishes pure state identity; no arbitrary user callback or destructor behavior is modeled. No period, statistical distribution, independence or cryptographic guarantee is established. Other targets were not checked.",
+        "environment": "Original crates.io oorandom 11.1.5 src/Cargo.toml, archive-compared without changes. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all twelve original bodies and their shared callees. Original tests, regeneration hashes and integrated Lean/axiom audits are retained in evidence."
+      },
+      "existing_report_to_update": 25,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending_supplement_integration",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "previous_report_revision_published; supplements_not_yet_updated",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false,
+      "report_id": 25,
+      "report_revision": 2,
+      "report_url": "https://proofs.rs/report/25",
+      "readback_passed": true,
+      "prior_publisher_evidence": {
+        "publisher_run_id": "1a8a39c6-536f-47b0-8ae3-6451e63b7fbf",
+        "source_commit": "a533a3edfd8327d552e2b072773161dc4408e27e",
+        "archived_sarif": "runs/oorandom/1a8a39c6-536f-47b0-8ae3-6451e63b7fbf/run.sarif.json",
+        "archived_sarif_sha256": "c7278b2964e00a62025ef627156da99e1b247dd60da3df5cd201d89547d8fb38"
+      }
+    },
+    {
+      "crate": "normalize-line-endings",
+      "version": "0.3.0",
+      "artifact_path": "normalize-line-endings/0.3.0/aeneas/2026-11-04",
+      "new_mapping_count": 1,
+      "proof_mappings": [
+        {
+          "api": "normalized",
+          "module": "Proofs",
+          "theorem": "Proofs.normalized_spec",
+          "precondition": "The underlying iterator is the total, fused finite-character-list model; the observation budget exceeds the input length. The extracted source replaces three character patterns with equality guards."
+        }
+      ],
+      "report": {
+        "title": "CR/LF/CRLF normalization for finite character lists (adapted source)",
+        "explanation": "For every finite character list, the Aeneas translation of normalize-line-endings 0.3.0's adapted normalized constructor and Iterator::next returns exactly the list obtained by replacing each CRLF pair and each remaining CR with LF, while preserving other characters. The proof uses a total, fused list iterator and an observation budget greater than the input length, with no fixed input bound. The output contains no CR, is no longer than the input, and is unchanged by another normalization pass. The constructor and next bodies are dependencies of the checked public theorem. Extraction required replacing three character patterns with equality guards. Kani additionally checks one-step equivalence of the actual original and adapted next bodies for both prior-state flags and all possible character replies in a non-panicking two-reply iterator trace model: returned value, adapter state, callback count, and remaining modeled iterator state agree. The Aeneas theorem applies to the adapted extraction. Separate original-source evidence now proves the unchanged normalized constructor directly with official Aeneas: for every translated iterator and Iterator dictionary it returns that iterator and initializes the previous-CR flag to false. This says nothing about later next calls. Independently, Kani checks original iterator outputs for lengths zero through four and every valid Unicode scalar value against an eager CR/LF/CRLF reference: exact output, no CR, nonincreasing length, idempotence, two exhausted None replies, and the initial inherited Iterator size_hint default. The Kani input iterator is total and finite; unwind bound eight retains unwinding assertions (437 successful checks). These original-source supplements are distinct from the one adapted-source machine claim.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted; the supplementary equivalence result also trusts Kani/CBMC and its Rust compilation/modeling. The input iterator is modeled as consuming one character per successful call and returning None permanently after exhaustion. No additional local axioms are used; the public theorem depends only on Lean's propext, Classical.choice, and Quot.sound.",
+        "limitations": "The original crates.io source is retained unchanged, but its character-pattern switches are unsupported by the pinned Aeneas translator. The three guard replacements have a Kani-checked one-step equivalence under the documented two-reply, non-panicking callback model. This is not a generic contextual-equivalence proof for every Rust Iterator implementation, nor a direct arbitrary-length Aeneas proof of the unmodified iterator next body. The original constructor alone is separately body-proved; bounded original iterator Kani behavior does not establish arbitrary-length or arbitrary-callback behavior. The end-to-end Aeneas guarantee remains scoped to the adapted extraction and total fused list iterator model. Arbitrary external iterators, their panics or divergence, and iterators that resume after None are outside the end-to-end theorem. No separate general memory-safety claim is made.",
+        "environment": "Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Charon 08d7c9d50144bd84848212c24701253585e90d1f; Rust nightly-2026-09-17; Lean 4.35.0. Proofs.normalized_spec is checked by lake build and a transitive axiom audit. Kani 0.68.0 / CBMC 6.11.0 / Rust nightly-2026-08-21 checked 1 equivalence harness with 314 checks and 0 failures. Source archives, adaptation patch, byte-preserving Kani source embedding, generated Lean, translation manifest, and recorded results are included. cargo-proofs 0.4.1 uses environment-CA trust and an audit-local variable rename matching official upstream commit 74acff732c94bc23142913cd03d398b40648fc27 for Lean 4.35 compatibility. The theorem checks and allowed-axiom policy are unchanged."
+      },
+      "existing_report_to_update": 21,
+      "full_crate_completion": false,
+      "publisher_fresh_record_status": "pending_supplement_integration",
+      "publication_status": "previous_report_revision_published; supplements_not_yet_updated"
     }
   ]
 }
