@@ -1,0 +1,95 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as Default>::default"
+module = "Proofs"
+theorem = "Proofs.default_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as Clone>::clone"
+module = "Proofs"
+theorem = "Proofs.clone_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write"
+module = "Proofs"
+theorem = "Proofs.write_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish"
+module = "Proofs"
+theorem = "Proofs.finish_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8"
+module = "Proofs"
+theorem = "Proofs.write_u8_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16"
+module = "Proofs"
+theorem = "Proofs.write_u16_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32"
+module = "Proofs"
+theorem = "Proofs.write_u32_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64"
+module = "Proofs"
+theorem = "Proofs.write_u64_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize"
+module = "Proofs"
+theorem = "Proofs.write_usize_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8"
+module = "Proofs"
+theorem = "Proofs.write_i8_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16"
+module = "Proofs"
+theorem = "Proofs.write_i16_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32"
+module = "Proofs"
+theorem = "Proofs.write_i32_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64"
+module = "Proofs"
+theorem = "Proofs.write_i64_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[[tool.proofs]]
+api = "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize"
+module = "Proofs"
+theorem = "Proofs.write_isize_spec"
+precondition = "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+
+[report]
+title = "Exact integer writes and misuse checks in NoHashHasher"
+explanation = "For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stored integer. Each of the ten integer write methods stores the Rust conversion of its input to u64: unsigned values are widened and signed values are converted modulo 2^64. With debug assertions enabled, the first integer write succeeds and a later write fails its assertion. With debug assertions disabled, each integer write replaces the stored value. The generic byte-slice write always panics in both configurations. These are exact per-method state and result contracts over all inputs, proved from unchanged published Rust bodies."
+trusted_assumptions = "The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted. The checked theorems use no extra local axioms; their transitive dependencies are limited to Lean's propext, Classical.choice, and Quot.sound."
+limitations = "Coverage consists of Default, Clone, ten integer writers, write, and finish in the stated debug/release configurations. The handwritten Debug formatter, inherited Hasher default methods, full trait-instance integration, custom Hash implementations, BuildHasherDefault, and HashMap/HashSet behavior are not verified. In particular, this does not establish that a custom IsEnabled type obeys the required single-integer-write Hash protocol. Other targets were not checked. The upstream no-std IsEnabled doctest refers to the std-only IntMap alias and does not compile; the no-std unit tests and proved method bodies pass. A supplementary clone_from theorem composes the actual clone body with the official standard-library default model and proves exact replacement by source; it is not an independent std-body proof or a separate published API claim."
+environment = "Unmodified crates.io nohash-hasher 0.2.0; x86_64-unknown-linux-gnu, std enabled and disabled; debug_assertions true and false. Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Rust nightly-2026-09-17, Lean 4.35.0. Official start-from roots select the actual method bodies; the official namespace option separates debug/release translations. Fourteen public theorems each conjoin all four std/no-std and debug/release configurations. The supplementary clone_from composition is included in the fresh Lean build without adding an API mapping. cargo-proofs 0.4.1 has the documented TLS-CA and upstream audit-variable compatibility fixes; the allowed-axiom policy is unchanged."

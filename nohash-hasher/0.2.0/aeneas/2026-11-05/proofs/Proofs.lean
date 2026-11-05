@@ -1,3 +1,4 @@
+import HasherFamilyAudit
 import SupplementalProofs
 import StdProofs
 import NoStdProofs

@@ -1,0 +1,1370 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling nohash-hasher v0.2.0 (/workspace/full-api/endian/nohash-length-prefix/original)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling nohash-length-prefix v0.1.0 (/workspace/full-api/endian/nohash-length-prefix)
+warning: use of an unstable feature
+ --> src/lib.rs:1:12
+  |
+1 | #![feature(hasher_prefixfree_extras)]
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s
+Checking harness all_enabled_initial_prefix...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/endian/nohash-length-prefix/target/kani/x86_64-unknown-linux-gnu/debug/build/nohash-length-prefix/15f03ca518a6155f/out/nohash_length_prefix-15f03ca518a6155f__RNvCsy9vGNxbrwo_20nohash_length_prefix26all_enabled_initial_prefix.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0232524s
+size of program expression: 961 steps
+slicing removed 528 assignments
+Generated 280 VCC(s), 30 remaining after simplification
+Runtime Postprocess Equation: 0.000287584s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00234558s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 1.97e-05s
+Solving with CaDiCaL 3.0.0
+3295 variables, 4540 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000152851s
+Runtime decision procedure: 0.00262151s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3296 variables, 4541 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 4.2574e-05s
+Runtime decision procedure: 0.000439388s
+
+RESULTS:
+Check 1: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 2: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 3: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 4: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 5: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 6: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 7: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 8: all_enabled_initial_prefix.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:9:89 in function all_enabled_initial_prefix
+
+Check 9: all_enabled_initial_prefix.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:10:90 in function all_enabled_initial_prefix
+
+Check 10: all_enabled_initial_prefix.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:11:90 in function all_enabled_initial_prefix
+
+Check 11: all_enabled_initial_prefix.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:12:90 in function all_enabled_initial_prefix
+
+Check 12: all_enabled_initial_prefix.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:13:92 in function all_enabled_initial_prefix
+
+Check 13: all_enabled_initial_prefix.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:14:89 in function all_enabled_initial_prefix
+
+Check 14: all_enabled_initial_prefix.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:15:90 in function all_enabled_initial_prefix
+
+Check 15: all_enabled_initial_prefix.assertion.8
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:16:90 in function all_enabled_initial_prefix
+
+Check 16: all_enabled_initial_prefix.assertion.9
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:17:90 in function all_enabled_initial_prefix
+
+Check 17: all_enabled_initial_prefix.assertion.10
+	 - Status: SUCCESS
+	 - Description: "assertion failed: h.finish() == length as u64"
+	 - Location: src/lib.rs:18:92 in function all_enabled_initial_prefix
+
+Check 18: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 19: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 20: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.assertion.1
+	 - Status: SUCCESS
+	 - Description: ""NoHashHasher: second write attempt detected.""
+	 - Location: original/src/lib.rs:250:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 21: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 22: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 23: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 24: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 25: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 26: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 27: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 28: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 29: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 30: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 31: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 32: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 33: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 34: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 35: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 36: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 37: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 38: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::write_usize
+
+Check 39: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish
+
+Check 40: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish
+
+Check 41: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish
+
+Check 42: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish
+
+Check 43: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish
+
+Check 44: <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i8> as std::hash::Hasher>::finish
+
+Check 45: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 46: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 47: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 48: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 49: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 50: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 51: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 52: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 53: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 54: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 55: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 56: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 57: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 58: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 59: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 60: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 61: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 62: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::write_usize
+
+Check 63: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish
+
+Check 64: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish
+
+Check 65: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish
+
+Check 66: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish
+
+Check 67: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish
+
+Check 68: <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u8> as std::hash::Hasher>::finish
+
+Check 69: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 70: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 71: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 72: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 73: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 74: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 75: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 76: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 77: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 78: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 79: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 80: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 81: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 82: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 83: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 84: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 85: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 86: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::write_usize
+
+Check 87: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish
+
+Check 88: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish
+
+Check 89: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish
+
+Check 90: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish
+
+Check 91: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish
+
+Check 92: <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<isize> as std::hash::Hasher>::finish
+
+Check 93: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 94: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 95: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 96: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 97: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 98: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 99: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 100: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 101: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 102: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 103: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 104: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 105: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 106: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 107: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 108: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 109: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 110: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::write_usize
+
+Check 111: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish
+
+Check 112: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish
+
+Check 113: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish
+
+Check 114: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish
+
+Check 115: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish
+
+Check 116: <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<usize> as std::hash::Hasher>::finish
+
+Check 117: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 118: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 119: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 120: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 121: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 122: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 123: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 124: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 125: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 126: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 127: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 128: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 129: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 130: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 131: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 132: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 133: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 134: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::write_usize
+
+Check 135: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish
+
+Check 136: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish
+
+Check 137: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish
+
+Check 138: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish
+
+Check 139: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish
+
+Check 140: <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i32> as std::hash::Hasher>::finish
+
+Check 141: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 142: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 143: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 144: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 145: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 146: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 147: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 148: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 149: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 150: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 151: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 152: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 153: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 154: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 155: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 156: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 157: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 158: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::write_usize
+
+Check 159: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish
+
+Check 160: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish
+
+Check 161: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish
+
+Check 162: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish
+
+Check 163: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish
+
+Check 164: <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u32> as std::hash::Hasher>::finish
+
+Check 165: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 166: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 167: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 168: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 169: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 170: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 171: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 172: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 173: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 174: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 175: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 176: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 177: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 178: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 179: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 180: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 181: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 182: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::write_usize
+
+Check 183: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish
+
+Check 184: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish
+
+Check 185: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish
+
+Check 186: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish
+
+Check 187: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish
+
+Check 188: <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i16> as std::hash::Hasher>::finish
+
+Check 189: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 190: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 191: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 192: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 193: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 194: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 195: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 196: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 197: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 198: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 199: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 200: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 201: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 202: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 203: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 204: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 205: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 206: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::write_usize
+
+Check 207: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish
+
+Check 208: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish
+
+Check 209: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish
+
+Check 210: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish
+
+Check 211: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish
+
+Check 212: <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u16> as std::hash::Hasher>::finish
+
+Check 213: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 214: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 215: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 216: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 217: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 218: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 219: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 220: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 221: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 222: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 223: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 224: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 225: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 226: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 227: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 228: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 229: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 230: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::write_usize
+
+Check 231: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish
+
+Check 232: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish
+
+Check 233: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish
+
+Check 234: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish
+
+Check 235: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish
+
+Check 236: <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<i64> as std::hash::Hasher>::finish
+
+Check 237: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 238: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 239: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 240: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 241: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 242: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:250:18 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 243: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 244: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 245: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 246: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 247: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 248: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:251:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 249: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 250: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 251: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 252: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 253: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 254: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:252:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_usize
+
+Check 255: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 256: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 257: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 258: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 259: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 260: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: original/src/lib.rs:286:9 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+
+SUMMARY:
+ ** 0 of 260 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.15497924s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.

@@ -15,3 +15,15 @@ lean_lib DebugProofs
 lean_lib ReleaseProofs
 lean_lib NoStdDebugProofs
 lean_lib NoStdReleaseProofs
+
+lean_lib PrefixProofs
+lean_lib WidePanicProofs
+lean_lib PrefixNoStdDebug
+lean_lib PrefixNoStdRelease
+lean_lib PrefixStdRelease
+lean_lib NohashPrefixInline
+lean_lib NohashWidePanicInline
+lean_lib NohashNostdDebug
+lean_lib NohashNostdRelease
+lean_lib NohashStdReleaseAll
+lean_lib HasherFamilyAudit
