@@ -1,0 +1,1 @@
+This successful run compiled only the configured old40 modules. It did not compile the supplemental6 library and was not published for this update. The later explicit leanArts dependency fixed the recorded build graph. Report27rev8 uses run06dc9cf1, which includes all primary41 and supplemental6 audits.

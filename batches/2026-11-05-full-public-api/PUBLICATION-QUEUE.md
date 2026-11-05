@@ -15,3 +15,5 @@ ASCII package scope is runtime src9 plus Cargo archive matching, not original ro
 ASCII scalar30 and documented-safe unchecked5 are now published as supplemental Kani evidence in report28 revision8, run `9f261af8-bee6-4142-b934-997995b3027e`, source `6142b4105f93bed130c921550ad814c0c039b461`. Primary51 and the global423 remain unchanged. Earlier queue statuses above describe the producer handoff checkpoint.
 
 PCG four supplemental packets (MCGserde592, PCG32composition81, external PCG32 Rng158 and wide Rng393) are published in report29 revision6, source `3b2722d98fcb09ef58d010abf5a42361a4d094c5`, run `b9ea1201-210e-45eb-9f69-219799a517da`. Machine25/global423 stay unchanged. Earlier producer-only statuses are historical.
+
+Current global count is424 following report27 revision8: primary next_back adds1 beyond old40; reference4 remains a separate six-theorem supplement with no four-machine increment. Recorded run06dc9cf1 includes the six supplemental audits through an explicit Lake leanArts dependency. Primary-only preliminary run4618632e was not used for publication.
