@@ -16,8 +16,8 @@ import re,tomllib
 p=Path('.')
 rows=re.findall(r"'Proofs\.(\w+)' depends on axioms: \[(.*?)\]",(p/'evidence/verification.log').read_text())
 rows=list(dict.fromkeys(rows))
-assert len(rows)==8,rows
+assert len(rows)==10,rows
 for name,axioms in rows:assert set(axioms.split(', '))<={'propext','Classical.choice','Quot.sound'},(name,axioms)
 tomllib.loads((p/'proofs.toml').read_text())
-print('All eight theorem audits and report TOML parsing passed')
+print('All ten theorem audits and report TOML parsing passed')
 CHECK

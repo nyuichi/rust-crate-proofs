@@ -624,6 +624,228 @@
         "debug extraction"
       ],
       "full_crate_completion": false
+    },
+    {
+      "id": "byteorder-expanded-default-x86_64",
+      "crate": "byteorder",
+      "version": "1.5.0",
+      "artifact_path": "byteorder/1.5.0/aeneas/2026-11-05",
+      "prior_mapping_count": 8,
+      "new_mapping_count": 10,
+      "added_mappings": [
+        "<byteorder::BigEndian as core::default::Default>::default",
+        "<byteorder::LittleEndian as core::default::Default>::default"
+      ],
+      "retained_mappings": [
+        "<byteorder::BigEndian as byteorder::ByteOrder>::write_u128",
+        "<byteorder::BigEndian as byteorder::ByteOrder>::write_u16",
+        "<byteorder::BigEndian as byteorder::ByteOrder>::write_u32",
+        "<byteorder::BigEndian as byteorder::ByteOrder>::write_u64",
+        "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u128",
+        "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u16",
+        "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u32",
+        "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u64"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/io.rs": "9612530634d0e7ce9887a23836b58c0d972c1f45b05d9ada8355961567075627",
+        "src/lib.rs": "ab3394c385b32457795931440cfb8dbca70ba5d9e1a428fcf651f7ccb2d6c34f",
+        "Cargo.toml": "94ba374cb26f3c68fb83da2e5e7dce85920fc4fb827620b06b39d71a9d0e1e18"
+      },
+      "proof_mappings": [
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as byteorder::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder::BigEndian as core::default::Default>::default",
+          "module": "Proofs",
+          "theorem": "Proofs.BigEndian_default_panics",
+          "precondition": "No inputs; this handwritten implementation always triggers the explicit panic on x86_64 with default features."
+        },
+        {
+          "api": "<byteorder::LittleEndian as core::default::Default>::default",
+          "module": "Proofs",
+          "theorem": "Proofs.LittleEndian_default_panics",
+          "precondition": "No inputs; this handwritten implementation always triggers the explicit panic on x86_64 with default features."
+        }
+      ],
+      "report": {
+        "title": "Exact endian integer writes and deliberate Default panics",
+        "explanation": "For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
+        "limitations": "This report covers eight integer-write methods and the two handwritten Default methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.",
+        "trusted_assumptions": "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound.",
+        "environment": "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
+      },
+      "existing_report_to_update": null,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "new_catalogue_quota_hold",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
+    },
+    {
+      "id": "byteorder-lite-expanded-default-x86_64",
+      "crate": "byteorder-lite",
+      "version": "0.1.0",
+      "artifact_path": "byteorder-lite/0.1.0/aeneas/2026-11-05",
+      "prior_mapping_count": 8,
+      "new_mapping_count": 10,
+      "added_mappings": [
+        "<byteorder_lite::BigEndian as core::default::Default>::default",
+        "<byteorder_lite::LittleEndian as core::default::Default>::default"
+      ],
+      "retained_mappings": [
+        "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u128",
+        "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u16",
+        "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u32",
+        "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u64",
+        "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u128",
+        "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u16",
+        "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u32",
+        "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u64"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/io.rs": "09963cd6169270907475bb0fe8615718a1287aa3a8c0b653a77ba5b4acae0281",
+        "src/lib.rs": "bf73dc14b78c0e331d13e58872baf93d1f7fb11bbd750e95bd5c4419867834ed",
+        "Cargo.toml": "86ad0165e3fa2ad3ef17783be36336461747077416ee2279cc47a85cbfe9b786"
+      },
+      "proof_mappings": [
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.be_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u16_spec",
+          "precondition": "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u32_spec",
+          "precondition": "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u64_spec",
+          "precondition": "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u128",
+          "module": "Proofs",
+          "theorem": "Proofs.le_write_u128_spec",
+          "precondition": "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+        },
+        {
+          "api": "<byteorder_lite::BigEndian as core::default::Default>::default",
+          "module": "Proofs",
+          "theorem": "Proofs.BigEndian_default_panics",
+          "precondition": "No inputs; this handwritten implementation always triggers the explicit panic on x86_64 with default features."
+        },
+        {
+          "api": "<byteorder_lite::LittleEndian as core::default::Default>::default",
+          "module": "Proofs",
+          "theorem": "Proofs.LittleEndian_default_panics",
+          "precondition": "No inputs; this handwritten implementation always triggers the explicit panic on x86_64 with default features."
+        }
+      ],
+      "report": {
+        "title": "Exact endian integer writes and deliberate Default panics",
+        "explanation": "For byteorder-lite 0.1.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
+        "limitations": "This report covers eight integer-write methods and the two handwritten Default methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.",
+        "trusted_assumptions": "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound.",
+        "environment": "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
+      },
+      "existing_report_to_update": null,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "new_catalogue_quota_hold",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
     }
   ]
 }

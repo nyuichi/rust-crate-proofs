@@ -90,3 +90,9 @@ theorem le_write_u128_spec (buf : Slice U8) (n : U128) (h : 16 ≤ buf.length) :
 #print axioms Proofs.le_write_u32_spec
 #print axioms Proofs.le_write_u64_spec
 #print axioms Proofs.le_write_u128_spec
+
+theorem BigEndian_default_panics : byteorder_lite.BigEndian.Insts.CoreDefaultDefault.default = .fail .panic := by rfl
+#print axioms Proofs.BigEndian_default_panics
+theorem LittleEndian_default_panics : byteorder_lite.LittleEndian.Insts.CoreDefaultDefault.default = .fail .panic := by rfl
+#print axioms Proofs.LittleEndian_default_panics
+end Proofs

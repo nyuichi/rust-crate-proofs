@@ -1,6 +1,6 @@
 # bit_field 0.10.3 — supplementary checks for twelve primitive implementations
 
-Kani 0.68.0 / CBMC 6.11.0 verified 24 harnesses and 600 checks with no failures. The Cargo path dependency is the actual unchanged release at `../bits/bit_field/source`; the harness does not copy or rewrite method implementations. Source and manifest SHA-256 checks before and after the run agree.
+Kani 0.68.0 / CBMC 6.11.0 verified 24 harnesses and 600 checks with no failures. The Cargo path dependency is the actual unchanged release at `../..` (the packaging-relative path to the same original source hashes); the harness does not copy or rewrite method implementations. Source and manifest SHA-256 checks before and after the run agree.
 
 For each of `u8/u16/u32/u64/u128/usize/i8/i16/i32/i64/i128/isize`:
 
@@ -12,3 +12,5 @@ Signed values are cast to the corresponding unsigned representation for the refe
 These are supplementary one-step Rust checks, not an in-Lean proof of Rust layout or a mechanically checked connection to Lean models. The run targets x86_64-unknown-linux-gnu (`usize/isize` are 64-bit) and uses Rust nightly-2026-08-21, whereas Aeneas extraction uses nightly-2026-09-17. Invalid-index panics, `get_bits/set_bits`, BitArray methods, other targets, feature configurations and whole-crate guarantees are outside this artifact. In particular, it does not establish unsigned-mask behavior for signed range extraction, where arithmetic right shifts require a separate specification review.
 
 Run `./verify.bash` in the current environment. `results.json` records per-harness counts, tool versions, source hashes and limitations. `verification.log` is the full successful Kani output. No custom Kani contract, stub or trusted function was introduced; the sole input restriction is the documented valid bit-index range.
+
+Packaging note: the original successful harness was relocated without changing its Rust harness or dependency source. Cargo path/runner paths were adjusted; the packaged harness is re-run below the artifact. The original checksum manifest is retained separately; artifact.sha256 describes the packaged files.

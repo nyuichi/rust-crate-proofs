@@ -51,9 +51,21 @@ module = "Proofs"
 theorem = "Proofs.le_write_u128_spec"
 precondition = "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
 
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as core::default::Default>::default"
+module = "Proofs"
+theorem = "Proofs.BigEndian_default_panics"
+precondition = "No inputs; this handwritten implementation always triggers the explicit panic on x86_64 with default features."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as core::default::Default>::default"
+module = "Proofs"
+theorem = "Proofs.LittleEndian_default_panics"
+precondition = "No inputs; this handwritten implementation always triggers the explicit panic on x86_64 with default features."
+
 [report]
-title = "Exact endian integer writes and preservation of trailing bytes"
-explanation = "For byteorder-lite 0.1.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition."
-limitations = "This report covers eight integer-write methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced."
+title = "Exact endian integer writes and deliberate Default panics"
+explanation = "For byteorder-lite 0.1.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The eight write-method proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition."
+limitations = "This report covers eight integer-write methods and the two handwritten Default methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced."
 trusted_assumptions = "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound."
 environment = "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."

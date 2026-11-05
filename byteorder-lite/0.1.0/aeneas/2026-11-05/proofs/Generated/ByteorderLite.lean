@@ -20,6 +20,28 @@ set_option maxRecDepth 2048
 
 namespace byteorder_lite
 
+/-- [byteorder_lite::BigEndian]
+    Source: 'src/lib.rs', lines 1666:0-1666:21
+    Visibility: public -/
+inductive BigEndian where
+
+/-- [byteorder_lite::{impl core::default::Default for byteorder_lite::BigEndian}::default]:
+    Source: 'src/lib.rs', lines 1669:4-1671:5
+    Visibility: public -/
+def BigEndian.Insts.CoreDefaultDefault.default : Result BigEndian := do
+  fail panic
+
+/-- [byteorder_lite::LittleEndian]
+    Source: 'src/lib.rs', lines 1696:0-1696:24
+    Visibility: public -/
+inductive LittleEndian where
+
+/-- [byteorder_lite::{impl core::default::Default for byteorder_lite::LittleEndian}::default]:
+    Source: 'src/lib.rs', lines 1699:4-1701:5
+    Visibility: public -/
+def LittleEndian.Insts.CoreDefaultDefault.default : Result LittleEndian := do
+  fail panic
+
 /-- [byteorder_lite::{impl byteorder_lite::ByteOrder for byteorder_lite::BigEndian}::write_u16]:
     Source: 'src/lib.rs', lines 1831:4-1833:5
     Visibility: public -/

@@ -3,3 +3,5 @@ For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u3
 This report covers eight integer-write methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.
 
 Each theorem directly calls the generated original method. `setSlice! 0` specifies replacement of the leading fixed-width bytes while preserving the suffix. Std to_be_bytes/to_le_bytes models provide the byte order.
+
+The handwritten Default implementation for each empty endian enum always triggers its explicit panic, without an input precondition. These are not derive-generated implementations. `verify-additions.bash` verifies the original bodies and audits all ten named theorems; prior original unit/doc-test evidence is retained, since Rust source and manifest are unchanged. Full API gaps remain listed in the separate inventory.
