@@ -55,3 +55,9 @@ Publication uses cargo-proofs 0.4.1 with
 [environment CA trust](evidence/cargo-proofs-environment-ca.patch) and the
 [upstream audit-variable rename](evidence/cargo-proofs-audit-compat.patch).
 The theorem checks and allowed-axiom policy are unchanged.
+
+The service catalogue records this callable with the short external trait name
+`TryRng`, while the source scanner resolves `rand_core::TryRng`. A [targeted CLI
+alias patch](evidence/cargo-proofs-rand-core-trait-alias.patch) admits that known
+alias for this exact trait. Self type, method identity, and unique API resolution
+remain checked; no source, theorem, model, or axiom-audit rule changes.

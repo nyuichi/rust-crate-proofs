@@ -1,0 +1,19 @@
+--- /workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cargo-proofs-0.4.1/src/scan.rs	2006-07-24 01:21:28.000000000 +0000
++++ /workspace/cargo-proofs-local/src/scan.rs	2026-11-05 00:30:05.841436005 +0000
+@@ -68,6 +68,8 @@
+     let mut paths = vec![path.to_owned()];
+     // Rustdoc's external trait paths in the public catalogue may omit the
+     // standard-library module. Do not guess basenames for arbitrary traits.
++    // rand_core::TryRng is a narrowly verified catalogue alias exception:
++    // the XorShiftRng::try_next_u32 item resolves uniquely with this basename.
+     if matches!(
+         path,
+         "core::default::Default"
+@@ -80,6 +82,7 @@
+             | "std::fmt::Display"
+             | "core::str::FromStr"
+             | "std::str::FromStr"
++            | "rand_core::TryRng"
+     ) {
+         paths.push(path.rsplit("::").next().unwrap().to_owned());
+     }
