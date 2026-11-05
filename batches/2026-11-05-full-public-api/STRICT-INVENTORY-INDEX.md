@@ -15,7 +15,7 @@ This index covers all13 final scoped ledger reconciliations. Public reports curr
 | normalize-line-endings 0.3.0 | [strict-three](diagnostics/strict-three-crate-reconciliation/README.md) | [21 / 5](https://proofs.rs/report/21) | 1 |
 | oorandom 11.1.5 | [prng-four](diagnostics/prng-four-crate-reconciliation/RECONCILIATION.md) | [25 / 6](https://proofs.rs/report/25) | 20 |
 | rand_pcg 0.10.2 | [prng-four](diagnostics/prng-four-crate-reconciliation/RECONCILIATION.md) | [29 / 6](https://proofs.rs/report/29) | 25 |
-| rand_xorshift 0.5.0 | [prng-four](diagnostics/prng-four-crate-reconciliation/RECONCILIATION.md) | [24 / 7](https://proofs.rs/report/24) | 1 |
+| rand_xorshift 0.5.0 | [prng-four](diagnostics/prng-four-crate-reconciliation/RECONCILIATION.md) | [24 / 8](https://proofs.rs/report/24) | 1 |
 | rand_xoshiro 0.8.1 | [prng-four](diagnostics/prng-four-crate-reconciliation/RECONCILIATION.md) | [30 / 4](https://proofs.rs/report/30) | 69 |
 
 `STRICT-INVENTORY-INDEX.json` records each packet’s original public commit/path together with the current exact run/source/SARIF/readback hashes. `current-public-reports.json` is the current report ledger; `proof-updates.json` current_* fields and current_proof_mappings identify current guarantees. Older integration prose and frozen source packets remain historical.
