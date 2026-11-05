@@ -1,3 +1,4 @@
+import ArrayProofs
 import BitField.Funs
 open Aeneas Aeneas.Std Result Std.WP
 open bit_field

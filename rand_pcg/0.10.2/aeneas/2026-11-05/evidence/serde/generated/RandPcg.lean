@@ -20,6 +20,23 @@ set_option maxRecDepth 2048
 
 namespace rand_pcg
 
+/-- [core::result::{core::result::Result<T, E>}::map]:
+    Source: '/rustc/library/core/src/result.rs', lines 832:4-834:53
+    Name pattern: [core::result::{core::result::Result<@T, @E>}::map]
+    Visibility: public -/
+@[rust_fun "core::result::{core::result::Result<@T, @E>}::map"]
+def core.result.Result.map
+  {T : Type _} {E : Type _} {U : Type _} {F : Type _}
+  (opsfunctionFnOnceFTupleTUInst : core.ops.function.FnOnce F T U)
+  (self : core.result.Result T E) (op : F) :
+  Result (core.result.Result U E)
+  := do
+  match self with
+  | core.result.Result.Ok t =>
+    let t1 ← opsfunctionFnOnceFTupleTUInst.call_once op t
+    ok (core.result.Result.Ok t1)
+  | core.result.Result.Err e => ok (core.result.Result.Err e)
+
 /-- [rand_pcg::pcg128::MULTIPLIER]
     Source: 'src/pcg128.rs', lines 14:0-14:67 -/
 @[global_simps, irreducible]
@@ -79,6 +96,79 @@ def pcg128.Lcg128Xsl64.from_state
   let increment ← lift (i ||| 1#u128)
   ok { state, increment }
 
+/-- [rand_pcg::pcg128::output_xsl_rr::ROTATE]
+    Source: 'src/pcg128.rs', lines 276:4-276:28 -/
+@[global_simps, irreducible]
+def pcg128.output_xsl_rr.ROTATE : Std.U32 := 122#u32
+
+/-- [rand_pcg::pcg128::output_xsl_rr::XSHIFT]
+    Source: 'src/pcg128.rs', lines 275:4-275:27 -/
+@[global_simps, irreducible]
+def pcg128.output_xsl_rr.XSHIFT : Std.U32 := 64#u32
+
+/-- [rand_pcg::pcg128::output_xsl_rr]:
+    Source: 'src/pcg128.rs', lines 272:0-281:1 -/
+def pcg128.output_xsl_rr (state : Std.U128) : Result Std.U64 := do
+  let i ← state >>> pcg128.output_xsl_rr.ROTATE
+  let rot ← lift (UScalar.cast .U32 i)
+  let i1 ← state >>> pcg128.output_xsl_rr.XSHIFT
+  let i2 ← lift (UScalar.cast .U64 i1)
+  let i3 ← lift (UScalar.cast .U64 state)
+  let xsl ← lift (i2 ^^^ i3)
+  ok (core.num.U64.rotate_right xsl rot)
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u64]:
+    Source: 'src/pcg128.rs', lines 149:4-152:5
+    Visibility: public -/
+def pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : pcg128.Lcg128Xsl64) :
+  Result ((core.result.Result Std.U64 Never) × pcg128.Lcg128Xsl64)
+  := do
+  let self1 ← pcg128.Lcg128Xsl64.step self
+  let i ← pcg128.output_xsl_rr self1.state
+  ok (core.result.Result.Ok i, self1)
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u32::{closure}]
+    Source: 'src/pcg128.rs', lines 145:32-145:54 -/
+@[reducible]
+def pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure := Unit
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u32::{impl core::ops::function::FnOnce<(u64,), u32> for rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u32::{closure}}::call_once]:
+    Source: 'src/pcg128.rs', lines 145:32-145:54 -/
+def
+  pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once
+  (c : pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure)
+  (tupled_args : Std.U64) :
+  Result Std.U32
+  := do
+  ok (UScalar.cast .U32 tupled_args)
+
+/-- Trait implementation: [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u32::{impl core::ops::function::FnOnce<(u64,), u32> for rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u32::{closure}}]
+    Source: 'src/pcg128.rs', lines 145:32-145:54 -/
+@[reducible]
+def
+  pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32
+  : core.ops.function.FnOnce pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure
+  Std.U64 Std.U32 := {
+  call_once :=
+    pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once
+}
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Lcg128Xsl64}::try_next_u32]:
+    Source: 'src/pcg128.rs', lines 144:4-146:5
+    Visibility: public -/
+def pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : pcg128.Lcg128Xsl64) :
+  Result ((core.result.Result Std.U32 Never) × pcg128.Lcg128Xsl64)
+  := do
+  let (r, self1) ←
+    pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64 self
+  let r1 ←
+    core.result.Result.map
+      pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32
+      r ()
+  ok (r1, self1)
+
 /-- [rand_pcg::pcg128::Mcg128Xsl64]
     Source: 'src/pcg128.rs', lines 173:0-175:1
     Visibility: public -/
@@ -98,6 +188,58 @@ def pcg128.Mcg128Xsl64.new (state : Std.U128) : Result pcg128.Mcg128Xsl64 := do
 def pcg128.Mcg128Xsl64.impl.state
   (self : pcg128.Mcg128Xsl64) : Result Std.U128 := do
   ok self.state
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u64]:
+    Source: 'src/pcg128.rs', lines 260:4-263:5
+    Visibility: public -/
+def pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : pcg128.Mcg128Xsl64) :
+  Result ((core.result.Result Std.U64 Never) × pcg128.Mcg128Xsl64)
+  := do
+  let i ← lift (core.num.U128.wrapping_mul self.state pcg128.MULTIPLIER)
+  let i1 ← pcg128.output_xsl_rr i
+  ok (core.result.Result.Ok i1, { state := i })
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u32::{closure}]
+    Source: 'src/pcg128.rs', lines 256:32-256:54 -/
+@[reducible]
+def pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure := Unit
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u32::{impl core::ops::function::FnOnce<(u64,), u32> for rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u32::{closure}}::call_once]:
+    Source: 'src/pcg128.rs', lines 256:32-256:54 -/
+def
+  pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once
+  (c : pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure)
+  (tupled_args : Std.U64) :
+  Result Std.U32
+  := do
+  ok (UScalar.cast .U32 tupled_args)
+
+/-- Trait implementation: [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u32::{impl core::ops::function::FnOnce<(u64,), u32> for rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u32::{closure}}]
+    Source: 'src/pcg128.rs', lines 256:32-256:54 -/
+@[reducible]
+def
+  pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32
+  : core.ops.function.FnOnce pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure
+  Std.U64 Std.U32 := {
+  call_once :=
+    pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once
+}
+
+/-- [rand_pcg::pcg128::{impl rand_core::TryRng<!> for rand_pcg::pcg128::Mcg128Xsl64}::try_next_u32]:
+    Source: 'src/pcg128.rs', lines 255:4-257:5
+    Visibility: public -/
+def pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : pcg128.Mcg128Xsl64) :
+  Result ((core.result.Result Std.U32 Never) × pcg128.Mcg128Xsl64)
+  := do
+  let (r, self1) ←
+    pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64 self
+  let r1 ←
+    core.result.Result.map
+      pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32
+      r ()
+  ok (r1, self1)
 
 /-- [rand_pcg::pcg128cm::MULTIPLIER]
     Source: 'src/pcg128cm.rs', lines 14:0-14:45 -/
@@ -160,6 +302,72 @@ def pcg128cm.Lcg128CmDxsm64.from_state
   let i ← stream <<< 1#i32
   let increment ← lift (i ||| 1#u128)
   ok { state, increment }
+
+/-- [rand_pcg::pcg128cm::output_dxsm]:
+    Source: 'src/pcg128cm.rs', lines 167:0-180:1 -/
+def pcg128cm.output_dxsm (state : Std.U128) : Result Std.U64 := do
+  let i ← state >>> 64#i32
+  let hi ← lift (UScalar.cast .U64 i)
+  let lo ← lift (UScalar.cast .U64 state)
+  let lo1 ← lift (lo ||| 1#u64)
+  let i1 ← hi >>> 32#i32
+  let hi1 ← lift (hi ^^^ i1)
+  let hi2 ← lift (core.num.U64.wrapping_mul hi1 pcg128cm.MULTIPLIER)
+  let i2 ← hi2 >>> 48#i32
+  let hi3 ← lift (hi2 ^^^ i2)
+  ok (core.num.U64.wrapping_mul hi3 lo1)
+
+/-- [rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u64]:
+    Source: 'src/pcg128cm.rs', lines 154:4-158:5
+    Visibility: public -/
+def pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u64
+  (self : pcg128cm.Lcg128CmDxsm64) :
+  Result ((core.result.Result Std.U64 Never) × pcg128cm.Lcg128CmDxsm64)
+  := do
+  let res ← pcg128cm.output_dxsm self.state
+  let self1 ← pcg128cm.Lcg128CmDxsm64.step self
+  ok (core.result.Result.Ok res, self1)
+
+/-- [rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u32::{closure}]
+    Source: 'src/pcg128cm.rs', lines 150:32-150:54 -/
+@[reducible]
+def pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure := Unit
+
+/-- [rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u32::{impl core::ops::function::FnOnce<(u64,), u32> for rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u32::{closure}}::call_once]:
+    Source: 'src/pcg128cm.rs', lines 150:32-150:54 -/
+def
+  pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once
+  (c : pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure)
+  (tupled_args : Std.U64) :
+  Result Std.U32
+  := do
+  ok (UScalar.cast .U32 tupled_args)
+
+/-- Trait implementation: [rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u32::{impl core::ops::function::FnOnce<(u64,), u32> for rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u32::{closure}}]
+    Source: 'src/pcg128cm.rs', lines 150:32-150:54 -/
+@[reducible]
+def
+  pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32
+  : core.ops.function.FnOnce
+  pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure Std.U64 Std.U32 := {
+  call_once :=
+    pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once
+}
+
+/-- [rand_pcg::pcg128cm::{impl rand_core::TryRng<!> for rand_pcg::pcg128cm::Lcg128CmDxsm64}::try_next_u32]:
+    Source: 'src/pcg128cm.rs', lines 149:4-151:5
+    Visibility: public -/
+def pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u32
+  (self : pcg128cm.Lcg128CmDxsm64) :
+  Result ((core.result.Result Std.U32 Never) × pcg128cm.Lcg128CmDxsm64)
+  := do
+  let (r, self1) ←
+    pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u64 self
+  let r1 ←
+    core.result.Result.map
+      pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32
+      r ()
+  ok (r1, self1)
 
 /-- [rand_pcg::pcg64::MULTIPLIER]
     Source: 'src/pcg64.rs', lines 19:0-19:44 -/

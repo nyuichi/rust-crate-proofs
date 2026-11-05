@@ -9,3 +9,5 @@ Only get_bit, set_bit and the associated primitive BIT_LENGTH values are establi
 Original crates.io bit_field 0.10.3; x86_64-unknown-linux-gnu; default features; debug extraction. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean4.35.0. Official targeted wildcard extraction with --monomorphize and split files. Kani0.68.0/CBMC6.11.0/Rust nightly-2026-08-21: 24 supplementary harnesses, 600 checks, no failures.
 
 Evidence: `proofs/Proofs.lean`, `tools/extract.py`, `tools/provide-size-models.py`, and `evidence/kani-model/{src/lib.rs,results.json,verification.log}`. Public API obligations outside this scope remain tracked in the full API inventory.
+
+Generic slice bit_length addition: assuming its BitField constant returns width, the unchanged body returns slice length times width when within usize bounds, otherwise integerOverflow. No element callbacks are invoked. A separate theorem also establishes propagation of a failing modeled trait constant. This composition proof does not prove arbitrary downstream implementations of the trait constant.

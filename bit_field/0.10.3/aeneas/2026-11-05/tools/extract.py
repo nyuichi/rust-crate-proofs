@@ -8,3 +8,11 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/provide-size-models.py'],cwd=p,check=True)
+
+(p/'evidence/array').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence/array','--start-from','{impl crate::BitArray for _}::bit_length']
+(p/'evidence/array/charon-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/array/charon.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-abort-on-error','-dest','proofs/BitArrayGenerated','evidence/array/bit_field.llbc']
+(p/'evidence/array/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/array/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)

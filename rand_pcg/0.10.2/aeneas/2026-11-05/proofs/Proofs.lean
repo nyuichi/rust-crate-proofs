@@ -129,6 +129,86 @@ theorem new_Mcg128Xsl64_spec (state : U128) :
   pcg128.Mcg128Xsl64.new state = .ok {state := ⟨state.bv ||| (1 : BitVec 128)⟩} := by
   simp [pcg128.Mcg128Xsl64.new, lift]
   rfl
+
+def xslOutput (state : U128) : U64 :=
+  let hi : U128 := ⟨state.bv >>> 64⟩
+  let r : U128 := ⟨state.bv >>> 122⟩
+  ((UScalar.cast .U64 hi) ^^^ (UScalar.cast .U64 state)).rotate_right (UScalar.cast .U32 r)
+
+theorem xslOutput_spec (state : U128) :
+  pcg128.output_xsl_rr state = .ok (xslOutput state) := by
+  simp only [pcg128.output_xsl_rr, pcg128.output_xsl_rr.ROTATE, pcg128.output_xsl_rr.XSHIFT,
+    HShiftRight.hShiftRight, UScalar.shiftRight_UScalar, UScalar.shiftRight]
+  simp [lift, xslOutput, core.num.U64.rotate_right, -BitVec.ushiftRight_eq]
+  rfl
+
+def dxsmOutput (state : U128) : U64 :=
+  let hi : U64 := UScalar.cast .U64 (⟨state.bv >>> 64⟩ : U128)
+  let lo := (UScalar.cast .U64 state) ||| 1#u64
+  let hi := (hi ^^^ (⟨hi.bv >>> 32⟩ : U64)).wrapping_mul 15750249268501108917#u64
+  (hi ^^^ (⟨hi.bv >>> 48⟩ : U64)).wrapping_mul lo
+
+theorem dxsmOutput_spec (state : U128) :
+  pcg128cm.output_dxsm state = .ok (dxsmOutput state) := by
+  simp only [pcg128cm.output_dxsm, pcg128cm.MULTIPLIER,
+    HShiftRight.hShiftRight, UScalar.shiftRight_IScalar, UScalar.shiftRight]
+  simp [IScalar.toNat, lift, dxsmOutput, core.num.U64.wrapping_mul,
+    U64.wrapping_mul, -BitVec.ushiftRight_eq]
+  rfl
+
+def nextStateLcg128Xsl64 (s : pcg128.Lcg128Xsl64) : pcg128.Lcg128Xsl64 := {s with state := (s.state.wrapping_mul 47026247687942121848144207491837523525#u128).wrapping_add s.increment}
+
+theorem next64_Lcg128Xsl64_spec (s : pcg128.Lcg128Xsl64) :
+  pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64 s =
+    .ok (.Ok (xslOutput (nextStateLcg128Xsl64 s).state), nextStateLcg128Xsl64 s) := by
+  simp [pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64, pcg128.Lcg128Xsl64.step,
+    pcg128.MULTIPLIER, xslOutput_spec, nextStateLcg128Xsl64, lift,
+    core.num.U128.wrapping_mul, core.num.U128.wrapping_add,
+    U128.wrapping_mul, U128.wrapping_add]
+  all_goals rfl
+
+theorem next32_Lcg128Xsl64_spec (s : pcg128.Lcg128Xsl64) :
+  pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u32 s =
+    .ok (.Ok (UScalar.cast .U32 (xslOutput (nextStateLcg128Xsl64 s).state)), nextStateLcg128Xsl64 s) := by
+  simp [pcg128.Lcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u32, next64_Lcg128Xsl64_spec, core.result.Result.map,
+    pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32,
+    pcg128.TryRngLcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once]
+
+def nextStateMcg128Xsl64 (s : pcg128.Mcg128Xsl64) : pcg128.Mcg128Xsl64 := {s with state := (s.state.wrapping_mul 47026247687942121848144207491837523525#u128)}
+
+theorem next64_Mcg128Xsl64_spec (s : pcg128.Mcg128Xsl64) :
+  pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64 s =
+    .ok (.Ok (xslOutput (nextStateMcg128Xsl64 s).state), nextStateMcg128Xsl64 s) := by
+  simp [pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u64, 
+    pcg128.MULTIPLIER, xslOutput_spec, nextStateMcg128Xsl64, lift,
+    core.num.U128.wrapping_mul, core.num.U128.wrapping_add,
+    U128.wrapping_mul, U128.wrapping_add]
+  all_goals rfl
+
+theorem next32_Mcg128Xsl64_spec (s : pcg128.Mcg128Xsl64) :
+  pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u32 s =
+    .ok (.Ok (UScalar.cast .U32 (xslOutput (nextStateMcg128Xsl64 s).state)), nextStateMcg128Xsl64 s) := by
+  simp [pcg128.Mcg128Xsl64.Insts.Rand_coreTryRngNever.try_next_u32, next64_Mcg128Xsl64_spec, core.result.Result.map,
+    pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32,
+    pcg128.TryRngMcg128Xsl64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once]
+
+def nextStateLcg128CmDxsm64 (s : pcg128cm.Lcg128CmDxsm64) : pcg128cm.Lcg128CmDxsm64 := {s with state := (s.state.wrapping_mul 15750249268501108917#u128).wrapping_add s.increment}
+
+theorem next64_Lcg128CmDxsm64_spec (s : pcg128cm.Lcg128CmDxsm64) :
+  pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u64 s =
+    .ok (.Ok (dxsmOutput s.state), nextStateLcg128CmDxsm64 s) := by
+  simp [pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u64, pcg128cm.Lcg128CmDxsm64.step,
+    pcg128cm.MULTIPLIER, dxsmOutput_spec, nextStateLcg128CmDxsm64, lift,
+    core.num.U128.wrapping_mul, core.num.U128.wrapping_add,
+    U128.wrapping_mul, U128.wrapping_add]
+  all_goals rfl
+
+theorem next32_Lcg128CmDxsm64_spec (s : pcg128cm.Lcg128CmDxsm64) :
+  pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u32 s =
+    .ok (.Ok (UScalar.cast .U32 (dxsmOutput s.state)), nextStateLcg128CmDxsm64 s) := by
+  simp [pcg128cm.Lcg128CmDxsm64.Insts.Rand_coreTryRngNever.try_next_u32, next64_Lcg128CmDxsm64_spec, core.result.Result.map,
+    pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32,
+    pcg128cm.TryRngLcg128CmDxsm64Never.try_next_u32.closure.Insts.CoreOpsFunctionFnOnceTupleU64U32.call_once]
 end Proofs
 #print axioms Proofs.try_next_u32_spec
 #print axioms Proofs.state_Lcg64Xsh32_spec
@@ -145,3 +225,11 @@ end Proofs
 #print axioms Proofs.new_Lcg128CmDxsm64_spec
 #print axioms Proofs.state_Mcg128Xsl64_spec
 #print axioms Proofs.new_Mcg128Xsl64_spec
+#print axioms Proofs.xslOutput_spec
+#print axioms Proofs.dxsmOutput_spec
+#print axioms Proofs.next32_Lcg128Xsl64_spec
+#print axioms Proofs.next64_Lcg128Xsl64_spec
+#print axioms Proofs.next32_Mcg128Xsl64_spec
+#print axioms Proofs.next64_Mcg128Xsl64_spec
+#print axioms Proofs.next32_Lcg128CmDxsm64_spec
+#print axioms Proofs.next64_Lcg128CmDxsm64_spec

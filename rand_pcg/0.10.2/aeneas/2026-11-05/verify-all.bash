@@ -20,5 +20,9 @@ for row in tomllib.load(open('proofs.toml','rb'))['tool']['proofs']:
  matches=re.findall("'"+re.escape(name)+r"' depends on axioms: \[(.*?)\]",s,re.S)
  assert matches,name
  for m in matches:assert {a.strip() for a in m.split(',')} <= {'propext','Classical.choice','Quot.sound'},m
-print('All fifteen API theorem dependency audits passed')
+for name in ['Proofs.xslOutput_spec','Proofs.dxsmOutput_spec']:
+ matches=re.findall("'"+re.escape(name)+r"' depends on axioms: \[(.*?)\]",s,re.S)
+ assert matches,name
+ for m in matches:assert {a.strip() for a in m.split(',')} <= {'propext','Classical.choice','Quot.sound'},m
+print('All twenty-one API theorem dependency audits passed')
 AUDIT

@@ -5,3 +5,7 @@ require aeneas from git
 package proofs
 @[default_target] lean_lib Proofs
 lean_lib RandXoshiro
+
+@[default_target] lean_lib WrapperProofs
+lean_lib XoshiroApiRoots where
+ roots := #[`XoshiroApiRoots.Types, `XoshiroApiRoots.Funs]

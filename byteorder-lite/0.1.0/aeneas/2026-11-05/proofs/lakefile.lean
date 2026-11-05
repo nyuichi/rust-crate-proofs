@@ -4,3 +4,6 @@ require aeneas from git "https://github.com/AeneasVerif/aeneas" @ "be86ab0f1989d
 package endianproofs
 @[default_target] lean_lib Proofs
 lean_lib Generated
+
+lean_lib SignedProofs
+lean_lib ByteorderLiteApiRoots
