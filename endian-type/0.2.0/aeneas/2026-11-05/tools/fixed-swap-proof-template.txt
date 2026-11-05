@@ -1,0 +1,15 @@
+theorem u16_swap_model (x : U16) :
+    core.num.U16.swap_bytes x = .ok (⟨byteReverse x.bv⟩ : U16) := by
+  unfold core.num.U16.swap_bytes
+  apply congrArg (fun (v : U16) => (.ok v : Result U16))
+  apply U16.bv_eq_imp_eq
+  have hb : (core.num.U16.to_be_bytes x).val =
+      x.bv.toBEBytes.map (fun b => (⟨b⟩ : U8)) := by
+    exact Aeneas.Std.Array.from_val _ _
+  change (BitVec.fromLEBytes ((core.num.U16.to_be_bytes x).val.map U8.bv)).cast (by simp) = _
+  have hm : (core.num.U16.to_be_bytes x).val.map U8.bv = x.bv.toBEBytes := by
+    rw [hb]
+    simp only [List.map_map, Function.comp_def, U8.bv]
+    exact List.map_id _
+  rw [cast_eq_ofNat]
+  exact congrArg (fun bs => BitVec.ofNat 16 (BitVec.fromLEBytes bs).toNat) hm

@@ -1,0 +1,27 @@
+{
+  "repository": "https://github.com/proofs-rs/proofs-rs",
+  "reviewed_revision": "0a39304e702b196e6dff917bbf17c63dc01abcc6",
+  "deployed_revision_verified": false,
+  "prepare": {
+    "path": "POST /api/v1/runs/prepare",
+    "source": "src/runs.ts:322-363",
+    "effect": "validate/preview; no source API rows or evidence stored; no rustdoc import"
+  },
+  "upload": {
+    "path": "POST /api/v1/runs/:run/sarif",
+    "source": "src/runs.ts:366-432",
+    "effect": "official immutable run/evidence plus author-observed API bindings",
+    "quota_kind": "verification_run",
+    "quota_per_UTC_day": 90
+  },
+  "binding_priority": {
+    "source": "src/recorded-apis.ts:29-52",
+    "rule": "saved binding first; else first existing candidate across api_paths; else api_paths[0]"
+  },
+  "recorded_API_creation_via_official_run_only": {
+    "source": "src/recorded-apis.ts:57-105",
+    "source_metadata_provenance": "recorded author observation, not independent rustdoc assertion"
+  },
+  "import_actions_by_this_audit": 0,
+  "server_requests_by_this_audit": 0
+}

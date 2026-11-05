@@ -1,0 +1,9 @@
+# Integer uses of the generic endian byte-slice APIs
+
+For endian-type 0.2.0, these Kani checks establish a restricted integer domain of six generic BigEndian<T>/LittleEndian<T> slice APIs. T is one of u16/u32/u64/u128/usize or i16/i32/i64/i128/isize on x86_64 little-endian with 64-bit pointers. Every primitive value and every corresponding fixed-size raw/replacement byte array is quantified.
+
+For wrappers constructed through the original integer From implementation, immutable and mutable byte views have the exact primitive size and standard big/little-endian byte encoding. Copying an arbitrary fixed-size replacement array through the mutable view makes to_bytes return that array and integer conversion return standard from_be_bytes/from_le_bytes. Unsafe from_byte_slice is checked only on live initialized exact-length first fields of repr(C,align(16)) buffers. Size/alignment assertions succeed; the field begins at offset zero, every selected integer representation is valid, and tail padding is never read.
+
+Ten symbolic harnesses succeed: 1,030 checks, zero failures, 50 unreachable internal checks, and all 180 specification assertions successful. Kani reports unsupported panic/caller-location constructs; all 20 reachability guards succeed, establishing they are not executed in this domain. No custom stubs, value assumptions, warning suppression or user unwind limits are used. Original source and Cargo.toml match the release archive and their before/after hashes.
+
+The six generic APIs remain unproved for arbitrary Sized+Copy T. These checks do not establish arbitrary longer-buffer/allocation/provenance contexts, invalid inputs, complete generic memory safety, or other targets. This is separate Kani partial-domain evidence, not an Aeneas claim. Kani/CBMC, the Rust compiler and supported standard-library semantics are trusted. The stopped Miri investigation is not used or resumed.

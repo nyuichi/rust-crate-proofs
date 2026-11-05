@@ -1,0 +1,7 @@
+# Exact byte-array conversion for integer endian wrappers
+
+For endian-type 0.2.0 on x86_64 little-endian with 64-bit pointers, Kani checks both BigEndian<T> and LittleEndian<T> to_bytes/from_bytes for each of u16, u32, u64, u128, usize, i16, i32, i64, i128 and isize. Every fixed-size byte array and every integer bit pattern is quantified. Constructing from raw bytes and converting back returns the identical array. Constructing from an integer and calling to_bytes returns the standard to_be_bytes/to_le_bytes encoding. Constructing from bytes and converting to the integer returns standard from_be_bytes/from_le_bytes. The corresponding integer round trips also return the original value, including negative signed values.
+
+Ten symbolic harnesses exercise the unchanged original path dependency, including the concrete integer transmute bodies: all 220 checks succeed. There are no input restrictions, custom stubs or user-supplied unwind bounds. Archive comparisons and before/after hashes confirm unchanged crate source and Cargo.toml.
+
+These are Kani results for 40 concrete integer API specializations and their stated compositions. They are separate from the Aeneas From/bitwise claims. They do not cover arbitrary generic T, raw-pointer byte-slice APIs, other targets, or complete crate memory safety. Kani, CBMC, the Rust compiler and their standard-library semantics are trusted; this run uses Kani 0.68.0, CBMC 6.11.0 and Rust nightly-2026-08-21.

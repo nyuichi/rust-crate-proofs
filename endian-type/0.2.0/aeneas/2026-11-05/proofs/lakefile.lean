@@ -5,3 +5,6 @@ require aeneas from git
 package endianproofs
 @[default_target] lean_lib Proofs
 lean_lib Generated
+lean_lib EndianVerificationDriver
+lean_lib ModelProofs
+lean_lib FromProofs

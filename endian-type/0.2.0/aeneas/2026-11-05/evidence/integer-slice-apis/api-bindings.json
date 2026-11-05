@@ -1,0 +1,1542 @@
+[
+  {
+    "rust_api_identity": "endian_type::BigEndian<u16>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "u16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::u16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<u16>::from(value) has length 2 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u16>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "u16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::u16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 2 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;2] replacement, to_bytes() returns replacement and u16::from(wrapper) returns u16::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u16>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "u16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::u16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;2] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u16::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u16>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "u16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::u16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<u16>::from(value) has length 2 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u16>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "u16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::u16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 2 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;2] replacement, to_bytes() returns replacement and u16::from(wrapper) returns u16::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u16>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "u16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::u16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;2] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u16::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u32>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "u32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::u32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<u32>::from(value) has length 4 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u32>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "u32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::u32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 4 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;4] replacement, to_bytes() returns replacement and u32::from(wrapper) returns u32::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u32>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "u32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::u32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;4] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u32::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u32>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "u32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::u32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<u32>::from(value) has length 4 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u32>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "u32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::u32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 4 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;4] replacement, to_bytes() returns replacement and u32::from(wrapper) returns u32::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u32>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "u32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::u32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;4] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u32::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u64>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "u64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::u64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<u64>::from(value) has length 8 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u64>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "u64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::u64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and u64::from(wrapper) returns u64::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u64>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "u64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::u64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u64::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u64>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "u64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::u64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<u64>::from(value) has length 8 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u64>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "u64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::u64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and u64::from(wrapper) returns u64::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u64>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "u64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::u64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u64::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u128>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "u128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::u128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<u128>::from(value) has length 16 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u128>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "u128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::u128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 16 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;16] replacement, to_bytes() returns replacement and u128::from(wrapper) returns u128::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<u128>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "u128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::u128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;16] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u128::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u128>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "u128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::u128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<u128>::from(value) has length 16 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u128>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "u128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::u128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 16 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;16] replacement, to_bytes() returns replacement and u128::from(wrapper) returns u128::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<u128>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "u128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::u128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;16] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals u128::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=u128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<usize>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "usize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::usize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<usize>::from(value) has length 8 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=usize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<usize>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "usize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::usize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and usize::from(wrapper) returns usize::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=usize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<usize>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "usize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::usize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals usize::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=usize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<usize>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "usize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::usize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<usize>::from(value) has length 8 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=usize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<usize>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "usize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::usize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and usize::from(wrapper) returns usize::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=usize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<usize>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "usize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::usize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals usize::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=usize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i16>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "i16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::i16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<i16>::from(value) has length 2 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i16>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "i16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::i16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 2 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;2] replacement, to_bytes() returns replacement and i16::from(wrapper) returns i16::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i16>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "i16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::i16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;2] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i16::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i16>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "i16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::i16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<i16>::from(value) has length 2 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i16>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "i16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::i16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 2 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;2] replacement, to_bytes() returns replacement and i16::from(wrapper) returns i16::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i16>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "i16",
+    "byte_count": 2,
+    "tool": "kani",
+    "harness": "checks::i16_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;2] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i16::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i16; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i32>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "i32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::i32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<i32>::from(value) has length 4 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i32>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "i32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::i32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 4 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;4] replacement, to_bytes() returns replacement and i32::from(wrapper) returns i32::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i32>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "i32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::i32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;4] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i32::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i32>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "i32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::i32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<i32>::from(value) has length 4 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i32>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "i32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::i32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 4 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;4] replacement, to_bytes() returns replacement and i32::from(wrapper) returns i32::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i32>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "i32",
+    "byte_count": 4,
+    "tool": "kani",
+    "harness": "checks::i32_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;4] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i32::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i32; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i64>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "i64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::i64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<i64>::from(value) has length 8 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i64>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "i64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::i64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and i64::from(wrapper) returns i64::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i64>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "i64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::i64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i64::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i64>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "i64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::i64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<i64>::from(value) has length 8 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i64>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "i64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::i64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and i64::from(wrapper) returns i64::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i64>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "i64",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::i64_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i64::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i64; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i128>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "i128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::i128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<i128>::from(value) has length 16 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i128>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "i128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::i128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 16 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;16] replacement, to_bytes() returns replacement and i128::from(wrapper) returns i128::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<i128>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "i128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::i128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;16] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i128::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i128>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "i128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::i128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<i128>::from(value) has length 16 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i128>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "i128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::i128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 16 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;16] replacement, to_bytes() returns replacement and i128::from(wrapper) returns i128::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<i128>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "i128",
+    "byte_count": 16,
+    "tool": "kani",
+    "harness": "checks::i128_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;16] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals i128::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=i128; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<isize>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice",
+    "primitive": "isize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::isize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of BigEndian::<isize>::from(value) has length 8 and equals value.to_be_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=isize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<isize>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::as_byte_slice_mut",
+    "primitive": "isize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::isize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_be_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and isize::from(wrapper) returns isize::from_be_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=isize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::BigEndian<isize>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::BigEndian<T>::from_byte_slice",
+    "primitive": "isize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::isize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals isize::from_be_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=isize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<isize>::as_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice",
+    "primitive": "isize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::isize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The view of LittleEndian::<isize>::from(value) has length 8 and equals value.to_le_bytes()."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=isize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<isize>::as_byte_slice_mut",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::as_byte_slice_mut",
+    "primitive": "isize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::isize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": false,
+    "guarantees": [
+      "The initial mutable view has length 8 and equals value.to_le_bytes().",
+      "After copy_from_slice of arbitrary [u8;8] replacement, to_bytes() returns replacement and isize::from(wrapper) returns isize::from_le_bytes(replacement)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=isize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  },
+  {
+    "rust_api_identity": "endian_type::LittleEndian<isize>::from_byte_slice",
+    "generic_rust_api_identity": "endian_type::LittleEndian<T>::from_byte_slice",
+    "primitive": "isize",
+    "byte_count": 8,
+    "tool": "kani",
+    "harness": "checks::isize_valid_integer_slice_apis",
+    "coverage": "partial_domain_kani_integer_specialization",
+    "generic_Copy_T_case_unproved": true,
+    "unsafe_callable": true,
+    "guarantees": [
+      "For an initialized [u8;8] field at offset zero in repr(C,align(16)) storage, reading returns a wrapper whose to_bytes() is the identical field and integer conversion equals isize::from_le_bytes(raw)."
+    ],
+    "preconditions": [
+      "x86_64 little-endian, 64-bit pointers",
+      "T=isize; every primitive bit pattern is valid; no integer padding bytes",
+      "Wrapper is constructed with the unchanged public From implementation; mutable replacement is a fixed-size initialized byte array",
+      "Input is the initialized exact-length first field of repr(C,align(16)) storage; actual primitive size/alignment are checked; storage remains live and readable"
+    ],
+    "not_tested": [
+      "Other Copy types or arbitrary generic T",
+      "Arbitrary longer slice lengths or unrelated allocation/provenance contexts",
+      "Invalid values, short buffers or misaligned reads",
+      "Stopped Miri investigation"
+    ]
+  }
+]

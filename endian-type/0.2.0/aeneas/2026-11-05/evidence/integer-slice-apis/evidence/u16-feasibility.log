@@ -1,0 +1,602 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling endian-type v0.2.0 (/workspace/full-api/endian/integer-byte-apis/source)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling endian-integer-slice-api-checks v0.1.0 (/workspace/full-api/endian/integer-slice-apis)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.54s
+Checking harness checks::u16_valid_integer_slice_apis...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/endian/integer-slice-apis/target/kani/x86_64-unknown-linux-gnu/debug/build/endian-integer-slice-api-checks/cd8dee4920517fd0/out/endian_integer_slice_api_checks-cd8dee4920517fd0__RNvNtCs7r4rC06mN76_31endian_integer_slice_api_checks6checks28u16_valid_integer_slice_apis.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 1 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Unwinding loop memcmp.0 iteration 2 file <builtin-library-memcmp> line 25 function memcmp thread 0
+Runtime Symex: 0.123302s
+size of program expression: 5935 steps
+slicing removed 3144 assignments
+Generated 403 VCC(s), 36 remaining after simplification
+Runtime Postprocess Equation: 0.00185617s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0113949s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 7.772e-06s
+Solving with CaDiCaL 3.0.0
+12940 variables, 20133 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000452362s
+Runtime decision procedure: 0.0122936s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+12941 variables, 20134 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.0250862s
+Runtime decision procedure: 0.0252935s
+
+RESULTS:
+Check 1: core::num::<impl usize>::abs_diff.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3182:21 in function core::num::<impl usize>::abs_diff
+
+Check 2: core::num::<impl usize>::abs_diff.assertion.2
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs:3184:21 in function core::num::<impl usize>::abs_diff
+
+Check 3: endian_type::LittleEndian::<u16>::from_byte_slice.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer dereference: address must be a multiple of its type's alignment"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 4: endian_type::LittleEndian::<u16>::from_byte_slice.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "null pointer dereference occurred"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 5: endian_type::LittleEndian::<u16>::from_byte_slice.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bytes.len() >= mem::size_of::<T>()"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:183:1 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 6: std::ptr::const_ptr::<impl *const ()>::is_aligned_to.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1360:23 in function std::ptr::const_ptr::<impl *const ()>::is_aligned_to
+
+Check 7: std::ptr::const_ptr::<impl *const ()>::is_aligned_to.assertion.2
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs:1357:13 in function std::ptr::const_ptr::<impl *const ()>::is_aligned_to
+
+Check 8: std::slice::from_raw_parts_mut::<'_, u8>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs:194:9 in function std::slice::from_raw_parts_mut::<'_, u8>
+
+Check 9: std::slice::from_raw_parts_mut::<'_, u8>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs:194:9 in function std::slice::from_raw_parts_mut::<'_, u8>
+
+Check 10: std::array::equality::<impl std::cmp::PartialEq<[u8; 2]> for [u8]>::eq.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/array/equality.rs:49:15 in function std::array::equality::<impl std::cmp::PartialEq<[u8; 2]> for [u8]>::eq
+
+Check 11: core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime.assertion.1
+	 - Status: SUCCESS
+	 - Description: "This is a placeholder message; Kani doesn't support message formatted at runtime"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:5589:9 in function core::slice::copy_from_slice_impl::len_mismatch_fail::do_panic::runtime
+
+Check 12: std::slice::from_raw_parts::<'_, u8>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs:139:9 in function std::slice::from_raw_parts::<'_, u8>
+
+Check 13: std::slice::from_raw_parts::<'_, u8>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs:139:9 in function std::slice::from_raw_parts::<'_, u8>
+
+Check 14: std::panic::Location::<'_>::caller.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "caller_location is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/374"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/location.rs:181:9 in function std::panic::Location::<'_>::caller
+
+Check 15: memcmp.precondition.1
+	 - Status: SUCCESS
+	 - Description: "memcmp region 1 readable"
+	 - Location: <builtin-library-memcmp>:19 in function memcmp
+
+Check 16: memcmp.precondition.2
+	 - Status: SUCCESS
+	 - Description: "memcpy region 2 readable"
+	 - Location: <builtin-library-memcmp>:21 in function memcmp
+
+Check 17: core::slice::<impl [u8]>::as_array::<2>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer to reference cast: address must be a multiple of its type's alignment"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:858:31 in function core::slice::<impl [u8]>::as_array::<2>
+
+Check 18: core::slice::<impl [u8]>::as_array::<2>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:858:31 in function core::slice::<impl [u8]>::as_array::<2>
+
+Check 19: endian_type::BigEndian::<u16>::from_byte_slice.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "misaligned pointer dereference: address must be a multiple of its type's alignment"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 20: endian_type::BigEndian::<u16>::from_byte_slice.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "null pointer dereference occurred"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 21: endian_type::BigEndian::<u16>::from_byte_slice.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bytes.len() >= mem::size_of::<T>()"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:121:1 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 22: checks::u16_valid_integer_slice_apis.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: be.as_byte_slice().len() == 2"
+	 - Location: src/lib.rs:17:9 in function checks::u16_valid_integer_slice_apis
+
+Check 23: checks::u16_valid_integer_slice_apis.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: be.as_byte_slice() == &value.to_be_bytes()"
+	 - Location: src/lib.rs:18:9 in function checks::u16_valid_integer_slice_apis
+
+Check 24: checks::u16_valid_integer_slice_apis.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bytes.len() == 2"
+	 - Location: src/lib.rs:21:13 in function checks::u16_valid_integer_slice_apis
+
+Check 25: checks::u16_valid_integer_slice_apis.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bytes == &value.to_be_bytes()"
+	 - Location: src/lib.rs:22:13 in function checks::u16_valid_integer_slice_apis
+
+Check 26: checks::u16_valid_integer_slice_apis.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: be.to_bytes() == replacement"
+	 - Location: src/lib.rs:25:9 in function checks::u16_valid_integer_slice_apis
+
+Check 27: checks::u16_valid_integer_slice_apis.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: u16::from(be) == u16::from_be_bytes(replacement)"
+	 - Location: src/lib.rs:26:9 in function checks::u16_valid_integer_slice_apis
+
+Check 28: checks::u16_valid_integer_slice_apis.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: le.as_byte_slice().len() == 2"
+	 - Location: src/lib.rs:28:9 in function checks::u16_valid_integer_slice_apis
+
+Check 29: checks::u16_valid_integer_slice_apis.assertion.8
+	 - Status: SUCCESS
+	 - Description: "assertion failed: le.as_byte_slice() == &value.to_le_bytes()"
+	 - Location: src/lib.rs:29:9 in function checks::u16_valid_integer_slice_apis
+
+Check 30: checks::u16_valid_integer_slice_apis.assertion.9
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bytes.len() == 2"
+	 - Location: src/lib.rs:32:13 in function checks::u16_valid_integer_slice_apis
+
+Check 31: checks::u16_valid_integer_slice_apis.assertion.10
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bytes == &value.to_le_bytes()"
+	 - Location: src/lib.rs:33:13 in function checks::u16_valid_integer_slice_apis
+
+Check 32: checks::u16_valid_integer_slice_apis.assertion.11
+	 - Status: SUCCESS
+	 - Description: "assertion failed: le.to_bytes() == replacement"
+	 - Location: src/lib.rs:36:9 in function checks::u16_valid_integer_slice_apis
+
+Check 33: checks::u16_valid_integer_slice_apis.assertion.12
+	 - Status: SUCCESS
+	 - Description: "assertion failed: u16::from(le) == u16::from_le_bytes(replacement)"
+	 - Location: src/lib.rs:37:9 in function checks::u16_valid_integer_slice_apis
+
+Check 34: checks::u16_valid_integer_slice_apis.assertion.13
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core::mem::align_of::<AlignedU16>() >= core::mem::align_of::<u16>()"
+	 - Location: src/lib.rs:42:9 in function checks::u16_valid_integer_slice_apis
+
+Check 35: checks::u16_valid_integer_slice_apis.assertion.14
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core::mem::size_of::<u16>() == 2"
+	 - Location: src/lib.rs:43:9 in function checks::u16_valid_integer_slice_apis
+
+Check 36: checks::u16_valid_integer_slice_apis.assertion.15
+	 - Status: SUCCESS
+	 - Description: "assertion failed: be_read.to_bytes() == raw"
+	 - Location: src/lib.rs:45:9 in function checks::u16_valid_integer_slice_apis
+
+Check 37: checks::u16_valid_integer_slice_apis.assertion.16
+	 - Status: SUCCESS
+	 - Description: "assertion failed: u16::from(be_read) == u16::from_be_bytes(raw)"
+	 - Location: src/lib.rs:46:9 in function checks::u16_valid_integer_slice_apis
+
+Check 38: checks::u16_valid_integer_slice_apis.assertion.17
+	 - Status: SUCCESS
+	 - Description: "assertion failed: le_read.to_bytes() == raw"
+	 - Location: src/lib.rs:48:9 in function checks::u16_valid_integer_slice_apis
+
+Check 39: checks::u16_valid_integer_slice_apis.assertion.18
+	 - Status: SUCCESS
+	 - Description: "assertion failed: u16::from(le_read) == u16::from_le_bytes(raw)"
+	 - Location: src/lib.rs:49:9 in function checks::u16_valid_integer_slice_apis
+
+Check 40: core::ub_checks::maybe_is_nonoverlapping::runtime.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2628:9 in function core::ub_checks::maybe_is_nonoverlapping::runtime
+
+Check 41: core::panicking::panic_nounwind_fmt::runtime.unsupported_construct.1
+	 - Status: SUCCESS
+	 - Description: "call to foreign "Rust" function `_RNvCskSgPeDzUGbv_7___rustc17rust_begin_unwind` is not currently supported by Kani. Please post your example at https://github.com/model-checking/kani/issues/new/choose"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:110:17 in function core::panicking::panic_nounwind_fmt::runtime
+
+Check 42: std::ptr::copy_nonoverlapping::<u8>.safety_check.1
+	 - Status: SUCCESS
+	 - Description: "`src` must be properly aligned"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 43: std::ptr::copy_nonoverlapping::<u8>.safety_check.2
+	 - Status: SUCCESS
+	 - Description: "`dst` must be properly aligned"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 44: std::ptr::copy_nonoverlapping::<u8>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "copy_nonoverlapping: attempt to compute number in bytes which would overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 45: std::fmt::Arguments::<'_>::from_str.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs:820:38 in function std::fmt::Arguments::<'_>::from_str
+
+Check 46: core::ub_checks::is_valid_allocation_size.assertion.1
+	 - Status: UNREACHABLE
+	 - Description: "attempt to divide by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ub_checks.rs:148:54 in function core::ub_checks::is_valid_allocation_size
+
+Check 47: core::ub_checks::is_valid_allocation_size.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to divide by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ub_checks.rs:148:54 in function core::ub_checks::is_valid_allocation_size
+
+Check 48: core::slice::<impl [u8]>::as_array::<2>.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs:861:13 in function core::slice::<impl [u8]>::as_array::<2>
+
+Check 49: memcpy.pointer.1
+	 - Status: SUCCESS
+	 - Description: "same object violation in (const unsigned char *)(void *)src >= (const unsigned char *)(void *)dst + (signed long int)(count * sizeof(unsigned char) /*1*/ )"
+	 - Location: <builtin-library-memcpy>:33 in function memcpy
+
+Check 50: memcpy.pointer.2
+	 - Status: SUCCESS
+	 - Description: "same object violation in (const unsigned char *)(void *)dst >= (const unsigned char *)(void *)src + (signed long int)(count * sizeof(unsigned char) /*1*/ )"
+	 - Location: <builtin-library-memcpy>:34 in function memcpy
+
+Check 51: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.1
+	 - Status: SUCCESS
+	 - Description: "memcpy src/dst overlap"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 52: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.2
+	 - Status: SUCCESS
+	 - Description: "memcpy source region readable"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 53: std::ptr::copy_nonoverlapping::<u8>.precondition_instance.3
+	 - Status: SUCCESS
+	 - Description: "memcpy destination region writeable"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:574:14 in function std::ptr::copy_nonoverlapping::<u8>
+
+Check 54: endian_type::LittleEndian::<u16>::from_byte_slice.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 55: endian_type::LittleEndian::<u16>::from_byte_slice.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 56: endian_type::LittleEndian::<u16>::from_byte_slice.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 57: endian_type::LittleEndian::<u16>::from_byte_slice.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 58: endian_type::LittleEndian::<u16>::from_byte_slice.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 59: endian_type::LittleEndian::<u16>::from_byte_slice.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::LittleEndian::<u16>::from_byte_slice
+
+Check 60: endian_type::BigEndian::<u16>::from_byte_slice.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 61: endian_type::BigEndian::<u16>::from_byte_slice.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 62: endian_type::BigEndian::<u16>::from_byte_slice.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 63: endian_type::BigEndian::<u16>::from_byte_slice.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 64: endian_type::BigEndian::<u16>::from_byte_slice.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 65: endian_type::BigEndian::<u16>::from_byte_slice.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../integer-byte-apis/source/src/lib.rs:54:22 in function endian_type::BigEndian::<u16>::from_byte_slice
+
+Check 66: core::ub_checks::is_valid_allocation_size.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ub_checks.rs:148:54 in function core::ub_checks::is_valid_allocation_size
+
+Check 67: std::array::equality::<impl std::cmp::PartialEq<[u8; 2]> for [u8]>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/array/equality.rs:49:15 in function std::array::equality::<impl std::cmp::PartialEq<[u8; 2]> for [u8]>::eq
+
+Check 68: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 69: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 70: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 71: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 72: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 73: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 74: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 75: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 76: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 77: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 78: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 79: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2399:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &[u8]>::eq
+
+Check 80: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 81: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 82: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 83: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 84: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 85: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:27 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 86: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 87: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 88: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 89: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 90: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 91: std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2563:34 in function std::cmp::impls::<impl std::cmp::PartialEq<&[u8; 2]> for &mut [u8]>::eq
+
+Check 92: memcmp.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 93: memcmp.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 94: memcmp.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 95: memcmp.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 96: memcmp.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 97: memcmp.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 98: memcmp.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 99: memcmp.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 100: memcmp.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 101: memcmp.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 102: memcmp.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+Check 103: memcmp.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: <builtin-library-memcmp>:27 in function memcmp
+
+
+SUMMARY:
+ ** 0 of 103 failed (5 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.81126434s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.

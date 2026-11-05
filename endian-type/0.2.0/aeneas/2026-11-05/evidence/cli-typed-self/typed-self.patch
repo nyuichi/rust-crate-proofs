@@ -1,0 +1,120 @@
+--- a/src/scan.rs
++++ b/src/scan.rs
+@@ -773,10 +773,20 @@
+                 let nominal = self.nominal_type(self_ty, module)?;
+                 let legacy = nominal.as_ref().is_some_and(|ty| self.types.contains(ty));
+                 let types = if legacy {
+-                    self.creusot_public_paths(nominal.as_ref().unwrap())?
+-                        .into_iter()
+-                        .map(|ty| format!("{}::{ty}", self.project.lib_name))
+-                        .collect()
++                    // Preserve the actual generic self type as a canonical API
++                    // candidate. Keep the old erased aliases only because the
++                    // nominal type here is the real local self, not a local
++                    // type merely mentioned in a foreign implementation's args.
++                    let nominal_paths = self.creusot_public_paths(nominal.as_ref().unwrap())?;
++                    if nominal_paths.is_empty() {
++                        return Ok(vec![]);
++                    }
++                    let mut types = vec![self.render_type_in(self_ty, module, generics, true)?];
++                    types.extend(nominal_paths.into_iter()
++                        .map(|ty| format!("{}::{ty}", self.project.lib_name)));
++                    types.sort();
++                    types.dedup();
++                    types
+                 } else {
+                     vec![self.render_type_in(self_ty, module, generics, true)?]
+                 };
+@@ -1500,12 +1510,13 @@
+         );
+     }
+     #[test]
+-    fn generic_local_nominal_identity_remains_erased() {
++    fn generic_local_nominal_alias_is_preserved_with_typed_identity() {
+         let c = creusot_contracts(
+             "pub struct S<U>(U); pub trait T {} impl<U> T for S<U> { #[requires(true)] fn m() {} }",
+             CreusotTarget::Annotated,
+         );
+-        assert_eq!(c[0].api_paths, ["<demo::S as demo::T>::m"]);
++        assert!(c[0].api_paths.contains(&"<demo::S as demo::T>::m".into()));
++        assert!(c[0].api_paths.contains(&"<demo::S<U> as demo::T>::m".into()));
+     }
+     #[test]
+     fn extracts_cfg_attrs_conditions_aliases_and_lines() {
+@@ -1615,6 +1626,76 @@
+         assert_eq!(all[0].api_paths, ["plain"]);
+     }
+     #[test]
++    fn typed_self_does_not_render_unexported_nominal_implementations() {
++        let (_d, p) = project(r#"
++struct Private<T>(T);
++impl<T> Clone for Private<T> { fn clone(&self) -> Self { todo!() } }
++mod hidden {
++    pub struct Unexported<T>(T);
++    impl<T> Clone for Unexported<T> { fn clone(&self) -> Self { todo!() } }
++}
++pub fn anchor() {}
++"#);
++        let selected = BTreeSet::from(["anchor".to_owned()]);
++        let c = public_contracts_for_apis(&p, &selected).unwrap();
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["anchor"]);
++    }
++
++    #[test]
++    fn typed_self_preserves_generic_owners_and_legacy_aliases() {
++        let c = creusot_contracts(r#"
++pub struct Endian<T>(T);
++impl From<u16> for Endian<u16> { fn from(x: u16) -> Self { Endian(x) } }
++impl From<u32> for Endian<u32> { fn from(x: u32) -> Self { Endian(x) } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 2);
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::Endian<u16> as From<u16>>::from".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::Endian<u32> as From<u32>>::from".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(&"<demo::Endian as From<u16>>::from".into())));
++    }
++
++    #[test]
++    fn typed_self_does_not_alias_foreign_self_to_owned_trait_argument() {
++        let c = creusot_contracts(r#"
++pub struct Endian<T>(T);
++impl From<Endian<u16>> for u16 { fn from(x: Endian<u16>) -> Self { x.0 } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["<u16 as From<demo::Endian<u16>>>::from"]);
++    }
++
++    #[test]
++    fn typed_self_resolves_public_type_reexports() {
++        let c = creusot_contracts(r#"
++mod hidden { pub struct Endian<T>(pub T); }
++pub use hidden::Endian as Public;
++impl From<u16> for hidden::Endian<u16> { fn from(x: u16) -> Self { hidden::Endian(x) } }
++"#, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert!(c[0].api_paths.contains(&"<demo::Public<u16> as From<u16>>::from".into()));
++        assert!(c[0].api_paths.contains(&"<demo::Public as From<u16>>::from".into()));
++        assert!(!c[0].api_paths.iter().any(|p| p.contains("hidden")));
++    }
++
++    #[test]
++    fn typed_self_keeps_erased_alias_ambiguity_visible() {
++        let (_d, p) = project(r#"
++pub struct Endian<T>(T);
++impl From<()> for Endian<u16> { fn from(_: ()) -> Self { Endian(0) } }
++impl From<()> for Endian<u32> { fn from(_: ()) -> Self { Endian(0) } }
++"#);
++        let exact = "<demo::Endian<u16> as From<()>>::from".to_owned();
++        let found = public_contracts_for_apis(&p, &BTreeSet::from([exact.clone()])).unwrap();
++        assert_eq!(found.len(), 1);
++        assert!(found[0].api_paths.contains(&exact));
++        let erased = "<demo::Endian as From<()>>::from".to_owned();
++        let found = public_contracts_for_apis(&p, &BTreeSet::from([erased.clone()])).unwrap();
++        assert_eq!(found.iter().filter(|c| c.api_paths.contains(&erased)).count(), 2,
++            "the final Aeneas exactly-one check must reject this erased alias");
++    }
++
++    #[test]
+     fn local_trait_default_bodies_follow_real_impls_and_overrides() {
+         let source = "pub trait Order {\nfn write(&self, x: u16) -> u16 { x }\nfn required(&self);\n}\npub struct A; pub struct B;\nimpl Order for A { fn required(&self) {} }\nimpl Order for B { fn required(&self) {} fn write(&self, x: u16) -> u16 { x + 1 } }\n";
+         let c = creusot_contracts(source, CreusotTarget::All);

@@ -1,0 +1,5 @@
+# Specialization-preserving publication mapping
+
+The candidate contains six existing bitwise mappings and sixty explicit integer From mappings. The latter retain complete Rust owner/trait type arguments and each targets its exact generated original function body. A source scanner or server catalogue that erases generic owner/type arguments may require reviewed alias/group handling. Do not silently collapse those Rust identities or pretend that one primitive proof covers the others. Use evidence/integer-models/from-proof-bindings.json as the authoritative specialization map. All sixty theorems are distinct and live under FromProofs; Proofs imports FromProofs so a fresh +Proofs build also includes all models and conversion proofs.
+
+Native-endian models are explicit executable definitions and the reviewed Rust-to-Lean bridge is foregrounded in the report. ModelProofs has fifty independent byte-reversal/identity contracts. Kani has ten all-input harnesses and 216 successful checks. The separate upcoming integer-byte API Kani investigation is not part of these Aeneas claims. Original byte/slice APIs remain outside this report's theorem scope.

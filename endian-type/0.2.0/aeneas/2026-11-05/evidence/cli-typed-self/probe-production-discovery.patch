@@ -1,0 +1,15 @@
+--- a/src/scanner_probe.rs
++++ b/src/scanner_probe.rs
+@@ -119,8 +119,10 @@
+             tool_target,
+         } => {
+             let p = config::Project::load(&project)?;
+-            let selected: std::collections::BTreeSet<String> = p.config()?.tool.proofs.iter().map(|p| p.api.clone()).collect();
+-            for c in scan::public_contracts_for_apis(&p, &selected)? {
++            let tool = p.config()?.tool;
++            // Diagnostic-only probe follows the production Aeneas discovery,
++            // including its strict actual-compiler expansion fallback.
++            for c in aeneas::discover(&p, &tool)? {
+                 println!("{}", serde_json::to_string(&c.api_paths)?);
+             }
+             Ok(())
