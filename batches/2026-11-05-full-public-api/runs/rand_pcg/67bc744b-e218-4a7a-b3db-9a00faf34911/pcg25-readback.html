@@ -1,0 +1,432 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #29 — Exact PCG state, output and advance for all four generator types · proofs.rs</title><meta name="description" content="For rand_pcg 0.10.2, the four state getters return their stored word. The three LCG stream getters return increment&gt;&gt;1; from_state preserves its input state and"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Exact PCG state, output and advance for all four generator types · rand_pcg 0.10.2 · proofs.rs"><meta property="og:description" content="For rand_pcg 0.10.2, the four state getters return their stored word. The three LCG stream getters return increment&gt;&gt;1; from_state preserves its input state and"><meta property="og:url" content="https://proofs.rs/report/29?v=2"><meta property="og:image" content="https://proofs.rs/og/report/29/2.png"><meta property="og:image:alt" content="Exact PCG state, output and advance for all four generator types · rand_pcg 0.10.2"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Exact PCG state, output and advance for all four generator types · rand_pcg 0.10.2 · proofs.rs"><meta name="twitter:description" content="For rand_pcg 0.10.2, the four state getters return their stored word. The three LCG stream getters return increment&gt;&gt;1; from_state preserves its input state and"><meta name="twitter:image" content="https://proofs.rs/og/report/29/2.png"><meta name="twitter:image:alt" content="Exact PCG state, output and advance for all four generator types · rand_pcg 0.10.2"><link rel="canonical" href="https://proofs.rs/report/29"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F29">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/rand_pcg?version=0.10.2">rand_pcg 0.10.2</a> <span aria-hidden="true">/</span> <a href="/crate/rand_pcg?version=0.10.2#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #29 — Exact PCG state, output and advance for all four generator types</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">25 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 04:56 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Exact%20PCG%20state%2C%20output%20and%20advance%20for%20all%20four%20generator%20types%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F29%3Fv%3D2"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Exact%20PCG%20state%2C%20output%20and%20advance%20for%20all%20four%20generator%20types%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F29%3Fv%3D2"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/29?v=2" aria-current="page">v2</a> · <a href="/report/29?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For rand_pcg 0.10.2, the four state getters return their stored word. The three LCG stream getters return increment&gt;&gt;1; from_state preserves its input state and stores increment=(stream&lt;&lt;1) OR 1, discarding the highest stream bit. Their new constructors initialize state=((input_state+increment)<em>multiplier+increment) with modular arithmetic; the multipliers are 6364136223846793005, 47026247687942121848144207491837523525 and 15750249268501108917 respectively. Mcg128Xsl64::new stores input_state OR 1. Native output proofs retain Lcg64Xsh32::try_next_u32 and both word widths for the three 128-bit types. The XSL-RR variants permute the newly advanced state; CM-DXSM permutes the old state then advances. Their 32-bit methods return the low 32 bits of the 64-bit result with the same final state. Original Result::map and conversion closures are body-extracted. Mcg128Xsl64::advance additionally terminates normally for every u128 delta and every internal u128 state, returning state=M^delta</em>initial_state modulo 2^128, M=47026247687942121848144207491837523525. A well-founded halving-loop proof connects the original body to this ordinary power specification, covering all deltas without an artificial execution bound. These twenty-five direct original-body API guarantees apply under default and serde because the selected official translations are byte-identical; the serde implementations themselves remain unproved. Each of the three LCG advance methods also terminates normally for every full-width delta, state and increment, preserving the stored increment and producing exactly delta repetitions of the ordinary modular affine step x↦M*x+increment. An independent linear recurrence specifies this behavior; a generic affine-composition proof connects the original binary algorithm to it. Increments need not be odd for this state-transform identity. Separate Kani evidence calls the unchanged Mcg128Xsl64::from_seed and public state getter for every sixteen-byte seed. Its state equals the independently decoded little-endian u128 seed OR 1 (242 successful checks under each of default and serde). The exact rand_core 0.10.0 and serde 1.0.228 dependency lock is retained. This is a separate Kani body guarantee, not another Aeneas machine claim or a formal cross-tool equivalence proof.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (25)</h2><section class="api-category"><h3>Recorded callables</h3><div class="catalog-row" data-api-path="&lt;rand_pcg::Lcg128CmDxsm64 as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/888b6972c7c5336c3d5ec4d435e887e1cb63841fb4701caaffa8226a1ecf76d5">&lt;rand_pcg::Lcg128CmDxsm64 as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ce718009-1ae6-464f-b5f0-6335d7d86c41?report_revision=2">Claim #20</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_pcg::Lcg128CmDxsm64 as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/140e0d21b15ec908aeca7bbfb111c91d3f3cbe0f73c67665b55f553ea61e1fb9">&lt;rand_pcg::Lcg128CmDxsm64 as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e88cb36b-0f0b-438a-859c-3da8ad540588?report_revision=2">Claim #21</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_pcg::Lcg128Xsl64 as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/9d102e096b33bf7499cedc5e03852a3f6241c7328c3f1bfddfe55a21dec176d4">&lt;rand_pcg::Lcg128Xsl64 as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0e28a10f-6117-4a22-8b9a-ddc220376082?report_revision=2">Claim #16</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_pcg::Lcg128Xsl64 as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/e46fe8eb3efd53ee054788e64d1f65c41b715d4ec12be6be6c942b2221d8e556">&lt;rand_pcg::Lcg128Xsl64 as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4a2819bd-b4af-449e-9842-7f053ee82602?report_revision=2">Claim #17</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_pcg::Lcg64Xsh32 as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/d1de0880e5c8f8e76e98824b2b092ee285e5f6c3c1488f83607a58367ea4e185">&lt;rand_pcg::Lcg64Xsh32 as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c8abe1e9-d8c4-4eb0-9636-ac1fed76b813?report_revision=2">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_pcg::Mcg128Xsl64 as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/119e4bec84876345fd2c9e970c51aebee7d64c3dee0fb86bc30cd66f7d89c654">&lt;rand_pcg::Mcg128Xsl64 as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c7af5ce3-c661-4d33-afb0-832d159cfb8d?report_revision=2">Claim #18</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_pcg::Mcg128Xsl64 as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/bb6c07880a325083d270203b8813e28fa85d14a91e560a9d383251ec19840447">&lt;rand_pcg::Mcg128Xsl64 as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/88d6d75b-5bce-480c-bb86-5585d3995eec?report_revision=2">Claim #19</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128CmDxsm64::advance" data-claims="1"><span><a class="api-name" href="/api/d785f0c32edf5272ac4dbf261dbbdee985dd043f6bb30ad54df6cf43172458e8">Lcg128CmDxsm64::advance</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/181dd0c6-e9a3-481c-85a0-073ed010ee08?report_revision=2">Claim #25</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128CmDxsm64::from_state" data-claims="1"><span><a class="api-name" href="/api/5ceb2ee6180404d21767ee4edc016737149af61f265fb8aff52f0087d761f99a">Lcg128CmDxsm64::from_state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e85dc58e-c11e-42c1-8fc3-98cb9e451f3f?report_revision=2">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128CmDxsm64::new" data-claims="1"><span><a class="api-name" href="/api/afbe7ef5e248f4ab01130914d11635ee08ba14eedb1a27b3004b2df1251ac0bb">Lcg128CmDxsm64::new</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c69e76a0-9e6e-4622-8b72-f69009e4f2cb?report_revision=2">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128CmDxsm64::state" data-claims="1"><span><a class="api-name" href="/api/83ec23fd53ce3046537d5386170833a36813f6fedf353dcf1faf1174e40b048d">Lcg128CmDxsm64::state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a5fdd941-d20e-4dc4-9624-974f0a835981?report_revision=2">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128CmDxsm64::stream" data-claims="1"><span><a class="api-name" href="/api/ec67e81c303d4a4d98fc618338c18617c16676b3926a2774b6b2181e830c2dbf">Lcg128CmDxsm64::stream</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/088dc8e7-d311-44d7-a3f8-f8998ec79450?report_revision=2">Claim #11</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128Xsl64::advance" data-claims="1"><span><a class="api-name" href="/api/21cea2fe440922decce6ce7cc3b8f4fad3363ed6a1ac121f65ed7df84fd249a3">Lcg128Xsl64::advance</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4bdf0849-237e-406d-8367-f9149c36de01?report_revision=2">Claim #24</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128Xsl64::from_state" data-claims="1"><span><a class="api-name" href="/api/4f2832b493c8380ece89148f7c1c4671126b2b6be09febf4e9650b1428d34b12">Lcg128Xsl64::from_state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8ccd128e-da13-4206-82ea-5be067af29c0?report_revision=2">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128Xsl64::new" data-claims="1"><span><a class="api-name" href="/api/e90bcf07bbb6a371218f5578bd32d25557ef9df9ad01b33830810b0c2a82df0d">Lcg128Xsl64::new</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e0871675-4b7c-4f90-bd3e-27268867b9b1?report_revision=2">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128Xsl64::state" data-claims="1"><span><a class="api-name" href="/api/9c7b16b7761f9a1ffbca252c3d8d7a89885298a2fd713c17294e5a07a187a80d">Lcg128Xsl64::state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/542b2255-db6e-400b-8b6b-8b1e5ab9750f?report_revision=2">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg128Xsl64::stream" data-claims="1"><span><a class="api-name" href="/api/e3adc5090988d3b0c917be7640a71055be6ab10c96fc8ffd72b9a4b5ba8bf840">Lcg128Xsl64::stream</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c717345b-0cce-4c13-a5f7-c4217b8dbb0a?report_revision=2">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg64Xsh32::advance" data-claims="1"><span><a class="api-name" href="/api/34733ebe534c1d69e6b600835bcb133b7fd5b3fd58a2febf1091b98e9bf903c2">Lcg64Xsh32::advance</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c0a540d0-87b1-4024-9fed-c8f59d8dd1bc?report_revision=2">Claim #23</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg64Xsh32::from_state" data-claims="1"><span><a class="api-name" href="/api/35a4c633f45aaf3e2f2cd8ec880fbbe92a67799251751e2e39ce8682357ae1ee">Lcg64Xsh32::from_state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/b703c737-7908-4751-bf1d-3592e695f951?report_revision=2">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg64Xsh32::new" data-claims="1"><span><a class="api-name" href="/api/488fb5259aed82f6d2e560739d8d522d9211248470387405e87ae9bbe7adba31">Lcg64Xsh32::new</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f77f1d3a-ad26-4dcd-a1b2-069f73a61d26?report_revision=2">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg64Xsh32::state" data-claims="1"><span><a class="api-name" href="/api/ade3f59acac90e35bf7cf08e2b216f776cf8ca041b28b8a511c303e60158632d">Lcg64Xsh32::state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f215d451-0c4c-4b74-a464-3e33596a918a?report_revision=2">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Lcg64Xsh32::stream" data-claims="1"><span><a class="api-name" href="/api/40678f5e8f2a6eb1dba4e08ba22c64933a6f7e1b971c88ecc995738597fbab23">Lcg64Xsh32::stream</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/2e2e9170-6c6d-42e5-9258-86120a8cf368?report_revision=2">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Mcg128Xsl64::advance" data-claims="1"><span><a class="api-name" href="/api/95e8bee312d1e69570ece59178fbbfd41e5b59264146f851d80cfc4c0d103810">Mcg128Xsl64::advance</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7510f015-7e19-428e-8e95-4b10be9d7b6b?report_revision=2">Claim #22</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Mcg128Xsl64::new" data-claims="1"><span><a class="api-name" href="/api/6b7694a10b7eef9de93c86a2365e5d7c8fdcb2f992aab29e3f3bac18b2e8291f">Mcg128Xsl64::new</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3544f90f-a2e4-41f8-a604-5e3695fcb3d4?report_revision=2">Claim #15</a></span></div></div><div class="catalog-row" data-api-path="rand_pcg::Mcg128Xsl64::state" data-claims="1"><span><a class="api-name" href="/api/d18509b404a84012c8c05bd090fae310f2e61ca5e6f213d9dd7984c12d766a5a">Mcg128Xsl64::state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/31e02113-01e0-4bea-b08c-81acc802e858?report_revision=2">Claim #14</a></span></div></div></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/b2bcb877694bacb3081c6282af7f8a8ed1ae19b6" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/b2bcb877694bacb3081c6282af7f8a8ed1ae19b6</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-29-source-1
+git -C report-29-source-1 checkout --detach b2bcb877694bacb3081c6282af7f8a8ed1ae19b6
+git -C report-29-source-1 submodule update --init --recursive --checkout
+cd report-29-source-1/rand_pcg/0.10.2/aeneas/2026-11-05/proofs
+
+lake build +AdvanceProofs +AffineProofs +Proofs
+
+printf &#39;%s&#39; &#39;import Lean
+import AdvanceProofs
+import AffineProofs
+import Proofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.try_next_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.try_next_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.try_next_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.try_next_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.state_Lcg64Xsh32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.state_Lcg64Xsh32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.state_Lcg64Xsh32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.state_Lcg64Xsh32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.stream_Lcg64Xsh32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.stream_Lcg64Xsh32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.stream_Lcg64Xsh32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.stream_Lcg64Xsh32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.from_state_Lcg64Xsh32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.from_state_Lcg64Xsh32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.from_state_Lcg64Xsh32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.from_state_Lcg64Xsh32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new_Lcg64Xsh32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new_Lcg64Xsh32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new_Lcg64Xsh32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new_Lcg64Xsh32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.state_Lcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.state_Lcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.state_Lcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.state_Lcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.stream_Lcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.stream_Lcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.stream_Lcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.stream_Lcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.from_state_Lcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.from_state_Lcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.from_state_Lcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.from_state_Lcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new_Lcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new_Lcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new_Lcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new_Lcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.state_Lcg128CmDxsm64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.state_Lcg128CmDxsm64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.state_Lcg128CmDxsm64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.state_Lcg128CmDxsm64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.stream_Lcg128CmDxsm64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.stream_Lcg128CmDxsm64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.stream_Lcg128CmDxsm64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.stream_Lcg128CmDxsm64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.from_state_Lcg128CmDxsm64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.from_state_Lcg128CmDxsm64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.from_state_Lcg128CmDxsm64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.from_state_Lcg128CmDxsm64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new_Lcg128CmDxsm64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new_Lcg128CmDxsm64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new_Lcg128CmDxsm64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new_Lcg128CmDxsm64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.state_Mcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.state_Mcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.state_Mcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.state_Mcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new_Mcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new_Mcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new_Mcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new_Mcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.next32_Lcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.next32_Lcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.next32_Lcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.next32_Lcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.next64_Lcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.next64_Lcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.next64_Lcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.next64_Lcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.next32_Mcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.next32_Mcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.next32_Mcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.next32_Mcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.next64_Mcg128Xsl64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.next64_Mcg128Xsl64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.next64_Mcg128Xsl64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.next64_Mcg128Xsl64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.next32_Lcg128CmDxsm64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.next32_Lcg128CmDxsm64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.next32_Lcg128CmDxsm64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.next32_Lcg128CmDxsm64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.next64_Lcg128CmDxsm64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.next64_Lcg128CmDxsm64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.next64_Lcg128CmDxsm64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.next64_Lcg128CmDxsm64_spec&quot;
+
+run_cmd do
+  let theorem_name := `AdvanceProofs.mcg_advance_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: AdvanceProofs.mcg_advance_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in AdvanceProofs.mcg_advance_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:AdvanceProofs.mcg_advance_spec&quot;
+
+run_cmd do
+  let theorem_name := `AffineProofs.lcg64_advance_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: AffineProofs.lcg64_advance_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in AffineProofs.lcg64_advance_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:AffineProofs.lcg64_advance_spec&quot;
+
+run_cmd do
+  let theorem_name := `AffineProofs.lcg128_advance_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: AffineProofs.lcg128_advance_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in AffineProofs.lcg128_advance_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:AffineProofs.lcg128_advance_spec&quot;
+
+run_cmd do
+  let theorem_name := `AffineProofs.cm_advance_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: AffineProofs.cm_advance_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in AffineProofs.cm_advance_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:AffineProofs.cm_advance_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/b2bcb877694bacb3081c6282af7f8a8ed1ae19b6">Source on GitHub</a> · <a href="/api/v1/runs/67bc744b-e218-4a7a-b3db-9a00faf34911/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 25 checks passed · 0 failed</p><p class="meta">2026-11-05T05:32:42.533169316+00:00 · 110.2 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e7472795f6e6578745f7533325f73706563"><td>Lean checked theorem Proofs.try_next_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.try_next_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/c8abe1e9-d8c4-4eb0-9636-ac1fed76b813?report_revision=2">Claim #1</a></td></tr><tr id="check-50726f6f66732e73746174655f4c6367363458736833325f73706563"><td>Lean checked theorem Proofs.state_Lcg64Xsh32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.state_Lcg64Xsh32_spec</code></div></td><td>Passed</td><td><a href="/claim/f215d451-0c4c-4b74-a464-3e33596a918a?report_revision=2">Claim #2</a></td></tr><tr id="check-50726f6f66732e73747265616d5f4c6367363458736833325f73706563"><td>Lean checked theorem Proofs.stream_Lcg64Xsh32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.stream_Lcg64Xsh32_spec</code></div></td><td>Passed</td><td><a href="/claim/2e2e9170-6c6d-42e5-9258-86120a8cf368?report_revision=2">Claim #3</a></td></tr><tr id="check-50726f6f66732e66726f6d5f73746174655f4c6367363458736833325f73706563"><td>Lean checked theorem Proofs.from_state_Lcg64Xsh32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.from_state_Lcg64Xsh32_spec</code></div></td><td>Passed</td><td><a href="/claim/b703c737-7908-4751-bf1d-3592e695f951?report_revision=2">Claim #4</a></td></tr><tr id="check-50726f6f66732e6e65775f4c6367363458736833325f73706563"><td>Lean checked theorem Proofs.new_Lcg64Xsh32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new_Lcg64Xsh32_spec</code></div></td><td>Passed</td><td><a href="/claim/f77f1d3a-ad26-4dcd-a1b2-069f73a61d26?report_revision=2">Claim #5</a></td></tr><tr id="check-50726f6f66732e73746174655f4c636731323858736c36345f73706563"><td>Lean checked theorem Proofs.state_Lcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.state_Lcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/542b2255-db6e-400b-8b6b-8b1e5ab9750f?report_revision=2">Claim #6</a></td></tr><tr id="check-50726f6f66732e73747265616d5f4c636731323858736c36345f73706563"><td>Lean checked theorem Proofs.stream_Lcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.stream_Lcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/c717345b-0cce-4c13-a5f7-c4217b8dbb0a?report_revision=2">Claim #7</a></td></tr><tr id="check-50726f6f66732e66726f6d5f73746174655f4c636731323858736c36345f73706563"><td>Lean checked theorem Proofs.from_state_Lcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.from_state_Lcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/8ccd128e-da13-4206-82ea-5be067af29c0?report_revision=2">Claim #8</a></td></tr><tr id="check-50726f6f66732e6e65775f4c636731323858736c36345f73706563"><td>Lean checked theorem Proofs.new_Lcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new_Lcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/e0871675-4b7c-4f90-bd3e-27268867b9b1?report_revision=2">Claim #9</a></td></tr><tr id="check-50726f6f66732e73746174655f4c6367313238436d4478736d36345f73706563"><td>Lean checked theorem Proofs.state_Lcg128CmDxsm64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.state_Lcg128CmDxsm64_spec</code></div></td><td>Passed</td><td><a href="/claim/a5fdd941-d20e-4dc4-9624-974f0a835981?report_revision=2">Claim #10</a></td></tr><tr id="check-50726f6f66732e73747265616d5f4c6367313238436d4478736d36345f73706563"><td>Lean checked theorem Proofs.stream_Lcg128CmDxsm64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.stream_Lcg128CmDxsm64_spec</code></div></td><td>Passed</td><td><a href="/claim/088dc8e7-d311-44d7-a3f8-f8998ec79450?report_revision=2">Claim #11</a></td></tr><tr id="check-50726f6f66732e66726f6d5f73746174655f4c6367313238436d4478736d36345f73706563"><td>Lean checked theorem Proofs.from_state_Lcg128CmDxsm64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.from_state_Lcg128CmDxsm64_spec</code></div></td><td>Passed</td><td><a href="/claim/e85dc58e-c11e-42c1-8fc3-98cb9e451f3f?report_revision=2">Claim #12</a></td></tr><tr id="check-50726f6f66732e6e65775f4c6367313238436d4478736d36345f73706563"><td>Lean checked theorem Proofs.new_Lcg128CmDxsm64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new_Lcg128CmDxsm64_spec</code></div></td><td>Passed</td><td><a href="/claim/c69e76a0-9e6e-4622-8b72-f69009e4f2cb?report_revision=2">Claim #13</a></td></tr><tr id="check-50726f6f66732e73746174655f4d636731323858736c36345f73706563"><td>Lean checked theorem Proofs.state_Mcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.state_Mcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/31e02113-01e0-4bea-b08c-81acc802e858?report_revision=2">Claim #14</a></td></tr><tr id="check-50726f6f66732e6e65775f4d636731323858736c36345f73706563"><td>Lean checked theorem Proofs.new_Mcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new_Mcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/3544f90f-a2e4-41f8-a604-5e3695fcb3d4?report_revision=2">Claim #15</a></td></tr><tr id="check-50726f6f66732e6e65787433325f4c636731323858736c36345f73706563"><td>Lean checked theorem Proofs.next32_Lcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.next32_Lcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/0e28a10f-6117-4a22-8b9a-ddc220376082?report_revision=2">Claim #16</a></td></tr><tr id="check-50726f6f66732e6e65787436345f4c636731323858736c36345f73706563"><td>Lean checked theorem Proofs.next64_Lcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.next64_Lcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/4a2819bd-b4af-449e-9842-7f053ee82602?report_revision=2">Claim #17</a></td></tr><tr id="check-50726f6f66732e6e65787433325f4d636731323858736c36345f73706563"><td>Lean checked theorem Proofs.next32_Mcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.next32_Mcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/c7af5ce3-c661-4d33-afb0-832d159cfb8d?report_revision=2">Claim #18</a></td></tr><tr id="check-50726f6f66732e6e65787436345f4d636731323858736c36345f73706563"><td>Lean checked theorem Proofs.next64_Mcg128Xsl64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.next64_Mcg128Xsl64_spec</code></div></td><td>Passed</td><td><a href="/claim/88d6d75b-5bce-480c-bb86-5585d3995eec?report_revision=2">Claim #19</a></td></tr><tr id="check-50726f6f66732e6e65787433325f4c6367313238436d4478736d36345f73706563"><td>Lean checked theorem Proofs.next32_Lcg128CmDxsm64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.next32_Lcg128CmDxsm64_spec</code></div></td><td>Passed</td><td><a href="/claim/ce718009-1ae6-464f-b5f0-6335d7d86c41?report_revision=2">Claim #20</a></td></tr><tr id="check-50726f6f66732e6e65787436345f4c6367313238436d4478736d36345f73706563"><td>Lean checked theorem Proofs.next64_Lcg128CmDxsm64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.next64_Lcg128CmDxsm64_spec</code></div></td><td>Passed</td><td><a href="/claim/e88cb36b-0f0b-438a-859c-3da8ad540588?report_revision=2">Claim #21</a></td></tr><tr id="check-416476616e636550726f6f66732e6d63675f616476616e63655f73706563"><td>Lean checked theorem AdvanceProofs.mcg_advance_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>AdvanceProofs.mcg_advance_spec</code></div></td><td>Passed</td><td><a href="/claim/7510f015-7e19-428e-8e95-4b10be9d7b6b?report_revision=2">Claim #22</a></td></tr><tr id="check-416666696e6550726f6f66732e6c636736345f616476616e63655f73706563"><td>Lean checked theorem AffineProofs.lcg64_advance_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>AffineProofs.lcg64_advance_spec</code></div></td><td>Passed</td><td><a href="/claim/c0a540d0-87b1-4024-9fed-c8f59d8dd1bc?report_revision=2">Claim #23</a></td></tr><tr id="check-416666696e6550726f6f66732e6c63673132385f616476616e63655f73706563"><td>Lean checked theorem AffineProofs.lcg128_advance_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>AffineProofs.lcg128_advance_spec</code></div></td><td>Passed</td><td><a href="/claim/4bdf0849-237e-406d-8367-f9149c36de01?report_revision=2">Claim #24</a></td></tr><tr id="check-416666696e6550726f6f66732e636d5f616476616e63655f73706563"><td>Lean checked theorem AffineProofs.cm_advance_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>AffineProofs.cm_advance_spec</code></div></td><td>Passed</td><td><a href="/claim/181dd0c6-e9a3-481c-85a0-073ed010ee08?report_revision=2">Claim #25</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T05:32:42.533169316+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T05:34:32.764155318+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">rand_pcg/0.10.2/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">b2bcb877694bacb3081c6282af7f8a8ed1ae19b6</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/52] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/201] Built AeneasMeta.Simp.RegisterCommand (50s)
+✔ [6/201] Built AeneasMeta.BvEnumToBitVec (50s)
+✔ [149/534] Built AeneasMeta.UtilsCore (50s)
+✔ [521/876] Built Aeneas.Std.Global (50s)
+✔ [1575/1805] Built AeneasMeta.OptionConfig (51s)
+✔ [1797/1805] Built PcgAdvance.Types (2.3s)
+✔ [1798/1805] Built PcgAffineAdvance.Types (2.6s)
+✔ [1799/1805] Built RandPcg (3.1s)
+ℹ [1800/1805] Built Affine (3.3s)
+info: Affine.lean:81:0: &#39;AffineAdvance.mul_assoc&#39; depends on axioms: [propext]
+info: Affine.lean:82:0: &#39;AffineAdvance.binary_power&#39; depends on axioms: [propext, Quot.sound]
+info: Affine.lean:83:0: &#39;AffineAdvance.apply_power&#39; depends on axioms: [propext]
+✔ [1801/1805] Built PcgAdvance.Funs (2.2s)
+✔ [1802/1805] Built PcgAffineAdvance.Funs (2.1s)
+⚠ [1803/1805] Built Proofs (3.3s)
+warning: Proofs.lean:168:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:168:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: Proofs.lean:186:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: Proofs.lean:186:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+info: Proofs.lean:213:0: &#39;Proofs.try_next_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:214:0: &#39;Proofs.state_Lcg64Xsh32_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:215:0: &#39;Proofs.stream_Lcg64Xsh32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:216:0: &#39;Proofs.from_state_Lcg64Xsh32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:217:0: &#39;Proofs.new_Lcg64Xsh32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:218:0: &#39;Proofs.state_Lcg128Xsl64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:219:0: &#39;Proofs.stream_Lcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:220:0: &#39;Proofs.from_state_Lcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:221:0: &#39;Proofs.new_Lcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:222:0: &#39;Proofs.state_Lcg128CmDxsm64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:223:0: &#39;Proofs.stream_Lcg128CmDxsm64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:224:0: &#39;Proofs.from_state_Lcg128CmDxsm64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:225:0: &#39;Proofs.new_Lcg128CmDxsm64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:226:0: &#39;Proofs.state_Mcg128Xsl64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:227:0: &#39;Proofs.new_Mcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:228:0: &#39;Proofs.xslOutput_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:229:0: &#39;Proofs.dxsmOutput_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:230:0: &#39;Proofs.next32_Lcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:231:0: &#39;Proofs.next64_Lcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:232:0: &#39;Proofs.next32_Mcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:233:0: &#39;Proofs.next64_Mcg128Xsl64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:234:0: &#39;Proofs.next32_Lcg128CmDxsm64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:235:0: &#39;Proofs.next64_Lcg128CmDxsm64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1804/1805] Built AffineProofs (5.9s)
+warning: AffineProofs.lean:190:2: Unused tactic linter: `subst_vars` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+info: AffineProofs.lean:195:0: &#39;AffineProofs.body128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AffineProofs.lean:197:0: &#39;AffineProofs.loop128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AffineProofs.lean:198:0: &#39;AffineProofs.lcg128_advance_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AffineProofs.lean:200:0: &#39;AffineProofs.body64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AffineProofs.lean:201:0: &#39;AffineProofs.loop64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AffineProofs.lean:202:0: &#39;AffineProofs.lcg64_advance_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AffineProofs.lean:204:0: &#39;AffineProofs.cm_advance_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1805/1805] Built AdvanceProofs (6.5s)
+info: AdvanceProofs.lean:105:0: &#39;AdvanceProofs.square_pow&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AdvanceProofs.lean:106:0: &#39;AdvanceProofs.binary_pow&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AdvanceProofs.lean:108:0: &#39;AdvanceProofs.body_zero_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AdvanceProofs.lean:110:0: &#39;AdvanceProofs.loop_pow_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: AdvanceProofs.lean:112:0: &#39;AdvanceProofs.mcg_advance_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1805 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.try_next_u32_spec
+proofs.rs:checked:Proofs.state_Lcg64Xsh32_spec
+proofs.rs:checked:Proofs.stream_Lcg64Xsh32_spec
+proofs.rs:checked:Proofs.from_state_Lcg64Xsh32_spec
+proofs.rs:checked:Proofs.new_Lcg64Xsh32_spec
+proofs.rs:checked:Proofs.state_Lcg128Xsl64_spec
+proofs.rs:checked:Proofs.stream_Lcg128Xsl64_spec
+proofs.rs:checked:Proofs.from_state_Lcg128Xsl64_spec
+proofs.rs:checked:Proofs.new_Lcg128Xsl64_spec
+proofs.rs:checked:Proofs.state_Lcg128CmDxsm64_spec
+proofs.rs:checked:Proofs.stream_Lcg128CmDxsm64_spec
+proofs.rs:checked:Proofs.from_state_Lcg128CmDxsm64_spec
+proofs.rs:checked:Proofs.new_Lcg128CmDxsm64_spec
+proofs.rs:checked:Proofs.state_Mcg128Xsl64_spec
+proofs.rs:checked:Proofs.new_Mcg128Xsl64_spec
+proofs.rs:checked:Proofs.next32_Lcg128Xsl64_spec
+proofs.rs:checked:Proofs.next64_Lcg128Xsl64_spec
+proofs.rs:checked:Proofs.next32_Mcg128Xsl64_spec
+proofs.rs:checked:Proofs.next64_Mcg128Xsl64_spec
+proofs.rs:checked:Proofs.next32_Lcg128CmDxsm64_spec
+proofs.rs:checked:Proofs.next64_Lcg128CmDxsm64_spec
+proofs.rs:checked:AdvanceProofs.mcg_advance_spec
+proofs.rs:checked:AffineProofs.lcg64_advance_spec
+proofs.rs:checked:AffineProofs.lcg128_advance_spec
+proofs.rs:checked:AffineProofs.cm_advance_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Unchanged crates.io rand_pcg 0.10.2 Rust sources and Cargo.toml; original archive/hash checks, tests and regeneration comparisons retained in evidence. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction includes each actual original body, macro-expanded state helpers and private constructor helpers. Separate all-features (serde) extraction is retained in evidence/serde; generated Lean is byte-identical to the default extraction. Six additional output bodies and core::result::Result::map are included via the official --include core::result selection. Two output-permutation helper theorems are audited separately. The MCG advance extraction uses the official PcgAdvanceModel namespace. Its full-delta power/termination proof uses BitVec algebra and a decreasing natural measure, and all configured proof modules are imported together for the final audit. Three LCG advance bodies use a separate official PcgAffineAdvanceModel namespace. BitVec affine algebra and halving induction prove all deltas with increment preservation; all configured proof modules are imported together.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models, source adaptations or local trusted helper contracts are used. All twenty-one API theorem dependency audits permit only propext, Classical.choice and Quot.sound. Wrapping arithmetic, shifts, casts and rotations use official standard-library models, rather than proofs of Rust std implementation bodies. The original Result::map body is extracted and proved through its actual closure calls, rather than supplied by a custom model.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Coverage is the twenty-five named bodies on x86_64 under default or serde. Internal word states include zero/even values that usual seed constructors may not produce, but all are valid Rust scalar data; no seed-reachability claim is made. Stream getter behavior for arbitrary increments is proved, but no save/restore identity is claimed for an arbitrary even increment. Aeneas byte-seed/from_seed/seed_from_u64 contracts, Lcg64Xsh32::try_next_u64, buffer filling, RNG callbacks/forking, manual Debug, serde and inherited/external blanket APIs remain outside these Aeneas claims. No period, jump-back interpretation for wrapped negative strides, statistical quality or cryptographic security is established. Other targets and dependency feature combinations were not checked.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (3)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/postcard" target="_blank" rel="noopener noreferrer"><code>postcard</code></a> <code>^1.1.3</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand_core" target="_blank" rel="noopener noreferrer"><code>rand_core</code></a> <code>^0.10</code></span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde" target="_blank" rel="noopener noreferrer"><code>serde</code></a> <code>^1</code> · optional</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F29">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>

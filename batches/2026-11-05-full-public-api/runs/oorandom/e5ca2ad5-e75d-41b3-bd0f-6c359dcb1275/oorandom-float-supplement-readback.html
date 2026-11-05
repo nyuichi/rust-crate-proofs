@@ -1,0 +1,228 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #25 — Exact integer generation, seed initialization and state restoration in Rand32 and Rand64 · proofs.rs</title><meta name="description" content="For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output meth"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Exact integer generation, seed initialization and state restoration in Rand32 and Rand64 · oorandom 11.1.5 · proofs.rs"><meta property="og:description" content="For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output meth"><meta property="og:url" content="https://proofs.rs/report/25?v=3"><meta property="og:image" content="https://proofs.rs/og/report/25/3.png"><meta property="og:image:alt" content="Exact integer generation, seed initialization and state restoration in Rand32 and Rand64 · oorandom 11.1.5"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Exact integer generation, seed initialization and state restoration in Rand32 and Rand64 · oorandom 11.1.5 · proofs.rs"><meta name="twitter:description" content="For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output meth"><meta name="twitter:image" content="https://proofs.rs/og/report/25/3.png"><meta name="twitter:image:alt" content="Exact integer generation, seed initialization and state restoration in Rand32 and Rand64 · oorandom 11.1.5"><link rel="canonical" href="https://proofs.rs/report/25"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F25">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/oorandom?version=11.1.5">oorandom 11.1.5</a> <span aria-hidden="true">/</span> <a href="/crate/oorandom?version=11.1.5#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #25 — Exact integer generation, seed initialization and state restoration in Rand32 and Rand64</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">12 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 01:07 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Exact%20integer%20generation%2C%20seed%20initialization%20and%20state%20restoration%20in%20Rand32%20and%20Rand64%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F25%3Fv%3D3"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Exact%20integer%20generation%2C%20seed%20initialization%20and%20state%20restoration%20in%20Rand32%20and%20Rand64%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F25%3Fv%3D3"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/25?v=3" aria-current="page">v3</a> · <a href="/report/25?v=2">v2</a> · <a href="/report/25?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output method for both Rand32 and Rand64. For arbitrary seed and increment input, new_inc normalizes the stream to ((increment &lt;&lt; 1) OR 1), starts at zero, performs one PCG state update, adds the seed modulo the state width, then performs a second PCG state update. new uses the published DEFAULT_INC. state returns the exact current state and increment, and from_state restores those values unchanged; two additional composition theorems establish save/restore identity. Unsigned generation returns the exact PCG-XSH-RR output permutation of the old state and advances to multiplier*state+increment modulo 2^64 or 2^128. Signed generation preserves that updated state and reinterprets the unsigned result bits as i32 or i64. Each covered call terminates normally in the Aeneas model for every scalar input, including zero states and even restored increments. Separate Kani harnesses directly check both original rand_float methods after restoring arbitrary complete state and increment, including zero states and even increments. Each returns an IEEE value greater than or equal to zero and strictly less than one (two harnesses, 33 checks each). This is a separate range-only body guarantee; exact float bits and poststate were not established, and no cross-tool equivalence or Aeneas machine claim is added.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (12)</h2><section class="api-category"><h3>Associated functions</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Rand32</span></code></h4><div class="catalog-row" data-api-path="oorandom::Rand32::from_state" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/3f73b0d543ea69a6f9854aca49690840ffab2d53f6f9b7e1f9e0883c170fdac8">from_state</a>(state: (u64, u64)) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0b63c523-f2fa-468a-bea0-768437837297?report_revision=3">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand32::new" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/d46c7e5e27f657818b7e315cb94e4570ff9da00634a775dae9ca6c27e472df1c">new</a>(seed: u64) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1af1716c-403a-4e82-89d9-4ec314ad82f8?report_revision=3">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand32::new_inc" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/37e09d030f010cb8600e66c18ba77aaf07729f7d65b491863ce3603e7cd44f48">new_inc</a>(seed: u64, increment: u64) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/eb0ab739-0990-4039-8140-45e2cec1f7ab?report_revision=3">Claim #5</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Rand64</span></code></h4><div class="catalog-row" data-api-path="oorandom::Rand64::from_state" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/73741be9944a6755afbb9c5a7995c00eeebe86bbf9fb5dfd024ba29f06d6fe5d">from_state</a>(state: (u128, u128)) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0d83022a-4c80-47fd-b7a7-ed87b24de783?report_revision=3">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand64::new" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9c88a9859dd5cb3ad06162ebb35a2eb1ca2e062cf17e9b6ee8d200f2a0fa99b9">new</a>(seed: u128) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3272aeae-e33a-460d-942c-fe55d63a324f?report_revision=3">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand64::new_inc" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/c45afb2f8c4259c851e6c365dd9794034196d3d22c299e1e79123d79130679f3">new_inc</a>(seed: u128, increment: u128) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/72551c97-c8f5-4369-b141-4975bc100174?report_revision=3">Claim #11</a></span></div></div></section></section><section class="api-category"><h3>Methods</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Rand32</span></code></h4><div class="catalog-row" data-api-path="oorandom::Rand32::rand_i32" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/00429e98a46a03a3bf5e394e591c583f3217053d04a66373c10474298b5064ae">rand_i32</a>(self: &amp;mut Self) -&gt; i32</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8518f635-5ab0-4620-b3b6-ff12f0efc635?report_revision=3">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand32::rand_u32" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/fb1efbf278bbcfe9a0fabb5c322ac92855c1a2d465027ea90afda077c4fe7d45">rand_u32</a>(self: &amp;mut Self) -&gt; u32</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/00eaa6af-42cf-4c76-97cb-8d648baa647a?report_revision=3">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand32::state" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/e32d3e2d86da7008f3e61569c8296d83db387e3a8d37d9a957c7536251ac04fc">state</a>(self: &amp;Self) -&gt; (u64, u64)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e2ef1663-c9af-44bb-a65f-68d2a35968f6?report_revision=3">Claim #3</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Rand64</span></code></h4><div class="catalog-row" data-api-path="oorandom::Rand64::rand_i64" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/6b11dcb166c9cbbe5d6a644376ba184083a3da25f2e9e18cca5f82a030f3d126">rand_i64</a>(self: &amp;mut Self) -&gt; i64</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/18f0d1bc-b012-4dd4-a3c5-9714ea64c89f?report_revision=3">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand64::rand_u64" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/7711c10f2715b8d3de0ac103c80bc16ca5c1836f83aa9224237b3c3c411a2df3">rand_u64</a>(self: &amp;mut Self) -&gt; u64</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6d5d2d27-a7fd-407e-b843-b523543c6379?report_revision=3">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="oorandom::Rand64::state" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/d737bd381c559cd10dc0cdf86be37a03bf860b18ae806ae37b1fc0e65595f5e8">state</a>(self: &amp;Self) -&gt; (u128, u128)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ad8d90dc-281b-4a3f-9af8-3ef85820c856?report_revision=3">Claim #9</a></span></div></div></section></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/8c082b067821b7f30bed4172a37e0307c921c9bb" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/8c082b067821b7f30bed4172a37e0307c921c9bb</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-25-source-1
+git -C report-25-source-1 checkout --detach 8c082b067821b7f30bed4172a37e0307c921c9bb
+git -C report-25-source-1 submodule update --init --recursive --checkout
+cd report-25-source-1/oorandom/11.1.5/aeneas/2026-11-05/proofs
+
+lake build +Proofs
+
+printf &#39;%s&#39; &#39;import Lean
+import Proofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.rand_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.rand_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.rand_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.rand_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.rand_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.rand_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.rand_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.rand_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.state32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.state32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.state32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.state32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.from_state32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.from_state32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.from_state32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.from_state32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new_inc32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new_inc32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new_inc32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new_inc32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.rand_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.rand_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.rand_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.rand_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.rand_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.rand_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.rand_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.rand_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.state64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.state64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.state64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.state64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.from_state64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.from_state64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.from_state64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.from_state64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new_inc64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new_inc64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new_inc64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new_inc64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.new64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.new64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.new64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.new64_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/8c082b067821b7f30bed4172a37e0307c921c9bb">Source on GitHub</a> · <a href="/api/v1/runs/e5ca2ad5-e75d-41b3-bd0f-6c359dcb1275/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 12 checks passed · 0 failed</p><p class="meta">2026-11-05T04:55:11.185210963+00:00 · 88.3 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e72616e645f7533325f73706563"><td>Lean checked theorem Proofs.rand_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.rand_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/00eaa6af-42cf-4c76-97cb-8d648baa647a?report_revision=3">Claim #1</a></td></tr><tr id="check-50726f6f66732e72616e645f6933325f73706563"><td>Lean checked theorem Proofs.rand_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.rand_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/8518f635-5ab0-4620-b3b6-ff12f0efc635?report_revision=3">Claim #2</a></td></tr><tr id="check-50726f6f66732e737461746533325f73706563"><td>Lean checked theorem Proofs.state32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.state32_spec</code></div></td><td>Passed</td><td><a href="/claim/e2ef1663-c9af-44bb-a65f-68d2a35968f6?report_revision=3">Claim #3</a></td></tr><tr id="check-50726f6f66732e66726f6d5f737461746533325f73706563"><td>Lean checked theorem Proofs.from_state32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.from_state32_spec</code></div></td><td>Passed</td><td><a href="/claim/0b63c523-f2fa-468a-bea0-768437837297?report_revision=3">Claim #4</a></td></tr><tr id="check-50726f6f66732e6e65775f696e6333325f73706563"><td>Lean checked theorem Proofs.new_inc32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new_inc32_spec</code></div></td><td>Passed</td><td><a href="/claim/eb0ab739-0990-4039-8140-45e2cec1f7ab?report_revision=3">Claim #5</a></td></tr><tr id="check-50726f6f66732e6e657733325f73706563"><td>Lean checked theorem Proofs.new32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new32_spec</code></div></td><td>Passed</td><td><a href="/claim/1af1716c-403a-4e82-89d9-4ec314ad82f8?report_revision=3">Claim #6</a></td></tr><tr id="check-50726f6f66732e72616e645f7536345f73706563"><td>Lean checked theorem Proofs.rand_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.rand_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/6d5d2d27-a7fd-407e-b843-b523543c6379?report_revision=3">Claim #7</a></td></tr><tr id="check-50726f6f66732e72616e645f6936345f73706563"><td>Lean checked theorem Proofs.rand_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.rand_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/18f0d1bc-b012-4dd4-a3c5-9714ea64c89f?report_revision=3">Claim #8</a></td></tr><tr id="check-50726f6f66732e737461746536345f73706563"><td>Lean checked theorem Proofs.state64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.state64_spec</code></div></td><td>Passed</td><td><a href="/claim/ad8d90dc-281b-4a3f-9af8-3ef85820c856?report_revision=3">Claim #9</a></td></tr><tr id="check-50726f6f66732e66726f6d5f737461746536345f73706563"><td>Lean checked theorem Proofs.from_state64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.from_state64_spec</code></div></td><td>Passed</td><td><a href="/claim/0d83022a-4c80-47fd-b7a7-ed87b24de783?report_revision=3">Claim #10</a></td></tr><tr id="check-50726f6f66732e6e65775f696e6336345f73706563"><td>Lean checked theorem Proofs.new_inc64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new_inc64_spec</code></div></td><td>Passed</td><td><a href="/claim/72551c97-c8f5-4369-b141-4975bc100174?report_revision=3">Claim #11</a></td></tr><tr id="check-50726f6f66732e6e657736345f73706563"><td>Lean checked theorem Proofs.new64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.new64_spec</code></div></td><td>Passed</td><td><a href="/claim/3272aeae-e33a-460d-942c-fe55d63a324f?report_revision=3">Claim #12</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T04:55:11.185210963+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T04:56:39.530169302+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">oorandom/11.1.5/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">8c082b067821b7f30bed4172a37e0307c921c9bb</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/124] Built AeneasMeta.Simp.RegisterCommand (38s)
+✔ [71/367] Built AeneasMeta.UtilsCore (38s)
+✔ [582/863] Built AeneasMeta.BvEnumToBitVec (38s)
+✔ [838/1172] Built Aeneas.Std.Global (39s)
+✔ [1575/1798] Built AeneasMeta.OptionConfig (39s)
+✔ [1797/1798] Built Oorandom (1.0s)
+ℹ [1798/1798] Built Proofs (2.4s)
+info: Proofs.lean:111:0: &#39;Proofs.rand_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:112:0: &#39;Proofs.rand_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:113:0: &#39;Proofs.state32_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:114:0: &#39;Proofs.from_state32_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:115:0: &#39;Proofs.restore32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:116:0: &#39;Proofs.new_inc32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:117:0: &#39;Proofs.new32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:118:0: &#39;Proofs.rand_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:119:0: &#39;Proofs.rand_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:120:0: &#39;Proofs.state64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:121:0: &#39;Proofs.from_state64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:122:0: &#39;Proofs.restore64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:123:0: &#39;Proofs.new_inc64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:124:0: &#39;Proofs.new64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1798 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.rand_u32_spec
+proofs.rs:checked:Proofs.rand_i32_spec
+proofs.rs:checked:Proofs.state32_spec
+proofs.rs:checked:Proofs.from_state32_spec
+proofs.rs:checked:Proofs.new_inc32_spec
+proofs.rs:checked:Proofs.new32_spec
+proofs.rs:checked:Proofs.rand_u64_spec
+proofs.rs:checked:Proofs.rand_i64_spec
+proofs.rs:checked:Proofs.state64_spec
+proofs.rs:checked:Proofs.from_state64_spec
+proofs.rs:checked:Proofs.new_inc64_spec
+proofs.rs:checked:Proofs.new64_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Original crates.io oorandom 11.1.5 src/Cargo.toml, archive-compared without changes. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all twelve original bodies and their shared callees. Original tests, regeneration hashes and integrated Lean/axiom audits are retained in evidence.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models or local trusted helper contracts are used. All fourteen public and supplementary theorem dependency audits permit only propext, Classical.choice and Quot.sound. Standard-library wrapping, casts, shifts and rotations use official Aeneas models, rather than body proofs of Rust std implementations.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>The proof covers twelve integer/state APIs on x86_64-unknown-linux-gnu with the original default configuration. Exact rand_float output bits/poststate and rand_range for both generators remain unproved; separate Kani evidence establishes only the rand_float output range, as do non-excluded inherited/default and external blanket methods. The save/restore composition theorem establishes pure state identity; no arbitrary user callback or destructor behavior is modeled. No period, statistical distribution, independence or cryptographic guarantee is established. Other targets were not checked.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (4)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand_core" target="_blank" rel="noopener noreferrer"><code>rand_core</code></a> <code>^0.5</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand_pcg" target="_blank" rel="noopener noreferrer"><code>rand_pcg</code></a> <code>^0.2</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/random-fast-rng" target="_blank" rel="noopener noreferrer"><code>random-fast-rng</code></a> <code>^0.1</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/randomize" target="_blank" rel="noopener noreferrer"><code>randomize</code></a> <code>^3.0.0</code> · dev</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F25">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>

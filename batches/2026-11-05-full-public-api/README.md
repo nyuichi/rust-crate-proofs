@@ -6,27 +6,27 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Current public results
 
-**Thirteen reports contain 288 mapped model contracts in their stated configurations and domains. This is not full public API completion.** The supported non-monomorphic BitField extraction supersedes the historical unsupported-option run; twelve primitive layouts remain explicitly modeled within the frozen ground-use closure. Generic slice contracts retain their callback premises.
+**Thirteen reports contain 344 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
-| Crate | Report / revision | Current mapped contracts |
+| Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
 | ascii 1.1.0 | [28 / 2](https://proofs.rs/report/28) | 35 |
 | base16ct 1.0.0 | [31 / 1](https://proofs.rs/report/31) | 3 |
-| bit_field 0.10.3 | [34 / 3](https://proofs.rs/report/34) | 27 |
-| byteorder 1.5.0 | [32 / 1](https://proofs.rs/report/32) | 22 |
-| byteorder-lite 0.1.0 | [33 / 1](https://proofs.rs/report/33) | 26 |
-| either 1.19.0 | [27 / 3](https://proofs.rs/report/27) | 26 |
+| bit_field 0.10.3 | [34 / 5](https://proofs.rs/report/34) | 27 |
+| byteorder 1.5.0 | [32 / 2](https://proofs.rs/report/32) | 32 |
+| byteorder-lite 0.1.0 | [33 / 3](https://proofs.rs/report/33) | 52 |
+| either 1.19.0 | [27 / 4](https://proofs.rs/report/27) | 32 |
 | endian-type 0.2.0 | [26 / 2](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [23 / 3](https://proofs.rs/report/23) | 14 |
 | normalize-line-endings 0.3.0 | [21 / 3](https://proofs.rs/report/21) | 1 |
 | oorandom 11.1.5 | [25 / 3](https://proofs.rs/report/25) | 12 |
 | rand_pcg 0.10.2 | [29 / 2](https://proofs.rs/report/29) | 25 |
 | rand_xorshift 0.5.0 | [24 / 2](https://proofs.rs/report/24) | 1 |
-| rand_xoshiro 0.8.1 | [30 / 1](https://proofs.rs/report/30) | 30 |
+| rand_xoshiro 0.8.1 | [30 / 2](https://proofs.rs/report/30) | 44 |
 
-`current-public-reports.json` records exact immutable run/source and Sheet readbacks. `proof-updates.json` distinguishes these published counts from newer candidates and failed or pending fresh runs. The count includes the adapted normalization model and separately described manual standard-operation models; independent Kani packets do not inflate the Aeneas claim count. Per-report limitations remain authoritative.
+`current-public-reports.json` records exact immutable source/run/SARIF/readback hashes. `proof-updates.json` separates published coverage from newer candidates and unsuccessful runs. Independent Kani packets do not inflate Aeneas claim counts. The adapted normalization theorem and reviewed model bridges remain explicitly identified in their reports.
 
-The original inventory observations below retain their baseline 56 prior scoped guarantees and configuration-specific counting axis. Newer mathematical guarantees do not automatically close every configuration, unsafe-memory obligation, inherited/default/blanket dependency or downstream implementation.
+The inventory below retains its baseline fifty-six prior scoped guarantees and configuration observation axis. None of these new contracts automatically closes every feature/target, unsafe-memory, inherited/default/blanket or downstream obligation.
 
 ## Counting axes
 
