@@ -1,0 +1,28 @@
+--- before/src/oorandom_generic.rs
++++ after/src/oorandom_generic.rs
+@@ -1,5 +1,5 @@
+ //! Finite original-core conditional-family source gate, separate from xoshiro and ASCII.
+-//! SOURCE-ONLY PROTOTYPE: no compiler capture exists yet, so every opt-in fails closed.
++//! Finite compiler-owned capture validated locally; not installed or published.
+ use anyhow::{ensure, Context, Result};
+ use serde_json::Value;
+ use sha2::{Digest, Sha256};
+@@ -28,8 +28,8 @@
+     ensure!(manifest==serde_json::json!({"schema":1,"crate":"oorandom","version":"11.1.5","kind":"external_conditional_blanket","local_declaration":false,"fixed_scope_sha256":format!("{:x}",Sha256::digest(DATA.as_bytes())),"keys":fixed["keys"]}),"Oor generic finite manifest/source keys mismatch");
+     Ok(fixed)
+ }
+-/// Both record and captured publication enter here. No callable may be returned
+-/// until compiler-owned rustdoc/MIR/core/proof regeneration is implemented.
++/// Both record and captured publication enter here. Six exact keys are returned
++/// only after compiler-owned rustdoc/core/proof regeneration and hash checks.
+ pub(crate) fn compiler_observations(project:&Project,tool:&Tool)->Result<Vec<String>> {
+     let fixed=validate_scope(project,tool)?;
+     let work=tempfile::tempdir()?;
+--- before/src/oorandom_generic_capture.rs
++++ after/src/oorandom_generic_capture.rs
+@@ -1,4 +1,4 @@
+-//! Compiler-owned source capture. Source-only draft: not built or connected as an accepting gate.
++//! Compiler-owned source capture for the finite six-family gate; validated locally.
+ use anyhow::{ensure, Context, Result};
+ use serde_json::{json, Value};
+ use sha2::{Digest,Sha256};

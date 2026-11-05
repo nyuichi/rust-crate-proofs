@@ -1,0 +1,106 @@
+diff --git a/src/aeneas.rs b/src/aeneas.rs
+index a64b4f5..69bcea1 100644
+--- a/src/aeneas.rs
++++ b/src/aeneas.rs
+@@ -38,6 +38,9 @@ pub fn configuration(tool: &Tool) -> Result<Value> {
+     if let Some(path) = &tool.ascii_vec_source_bindings {
+         value["ascii_vec_source_bindings"] = serde_json::to_value(path)?;
+     }
++    if let Some(path) = &tool.oorandom_generic_source_bindings {
++        value["oorandom_generic_source_bindings"] = serde_json::to_value(path)?;
++    }
+     Ok(value)
+ }
+ 
+@@ -186,7 +189,9 @@ pub fn discover(project: &Project, tool: &Tool) -> Result<Vec<scan::Contract>> {
+         "Aeneas requires [[tool.proofs]] API/module/theorem/precondition mappings"
+     );
+     let exact_keys = exact_source_binding_keys(project, tool)?;
+-    let external_keys = if tool.external_blanket_observations.is_some() {
++    let external_keys = if tool.oorandom_generic_source_bindings.is_some() {
++        crate::oorandom_generic::compiler_observations(project, tool)?
++    } else if tool.external_blanket_observations.is_some() {
+         crate::external_blanket::compiler_observations(project, tool)?
+     } else { vec![] };
+     let dir = directory(project, tool)?;
+@@ -432,6 +437,8 @@ mod tests {
+         assert!(configuration(&t).unwrap().get("exact_source_bindings").is_none());
+         assert!(serde_json::to_value(&t).unwrap().get("exact_source_bindings").is_none());
+         assert!(configuration(&t).unwrap().get("external_blanket_observations").is_none());
++        assert!(configuration(&t).unwrap().get("oorandom_generic_source_bindings").is_none());
++        assert!(serde_json::to_value(&t).unwrap().get("oorandom_generic_source_bindings").is_none());
+         assert!(serde_json::to_value(&t).unwrap().get("external_blanket_observations").is_none());
+         t.proofs = (0..66).map(|i| Proof { api: format!("<endian_type::BigEndian<T> as Trait{i}>::f"),
+             module: "Proofs".into(), theorem: format!("f{i}"), precondition: "true".into() }).collect();
+diff --git a/src/config.rs b/src/config.rs
+index 5042a2f..d2ddbef 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -46,6 +46,8 @@ pub struct Tool {
+     pub external_blanket_observations: Option<PathBuf>,
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub ascii_vec_source_bindings: Option<PathBuf>,
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub oorandom_generic_source_bindings: Option<PathBuf>,
+     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+     pub proofs: Vec<crate::aeneas::Proof>,
+ }
+@@ -72,7 +74,7 @@ impl Tool {
+             "[tool].version is required"
+         );
+         ensure!(
+-            self.is_aeneas() || (self.lean_dir.is_none() && self.proofs.is_empty() && self.exact_source_bindings.is_none() && self.external_blanket_observations.is_none() && self.ascii_vec_source_bindings.is_none()),
++            self.is_aeneas() || (self.lean_dir.is_none() && self.proofs.is_empty() && self.exact_source_bindings.is_none() && self.external_blanket_observations.is_none() && self.ascii_vec_source_bindings.is_none() && self.oorandom_generic_source_bindings.is_none()),
+             "lean_dir and proofs apply only to Aeneas"
+         );
+         if self.is_aeneas() {
+diff --git a/src/external_blanket.rs b/src/external_blanket.rs
+index e8f27ec..d387ff4 100644
+--- a/src/external_blanket.rs
++++ b/src/external_blanket.rs
+@@ -1335,7 +1335,7 @@ pub(crate) fn discover_recorded(
+     recorded: &crate::record::Record,
+ ) -> Result<Vec<crate::scan::Contract>> {
+     ensure!(
+-        tool.external_blanket_observations.is_some() || tool.ascii_vec_source_bindings.is_some(),
++        tool.external_blanket_observations.is_some() || tool.ascii_vec_source_bindings.is_some() || tool.oorandom_generic_source_bindings.is_some(),
+         "Missing closed source observation opt-in"
+     );
+     let commit = recorded.sarif["runs"][0]["versionControlProvenance"][0]["revisionId"]
+diff --git a/src/main.rs b/src/main.rs
+index 4b1b977..cb77fdb 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -3,6 +3,7 @@ mod ascii_vec;
+ mod api;
+ mod config;
+ mod external_blanket;
++mod oorandom_generic;
+ mod git;
+ mod publish;
+ mod record;
+diff --git a/src/publish.rs b/src/publish.rs
+index 3469f29..3dc188d 100644
+--- a/src/publish.rs
++++ b/src/publish.rs
+@@ -432,7 +432,7 @@ pub fn run(server: &str, args: &ProjectArgs, options: Options) -> Result<()> {
+     let sarif_bytes = fs::read(run_dir.join("run.sarif.json"))?;
+     crate::aeneas::exact_source_binding_keys(&project, &config.tool)?;
+     let discovered = if config.tool.is_aeneas() {
+-        Some(if config.tool.external_blanket_observations.is_some() || config.tool.ascii_vec_source_bindings.is_some() {
++        Some(if config.tool.external_blanket_observations.is_some() || config.tool.ascii_vec_source_bindings.is_some() || config.tool.oorandom_generic_source_bindings.is_some() {
+             crate::external_blanket::discover_recorded(&project, args, &config.tool, &recorded)?
+         } else { crate::aeneas::discover(&project, &config.tool)? })
+     } else { None };
+diff --git a/src/scanner_probe.rs b/src/scanner_probe.rs
+index ccff6ce..c2df4c8 100644
+--- a/src/scanner_probe.rs
++++ b/src/scanner_probe.rs
+@@ -3,6 +3,7 @@ mod ascii_vec;
+ mod api;
+ mod config;
+ mod external_blanket;
++mod oorandom_generic;
+ mod git;
+ mod publish;
+ mod record;

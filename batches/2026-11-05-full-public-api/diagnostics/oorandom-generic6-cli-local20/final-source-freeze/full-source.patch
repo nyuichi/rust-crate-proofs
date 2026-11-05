@@ -1,0 +1,756 @@
+diff --git a/src/aeneas.rs b/src/aeneas.rs
+index a64b4f5..69bcea1 100644
+--- a/src/aeneas.rs
++++ b/src/aeneas.rs
+@@ -38,6 +38,9 @@ pub fn configuration(tool: &Tool) -> Result<Value> {
+     if let Some(path) = &tool.ascii_vec_source_bindings {
+         value["ascii_vec_source_bindings"] = serde_json::to_value(path)?;
+     }
++    if let Some(path) = &tool.oorandom_generic_source_bindings {
++        value["oorandom_generic_source_bindings"] = serde_json::to_value(path)?;
++    }
+     Ok(value)
+ }
+ 
+@@ -186,7 +189,9 @@ pub fn discover(project: &Project, tool: &Tool) -> Result<Vec<scan::Contract>> {
+         "Aeneas requires [[tool.proofs]] API/module/theorem/precondition mappings"
+     );
+     let exact_keys = exact_source_binding_keys(project, tool)?;
+-    let external_keys = if tool.external_blanket_observations.is_some() {
++    let external_keys = if tool.oorandom_generic_source_bindings.is_some() {
++        crate::oorandom_generic::compiler_observations(project, tool)?
++    } else if tool.external_blanket_observations.is_some() {
+         crate::external_blanket::compiler_observations(project, tool)?
+     } else { vec![] };
+     let dir = directory(project, tool)?;
+@@ -432,6 +437,8 @@ mod tests {
+         assert!(configuration(&t).unwrap().get("exact_source_bindings").is_none());
+         assert!(serde_json::to_value(&t).unwrap().get("exact_source_bindings").is_none());
+         assert!(configuration(&t).unwrap().get("external_blanket_observations").is_none());
++        assert!(configuration(&t).unwrap().get("oorandom_generic_source_bindings").is_none());
++        assert!(serde_json::to_value(&t).unwrap().get("oorandom_generic_source_bindings").is_none());
+         assert!(serde_json::to_value(&t).unwrap().get("external_blanket_observations").is_none());
+         t.proofs = (0..66).map(|i| Proof { api: format!("<endian_type::BigEndian<T> as Trait{i}>::f"),
+             module: "Proofs".into(), theorem: format!("f{i}"), precondition: "true".into() }).collect();
+diff --git a/src/config.rs b/src/config.rs
+index 5042a2f..d2ddbef 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -46,6 +46,8 @@ pub struct Tool {
+     pub external_blanket_observations: Option<PathBuf>,
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub ascii_vec_source_bindings: Option<PathBuf>,
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub oorandom_generic_source_bindings: Option<PathBuf>,
+     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+     pub proofs: Vec<crate::aeneas::Proof>,
+ }
+@@ -72,7 +74,7 @@ impl Tool {
+             "[tool].version is required"
+         );
+         ensure!(
+-            self.is_aeneas() || (self.lean_dir.is_none() && self.proofs.is_empty() && self.exact_source_bindings.is_none() && self.external_blanket_observations.is_none() && self.ascii_vec_source_bindings.is_none()),
++            self.is_aeneas() || (self.lean_dir.is_none() && self.proofs.is_empty() && self.exact_source_bindings.is_none() && self.external_blanket_observations.is_none() && self.ascii_vec_source_bindings.is_none() && self.oorandom_generic_source_bindings.is_none()),
+             "lean_dir and proofs apply only to Aeneas"
+         );
+         if self.is_aeneas() {
+diff --git a/src/external_blanket.rs b/src/external_blanket.rs
+index e8f27ec..d387ff4 100644
+--- a/src/external_blanket.rs
++++ b/src/external_blanket.rs
+@@ -1335,7 +1335,7 @@ pub(crate) fn discover_recorded(
+     recorded: &crate::record::Record,
+ ) -> Result<Vec<crate::scan::Contract>> {
+     ensure!(
+-        tool.external_blanket_observations.is_some() || tool.ascii_vec_source_bindings.is_some(),
++        tool.external_blanket_observations.is_some() || tool.ascii_vec_source_bindings.is_some() || tool.oorandom_generic_source_bindings.is_some(),
+         "Missing closed source observation opt-in"
+     );
+     let commit = recorded.sarif["runs"][0]["versionControlProvenance"][0]["revisionId"]
+diff --git a/src/main.rs b/src/main.rs
+index 4b1b977..cb77fdb 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -3,6 +3,7 @@ mod ascii_vec;
+ mod api;
+ mod config;
+ mod external_blanket;
++mod oorandom_generic;
+ mod git;
+ mod publish;
+ mod record;
+diff --git a/src/publish.rs b/src/publish.rs
+index 3469f29..3dc188d 100644
+--- a/src/publish.rs
++++ b/src/publish.rs
+@@ -432,7 +432,7 @@ pub fn run(server: &str, args: &ProjectArgs, options: Options) -> Result<()> {
+     let sarif_bytes = fs::read(run_dir.join("run.sarif.json"))?;
+     crate::aeneas::exact_source_binding_keys(&project, &config.tool)?;
+     let discovered = if config.tool.is_aeneas() {
+-        Some(if config.tool.external_blanket_observations.is_some() || config.tool.ascii_vec_source_bindings.is_some() {
++        Some(if config.tool.external_blanket_observations.is_some() || config.tool.ascii_vec_source_bindings.is_some() || config.tool.oorandom_generic_source_bindings.is_some() {
+             crate::external_blanket::discover_recorded(&project, args, &config.tool, &recorded)?
+         } else { crate::aeneas::discover(&project, &config.tool)? })
+     } else { None };
+diff --git a/src/scanner_probe.rs b/src/scanner_probe.rs
+index ccff6ce..c2df4c8 100644
+--- a/src/scanner_probe.rs
++++ b/src/scanner_probe.rs
+@@ -3,6 +3,7 @@ mod ascii_vec;
+ mod api;
+ mod config;
+ mod external_blanket;
++mod oorandom_generic;
+ mod git;
+ mod publish;
+ mod record;
+--- /dev/null
++++ b/src/oorandom_generic.rs
+@@ -0,0 +1,44 @@
++//! Finite original-core conditional-family source gate, separate from xoshiro and ASCII.
++//! Finite compiler-owned capture validated locally; not installed or published.
++use anyhow::{ensure, Context, Result};
++use serde_json::Value;
++use sha2::{Digest, Sha256};
++use std::{collections::BTreeSet, fs, path::{Component, Path}};
++use crate::config::{Project, Tool};
++#[path="oorandom_generic_capture.rs"]
++mod capture;
++const DATA: &str = include_str!("oorandom_generic_scope.json");
++fn inside(package: &Path, relative: &Path) -> Result<std::path::PathBuf> {
++    ensure!(!relative.as_os_str().is_empty() && relative.components().all(|c|matches!(c,Component::Normal(_))), "Oor generic manifest must be package-relative");
++    let mut p=package.to_path_buf();
++    for c in relative.components() { p.push(c); ensure!(!fs::symlink_metadata(&p)?.file_type().is_symlink(), "Oor generic manifest/ancestor symlink rejected"); }
++    let p=p.canonicalize()?; ensure!(p.starts_with(package),"Oor generic manifest escapes captured package"); Ok(p)
++}
++fn validate_scope(project: &Project, tool: &Tool) -> Result<Value> {
++    ensure!(project.name=="oorandom" && project.version=="11.1.5", "Oor generic source bindings support only oorandom11.1.5");
++    ensure!(project.features.is_empty(), "Oor generic source bindings support original default configuration only");
++    ensure!(tool.exact_source_bindings.is_none() && tool.external_blanket_observations.is_none() && tool.ascii_vec_source_bindings.is_none(), "Oor generic source bindings cannot combine other source gates");
++    let fixed:Value=serde_json::from_str(DATA)?;
++    ensure!(tool.version==fixed["tool_version"] && serde_json::to_value(&tool.proofs)?==fixed["configured_bindings20"], "Oor generic requires exact old14 plus reviewed conditional6 mappings");
++    let package=project.manifest.parent().context("Missing package")?.canonicalize()?;
++    let p=inside(&package,tool.oorandom_generic_source_bindings.as_deref().context("Missing Oor generic opt-in")?)?;
++    let manifest:Value=serde_json::from_slice(&fs::read(p)?)?;
++    let keys:BTreeSet<String>=fixed["keys"].as_array().context("Missing finite6 keys")?.iter().map(|k|k.as_str().unwrap().to_owned()).collect();
++    ensure!(keys.len()==6,"Invalid finite generic6 scope");
++    ensure!(manifest==serde_json::json!({"schema":1,"crate":"oorandom","version":"11.1.5","kind":"external_conditional_blanket","local_declaration":false,"fixed_scope_sha256":format!("{:x}",Sha256::digest(DATA.as_bytes())),"keys":fixed["keys"]}),"Oor generic finite manifest/source keys mismatch");
++    Ok(fixed)
++}
++/// Both record and captured publication enter here. Six exact keys are returned
++/// only after compiler-owned rustdoc/core/proof regeneration and hash checks.
++pub(crate) fn compiler_observations(project:&Project,tool:&Tool)->Result<Vec<String>> {
++    let fixed=validate_scope(project,tool)?;
++    let work=tempfile::tempdir()?;
++    let original=capture::stage_original(project,work.path(),&fixed)?;
++    let (_raw_document,memberships)=capture::capture_rustdoc(&original,&work.path().join("rustdoc"),&fixed)?;
++    let expected: BTreeSet<String>=fixed["keys"].as_array().unwrap().iter().map(|k|k.as_str().unwrap().to_owned()).collect();
++    let actual: BTreeSet<String>=memberships.iter().map(|m|m["api"].as_str().unwrap().to_owned()).collect();
++    ensure!(memberships.len()==6 && actual==expected,"Fresh original compiler memberships differ from the exact six conditional families");
++    let package=project.manifest.parent().context("Missing package")?.canonicalize()?;
++    capture::capture_generation(&original,work.path(),&package,&fixed)?;
++    Ok(actual.into_iter().collect())
++}
+--- /dev/null
++++ b/src/oorandom_generic_capture.rs
+@@ -0,0 +1,263 @@
++//! Compiler-owned source capture for the finite six-family gate; validated locally.
++use anyhow::{ensure, Context, Result};
++use serde_json::{json, Value};
++use sha2::{Digest,Sha256};
++use std::{collections::BTreeSet,fs,path::{Path,PathBuf},process::Command};
++
++fn digest(bytes:impl AsRef<[u8]>)->String { format!("{:x}",Sha256::digest(bytes.as_ref())) }
++fn id(v:&Value)->Result<String> { if let Some(n)=v.as_u64(){Ok(n.to_string())}else{v.as_str().map(str::to_owned).context("Invalid compiler item ID")} }
++fn item<'a>(doc:&'a Value,i:&Value)->Result<&'a Value> {doc["index"].get(id(i)?).context("Missing compiler item")}
++fn path_id(doc:&Value,parts:&[&str],kind:&str)->Result<Value> {
++    let found:Vec<_>=doc["paths"].as_object().context("Missing compiler paths")?.iter().filter(|(_,v)|v["path"]==json!(parts)&&v["kind"]==kind).collect();
++    ensure!(found.len()==1,"Compiler path must resolve exactly once: {parts:?}");
++    let (key,path)=found[0]; let external=&doc["external_crates"][id(&path["crate_id"])?];
++    ensure!(parts[0]!="core" || external["name"]=="core","Foreign trait path is not original core");
++    Ok(json!(key.parse::<u64>()?))
++}
++fn args(ty:Value)->Value {json!({"angle_bracketed":{"args":[{"type":ty}],"constraints":[]}})}
++fn tyvar(name:&str)->Value {json!({"generic":name})}
++fn trait_ref(doc:&Value,name:&str,arg:Value)->Result<Value> {Ok(json!({"path":name,"id":path_id(doc,&["core","convert",name],"trait")?,"args":args(arg)}))}
++fn source_params()->Value {json!([{"name":"T","kind":{"type":{"bounds":[],"default":null,"is_synthetic":false}}},{"name":"U","kind":{"type":{"bounds":[],"default":null,"is_synthetic":false}}}])}
++
++/// Fresh rustdoc membership validation. Owner + impl + method correspondence is
++/// checked, so shared original method IDs across the two owners are not collapsed.
++pub(super) fn validate_document(doc:&Value,expected_core_metadata:&Path)->Result<Vec<Value>> {
++    ensure!(doc["crate_version"]=="11.1.5","Wrong original crate version");
++    let root=item(doc,&doc["root"])?;ensure!(root["name"]=="oorandom","Wrong original crate root");
++    let core_id=path_id(doc,&["core","convert","Into"],"trait")?;
++    let crateid=&doc["paths"][id(&core_id)?]["crate_id"];
++    let metadata=PathBuf::from(doc["external_crates"][id(crateid)?]["path"].as_str().context("Missing compiler core metadata")?).canonicalize()?;
++    ensure!(metadata==expected_core_metadata.canonicalize()?,"Compiler core metadata outside the pinned sysroot identity");
++    let mut observed=Vec::new();let mut keys=BTreeSet::new();
++    for owner_name in ["Rand32","Rand64"] {
++        let owners:Vec<_>=doc["index"].as_object().context("Missing compiler index")?.iter().filter(|(_,v)|v["crate_id"]==0&&v["name"]==owner_name&&v["visibility"]=="public"&&v["inner"].get("struct").is_some()).collect();
++        ensure!(owners.len()==1,"Expected one original public owner");let (owner_id,owner)=owners[0];
++        ensure!(doc["paths"][owner_id]["path"]==json!(["oorandom",owner_name]),"Owner public path mismatch");
++        let oid=json!(owner_id.parse::<u64>()?);
++        ensure!(root["inner"]["module"]["items"].as_array().context("Missing root exports")?.contains(&oid),"Owner is not an actual root declaration");
++        for (tr,method,callback) in [("Into","into","From"),("TryInto","try_into","TryFrom"),("TryFrom","try_from","Into")] {
++            let trait_id=path_id(doc,&["core","convert",tr],"trait")?;
++            let candidates:Vec<_>=owner["inner"]["struct"]["impls"].as_array().context("Missing owner impls")?.iter().filter_map(|i|item(doc,i).ok().map(|v|(i,v))).filter(|(_,v)|v["inner"]["impl"]["trait"]["id"]==trait_id).collect();
++            ensure!(candidates.len()==1,"Conditional family membership is missing or ambiguous");let (impl_id,entry)=candidates[0];let imp=&entry["inner"]["impl"];
++            ensure!(imp["is_unsafe"]==false&&imp["is_negative"]==false&&imp["is_synthetic"]==false&&imp["provided_trait_methods"]==json!([]),"Unexpected implementation origin/header");
++            ensure!(imp["for"]==json!({"resolved_path":{"path":owner_name,"id":oid,"args":null}})&&imp["blanket_impl"]==tyvar("T"),"Owner/source-T blanket substitution mismatch");
++            ensure!(imp["trait"]==trait_ref(doc,tr,tyvar("U"))?,"Original trait argument mismatch");
++            let predicate=json!({"bound_predicate":{"type":tyvar("U"),"bounds":[{"trait_bound":{"trait":trait_ref(doc,callback,tyvar("T"))?,"generic_params":[],"modifier":"none"}}],"generic_params":[]}});
++            ensure!(imp["generics"]==json!({"params":source_params(),"where_predicates":[predicate]}),"Original complete T/U predicate set changed");
++            let items=imp["items"].as_array().context("Missing original impl items")?;
++            let methods:Vec<_>=items.iter().filter_map(|i|item(doc,i).ok().map(|v|(i,v))).filter(|(_,v)|v["name"]==method&&v["inner"].get("function").is_some()).collect();
++            ensure!(methods.len()==1,"Original method is not unique within owner implementation");let (method_id,met)=methods[0];let f=&met["inner"]["function"];
++            ensure!(f["has_body"]==true&&f["generics"]==json!({"params":[],"where_predicates":[]})&&f["header"]==json!({"is_const":false,"is_unsafe":false,"is_async":false,"abi":"Rust"}),"Original method body/header/generics changed");
++            let error=if tr=="TryFrom" {json!({"primitive":"never"})}else{json!({"qualified_path":{"name":"Error","args":null,"self_type":tyvar("U"),"trait":trait_ref(doc,"TryFrom",tyvar("T"))?}})};
++            let output=if tr=="Into" {tyvar("U")}else{json!({"resolved_path":{"path":"Result","id":path_id(doc,&["core","result","Result"],"enum")?,"args":{"angle_bracketed":{"args":[{"type":tyvar(if tr=="TryFrom"{"T"}else{"U"})},{"type":error}],"constraints":[]}}}})};
++            ensure!(f["sig"]==json!({"inputs":[[if tr=="TryFrom"{"value"}else{"self"},tyvar(if tr=="TryFrom"{"U"}else{"Self"})]],"output":output,"is_c_variadic":false}),"Original signature or associated Error substitution changed");
++            if tr!="Into" {
++                let associated:Vec<_>=items.iter().filter_map(|i|item(doc,i).ok()).filter(|v|v["name"]=="Error"&&v["inner"].get("assoc_type").is_some()).collect();
++                ensure!(associated.len()==1&&associated[0]["inner"]["assoc_type"]["type"]==error,"Associated Error is not the source projection/never type");
++                ensure!(items.len()==2,"Unexpected extra impl item");
++            }else{ensure!(items.len()==1,"Unexpected Into impl item");}
++            let key=format!("<oorandom::{owner_name} as core::convert::{tr}<U>>::{method}");ensure!(keys.insert(key.clone()),"Duplicate owner-family observation");
++            observed.push(json!({"api":key,"owner_id_ephemeral":oid,"impl_id_ephemeral":impl_id,"method_id_ephemeral":method_id,"source_T_substitution":owner_name,"source_U":"caller.U#0","source_bound":predicate,"associated_error":if tr=="Into"{Value::Null}else{error},"local_declaration":false,"conditional":true}));
++        }
++    }
++    ensure!(observed.len()==6&&keys.len()==6,"Expected six memberships from three core templates and two owners");Ok(observed)
++}
++
++fn clean_command(program:&str)->Command {
++    let mut c=Command::new(program);
++    for name in ["RUSTC","RUSTDOC","RUSTC_WRAPPER","RUSTC_WORKSPACE_WRAPPER","RUSTFLAGS","RUSTDOCFLAGS","CARGO_ENCODED_RUSTFLAGS","CARGO_ENCODED_RUSTDOCFLAGS","CARGO_BUILD_TARGET","CARGO_TARGET_DIR","CARGO_BUILD_RUSTFLAGS","CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS"]{c.env_remove(name);}
++    c.env("CARGO_NET_OFFLINE","true").env("CARGO_BUILD_JOBS","1").env("RUSTUP_TOOLCHAIN","nightly-2026-09-17");c
++}
++fn run(c:&mut Command)->Result<Vec<u8>> {let o=c.output()?;
++    #[cfg(test)] if let Ok(path)=std::env::var("PROOFS_OOR_CAPTURE_COMMAND_LOG") {
++        use std::io::Write;
++        let mut file=fs::OpenOptions::new().create(true).append(true).open(path)?;
++        writeln!(file,"{}",json!({"program":c.get_program().to_string_lossy(),"args":c.get_args().map(|s|s.to_string_lossy().into_owned()).collect::<Vec<_>>(),"cwd":c.get_current_dir().map(|p|p.to_string_lossy()),"exit":o.status.code(),"stdout_sha256":digest(&o.stdout),"stderr_sha256":digest(&o.stderr)}))?;
++    }
++    ensure!(o.status.success(),"Compiler-owned source capture failed: {}",String::from_utf8_lossy(&o.stderr));Ok(o.stdout)}
++
++fn absent_config(path:&Path)->Result<()> {
++    match fs::symlink_metadata(path) {
++        Err(e) if e.kind()==std::io::ErrorKind::NotFound=>Ok(()),
++        Err(e)=>Err(e.into()),
++        Ok(_)=>anyhow::bail!("Cargo configuration rejected: {}",path.display()),
++    }
++}
++fn reject_cargo_configs(dir:&Path)->Result<()> {
++    for ancestor in dir.canonicalize()?.ancestors() {
++        for name in [".cargo/config", ".cargo/config.toml"] {
++            absent_config(&ancestor.join(name))?;
++        }
++    }
++    let home=match std::env::var_os("CARGO_HOME") {
++        Some(p)=>PathBuf::from(p),
++        None=>PathBuf::from(std::env::var_os("HOME").context("Missing effective Cargo home")?).join(".cargo"),
++    };
++    for name in ["config", "config.toml"] {
++        absent_config(&home.join(name))?;
++    }
++    Ok(())
++}
++fn pinned_tool(name:&str, version_arg:&str, fixed:&Value)->Result<PathBuf> {
++    let paths=std::env::var_os("PATH").context("Missing executable PATH")?;
++    let candidate=std::env::split_paths(&paths).map(|p|p.join(name)).find(|p|p.is_file()).context("Missing pinned executable")?;
++    let executable=candidate.canonicalize()?;
++    let pin=&fixed["official_tools"][name];
++    ensure!(digest(fs::read(&executable)?)==pin["sha256"].as_str().context("Missing official executable hash pin")?, "Official executable identity changed: {name}");
++    let version=String::from_utf8(run(clean_command(executable.to_str().context("NonUTF8 executable")?).arg(version_arg))?)?;
++    ensure!(version.trim()==pin["version"].as_str().context("Missing official executable version pin")?, "Official executable version changed: {name}");
++    Ok(executable)
++}
++
++/// Creates raw observations itself: a supplied observation JSON is never used as authority.
++pub(super) fn capture_rustdoc(original:&Path,out:&Path,fixed:&Value)->Result<(Value,Vec<Value>)> {
++    fs::create_dir_all(out)?;
++    reject_cargo_configs(original)?;
++    let compiler=String::from_utf8(run(clean_command("rustc").arg("-vV"))?)?;
++    ensure!(compiler.lines().any(|x|x=="commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8")&&compiler.lines().any(|x|x=="host: x86_64-unknown-linux-gnu"),"Unsupported compiler/host");
++    let sysroot=PathBuf::from(String::from_utf8(run(clean_command("rustc").args(["--print","sysroot"]))?)?.trim()).canonicalize()?;
++    let source=sysroot.join("lib/rustlib/src/rust/library/core/src/convert/mod.rs");
++    ensure!(digest(fs::read(&source)?)==fixed["core_source_sha256"].as_str().context("Missing pinned core source")?,"Original core source changed");
++    let metadata=sysroot.join("lib/rustlib/x86_64-unknown-linux-gnu/lib");
++    let mut core_files=Vec::new();for e in fs::read_dir(&metadata)? {let p=e?.path();let name=p.file_name().unwrap().to_string_lossy();if name.starts_with("libcore-")&&name.ends_with(".rmeta")&&digest(fs::read(&p)?)==fixed["core_metadata_sha256"].as_str().context("Missing pinned core metadata")?{core_files.push(p);}}
++    ensure!(core_files.len()==1,"Pinned original core compiler metadata is not unique");
++    run(clean_command("cargo").current_dir(original).args(["rustdoc","--offline","--locked","--lib","--target","x86_64-unknown-linux-gnu","--target-dir"]).arg(out).args(["--","-Zunstable-options","--output-format","json"]))?;
++    let jsonfile=out.join("x86_64-unknown-linux-gnu/doc/oorandom.json");let bytes=fs::read(jsonfile)?;let doc:Value=serde_json::from_slice(&bytes)?;let memberships=validate_document(&doc,&core_files[0])?;
++    fs::write(out.join("raw-rustdoc.sha256"),digest(&bytes))?;Ok((doc,memberships))
++}
++
++fn checked_member(root:&Path,name:&str)->Result<PathBuf> {
++    use std::path::Component;
++    let rel=Path::new(name);ensure!(!rel.as_os_str().is_empty()&&rel.components().all(|c|matches!(c,Component::Normal(_))),"Nonrelative source closure member");
++    let root=root.canonicalize()?;let mut p=root.clone();
++    for part in rel.components(){p.push(part);ensure!(!fs::symlink_metadata(&p)?.file_type().is_symlink(),"Source closure symlink rejected");}
++    let p=p.canonicalize()?;ensure!(p.starts_with(root),"Source closure escapes captured package");Ok(p)
++}
++pub(super) fn check_files(root:&Path,files:&Value)->Result<()> {
++    for (name,hash) in files.as_object().context("Missing compiled finite file map")? {
++        ensure!(digest(fs::read(checked_member(root,name)?)?)==hash.as_str().context("Invalid compiled digest")?,"Original/translation/proof closure changed: {name}");
++    }Ok(())
++}
++fn rust_members(root:&Path,dir:&Path,out:&mut BTreeSet<String>)->Result<()> {
++    for e in fs::read_dir(dir)? {let p=e?.path();let md=fs::symlink_metadata(&p)?;ensure!(!md.file_type().is_symlink(),"Original source tree symlink rejected");
++        if md.is_dir(){rust_members(root,&p,out)?;}else if p.extension().and_then(|s|s.to_str())==Some("rs"){out.insert(p.strip_prefix(root)?.to_string_lossy().replace('\\',"/"));}}
++    Ok(())
++}
++/// Copy only the archive-compared source closure to a fresh compiler-owned stage.
++/// Capture never runs a script supplied by the artifact or uses its original target.
++pub(super) fn stage_original(project:&crate::config::Project,work:&Path,fixed:&Value)->Result<PathBuf> {
++    let package=project.manifest.parent().context("Missing original package")?.canonicalize()?;
++    ensure!(project.root_source.canonicalize()?==checked_member(&package,"src/lib.rs")?,"Original library root mismatch");
++    reject_cargo_configs(&package)?;
++    reject_cargo_configs(work)?;
++    ensure!(!package.join("build.rs").exists(),"Automatic build script rejected");
++    check_files(&package,&fixed["source_files"])?;
++    ensure!(digest(fs::read(checked_member(&package,"evidence/upstream.crate")?)?)==fixed["upstream_archive_sha256"].as_str().context("Missing original archive pin")?,"Original crate archive changed");
++    let mut actual=BTreeSet::new();rust_members(&package,&package.join("src"),&mut actual)?;
++    let expected:BTreeSet<String>=fixed["source_files"].as_object().unwrap().keys().filter(|p|p.starts_with("src/")&&p.ends_with(".rs")).cloned().collect();ensure!(actual==expected,"Original Rust source file set differs");
++    let original=work.join("original");fs::create_dir_all(&original)?;
++    for name in fixed["source_files"].as_object().unwrap().keys(){let dest=original.join(name);fs::create_dir_all(dest.parent().context("Missing stage parent")?)?;fs::copy(checked_member(&package,name)?,dest)?;}
++    reject_cargo_configs(&original)?;
++    check_files(&original,&fixed["source_files"])?;Ok(original)
++}
++
++/// The approved nine-line source has six owner witnesses and three generic roots.
++/// The two extractions below are the approved generic3 and generic2 captures only.
++const DRIVER:&str = "use oorandom::{Rand32, Rand64};\npub fn into32<U: From<Rand32>>(x: Rand32) -> U { x.into() }\npub fn into64<U: From<Rand64>>(x: Rand64) -> U { x.into() }\npub fn try_into32<U: TryFrom<Rand32>>(x: Rand32) -> Result<U, U::Error> { x.try_into() }\npub fn try_into64<U: TryFrom<Rand64>>(x: Rand64) -> Result<U, U::Error> { x.try_into() }\npub fn try_from32<U: Into<Rand32>>(x: U) -> Result<Rand32, core::convert::Infallible> { Rand32::try_from(x) }\npub fn try_from64<U: Into<Rand64>>(x: U) -> Result<Rand64, core::convert::Infallible> { Rand64::try_from(x) }\npub fn core_into<T, U: From<T>>(x:T) -> U { x.into() }\npub fn core_try_into<T, U: TryFrom<T>>(x:T) -> Result<U,U::Error> { x.try_into() }\npub fn core_try_from<T, U: Into<T>>(x:U) -> Result<T,core::convert::Infallible> { T::try_from(x) }\n";
++
++fn llbc_name(value:&Value)->Option<String> {let parts=value.as_array()?;let names:Vec<_>=parts.iter().filter_map(|p|p["Ident"].as_array().and_then(|i|i[0].as_str())).collect();Some(names.join("::"))}
++/// Structural origin/body guard, matching the already audited source-body guard.
++/// This is not a new LLVM or operational-semantics verification system.
++fn validate_core_bodies(raw:&Value,roles:&[&str])->Result<()> {
++    ensure!(raw["has_errors"]==false,"Compiler LLBC has errors");let c=&raw["translated"];
++    for (method,line) in [("into",779u64),("try_into",805),("try_from",821)] {
++        if !roles.contains(&method){continue}
++        let fs:Vec<_>=c["fun_decls"].as_array().context("Missing LLBC functions")?.iter().filter(|f|llbc_name(&f["item_meta"]["name"]).as_deref()==Some(&format!("core::convert::{method}"))).collect();
++        ensure!(fs.len()==1,"Original core body missing or ambiguous");let f=fs[0];
++        ensure!(f["item_meta"]["is_local"]==false&&f["item_meta"]["opacity"]=="Transparent"&&f["item_meta"]["attr_info"]["rename"].is_null(),"Core origin/transparent body changed");
++        let span=&f["item_meta"]["span"]["Untagged"]["data"];ensure!(span["beg"]["line"]==line,"Original core method source line changed");let file=span["file_id"].as_u64().context("Missing core source file")? as usize;
++        ensure!(c["files"][file]["name"]==json!({"Local":"/rustc/library/core/src/convert/mod.rs"})&&c["files"][file]["crate_name"]=="core","Actual body is not the pinned original core module");
++        let generics=&f["generics"];let params=generics["types"].as_array().context("Missing source binders")?;let names:Vec<_>=params.iter().map(|p|p["name"].as_str()).collect();
++        ensure!(names==if method=="try_into"{vec![Some("T"),Some("U"),Some("Clause0_Error")]}else{vec![Some("T"),Some("U")]},"Original source/associated-type binders differ");
++        ensure!(generics["trait_clauses"].as_array().context("Missing original dictionary bound")?.len()==1,"Core source requires exactly one dictionary predicate");
++        let statements=f["body"]["Structured"]["body"]["statements"].as_array().context("Original body was not extracted transparently")?;
++        let shape:Vec<String>=statements.iter().map(|s|s["kind"].as_str().map(str::to_owned).or_else(||s["kind"].as_object().and_then(|o|o.keys().next()).cloned()).unwrap_or_default()).collect();
++        let expected=if method=="try_from"{vec!["StorageLive","StorageLive","Call","Assign","StorageDead","StorageDead","Return"]}else{vec!["StorageLive","Call","StorageDead","Return"]};ensure!(shape==expected,"Original core body is not the approved one-call delegation/Ok wrapping");
++        let calls:Vec<_>=statements.iter().filter_map(|s|s["kind"].get("Call")).collect();ensure!(calls.len()==1,"Original body call count differs");let call=&calls[0]["call"];
++        ensure!(call["func"]["Regular"]["kind"]["Trait"].is_array()&&call["args"].as_array().map(Vec::len)==Some(1)&&call["args"][0]["Move"]["kind"]==json!({"Local":1})&&call["dest"]["kind"]==json!({"Local":if method=="try_from"{2}else{0}}),"Original callback argument/return changed");
++    }Ok(())
++}
++
++/// Re-extract original core twice and compare the exact approved generated proof
++/// bodies/metadata; the artifact's regenerate.py or other scripts are never run.
++pub(super) fn capture_generation(original:&Path,work:&Path,package:&Path,fixed:&Value)->Result<()> {
++    check_files(package,&fixed["proof_files"])?;check_files(package,&fixed["translation_files"])?;
++    let driver=work.join("driver");fs::create_dir_all(driver.join("src"))?;
++    reject_cargo_configs(&driver)?;
++    let charon_tool=pinned_tool("charon","version",fixed)?;
++    let aeneas_tool=pinned_tool("aeneas","-version",fixed)?;
++    let dependency=serde_json::to_string(original.to_str().context("NonUTF8 original stage")?)?;
++    fs::write(driver.join("Cargo.toml"),format!("[package]\nname=\"oorandom-generic-convert-roots\"\nversion=\"0.1.0\"\nedition=\"2021\"\n[dependencies]\noorandom={{path={dependency}}}\n"))?;
++    fs::write(driver.join("src/lib.rs"),DRIVER)?;
++    fs::copy(checked_member(package,fixed["driver_lock_path"].as_str().context("Missing fixed driver lock")?)?,driver.join("Cargo.lock"))?;
++    let archive=checked_member(package,fixed["custom_archive_path"].as_str().context("Missing custom tool archive")?)?;
++    let binary=run(Command::new("gzip").args(["-dc","--"]).arg(archive))?;ensure!(digest(&binary)==fixed["custom_binary_sha256"].as_str().context("Missing binary pin")?,"Unknown custom translator binary");
++    let tool=work.join("original-core-export-aeneas");fs::write(&tool,binary)?;
++    #[cfg(unix)]{use std::os::unix::fs::PermissionsExt;fs::set_permissions(&tool,fs::Permissions::from_mode(0o700))?;}
++    for (filename,roles,custom,expected) in [("CoreConversions.llbc",vec!["core_into","core_try_into","core_try_from"],false,"official"),("CoreDelegations.llbc",vec!["core_into","core_try_into"],true,"custom")] {
++        let mut charon=clean_command(charon_tool.to_str().context("NonUTF8 Charon path")?);charon.current_dir(&driver).args(["cargo","--preset=aeneas","--sysroot","default","--dest-file",filename]);
++        for root in roles{charon.args(["--start-from",&format!("crate::{root}")]);}charon.args(["--include","core::convert"]);run(&mut charon)?;
++        let llbc:Value=serde_json::from_slice(&fs::read(driver.join(filename))?)?;validate_core_bodies(&llbc,if custom{&["into","try_into"]}else{&["into","try_into","try_from"]})?;
++        let dest=work.join(expected);let mut aeneas=if custom{Command::new(&tool)}else{clean_command(aeneas_tool.to_str().context("NonUTF8 Aeneas path")?)};aeneas.current_dir(&driver).args(["-backend","lean","-emit-json","-abort-on-error","-dest"]).arg(&dest);
++        if custom{aeneas.args(["-namespace","oorandom_core_delegations","-emit-original-core-conversion-bodies"]);}aeneas.arg(filename);run(&mut aeneas)?;
++        for (file,hash) in fixed["generated_outputs"][expected].as_object().context("Missing fixed generated outputs")? {ensure!(digest(fs::read(dest.join(file))?)==hash.as_str().context("Invalid generated hash")?,"Original core generated body/metadata differs: {expected}/{file}");}
++    }
++    Ok(())
++}
++
++#[cfg(test)]
++mod focused_tests {
++    use super::*;
++    #[test]
++    #[ignore = "explicit compiler-owned capture; requires fixture env and pinned toolchain"]
++    fn capture_evidence_and_five_semantic_negatives()->Result<()> {
++        let fixture=PathBuf::from(std::env::var("PROOFS_OOR_GENERIC_FIXTURE")?);
++        let project=crate::config::Project::load(&crate::ProjectArgs{manifest_path:Some(fixture.join("Cargo.toml")),..Default::default()})?;
++        let fixed:Value=serde_json::from_str(super::super::DATA)?;
++        let work=tempfile::tempdir()?.keep();
++        println!("CAPTURE_EVIDENCE={}",work.display());
++        std::env::set_var("PROOFS_OOR_CAPTURE_COMMAND_LOG",work.join("commands.jsonl"));
++        fs::write(work.join("scope.json"),super::super::DATA)?;
++        let original=stage_original(&project,&work,&fixed)?;
++        let (doc,observations)=capture_rustdoc(&original,&work.join("rustdoc"),&fixed)?;
++        fs::write(work.join("observations.json"),serde_json::to_vec_pretty(&observations)?)?;
++        let core_trait=path_id(&doc,&["core","convert","Into"],"trait")?;
++        let core_crate=id(&doc["paths"][id(&core_trait)?]["crate_id"])?;
++        let core=PathBuf::from(doc["external_crates"][&core_crate]["path"].as_str().unwrap());
++        let owner=doc["index"].as_object().unwrap().iter().find(|(_,v)|v["name"]=="Rand32"&&v["inner"].get("struct").is_some()).unwrap().0.clone();
++        let imp=observations[0]["impl_id_ephemeral"].as_str().map(str::to_owned).unwrap_or_else(||observations[0]["impl_id_ephemeral"].to_string());
++        let method=id(&observations[0]["method_id_ephemeral"])?;
++        let try_imp=id(&observations[1]["impl_id_ephemeral"])?;
++        let mut results=Vec::new();
++        for kind in ["bounds","associated-error","trait-core-identity","owner-membership","method-signature"] {
++            let mut altered=doc.clone();
++            match kind {
++                "bounds"=>altered["index"][&imp]["inner"]["impl"]["generics"]["where_predicates"]=json!([]),
++                "associated-error"=>{let items=altered["index"][&try_imp]["inner"]["impl"]["items"].as_array().unwrap().clone();let a=items.iter().find(|i|item(&doc,i).unwrap()["name"]=="Error").unwrap();altered["index"][id(a)?]["inner"]["assoc_type"]["type"]=json!({"primitive":"u8"});},
++                "trait-core-identity"=>altered["external_crates"][&core_crate]["name"]=json!("other_core"),
++                "owner-membership"=>altered["index"][&owner]["inner"]["struct"]["impls"]=json!([]),
++                _=>altered["index"][&method]["inner"]["function"]["header"]["is_unsafe"]=json!(true),
++            }
++            let error=validate_document(&altered,&core).expect_err("semantic mutation accepted");
++            results.push(json!({"case":kind,"error":error.to_string(),"validator":"validate_document directly; no outer file hash"}));
++        }
++        ensure!(validate_document(&doc,&core)?.len()==6,"Positive document changed");
++        fs::write(work.join("semantic-negatives.json"),serde_json::to_vec_pretty(&results)?)?;
++        capture_generation(&original,&work,&fixture,&fixed)?;
++        fn hashes(root:&Path,dir:&Path,out:&mut serde_json::Map<String,Value>)->Result<()> {for e in fs::read_dir(dir)? {let p=e?.path();if p.is_dir(){hashes(root,&p,out)?;}else{out.insert(p.strip_prefix(root)?.to_string_lossy().into_owned(),json!(digest(fs::read(p)?)));}}Ok(())}
++        let mut map=serde_json::Map::new();hashes(&work,&work,&mut map)?;
++        fs::write(work.join("FILE-HASHES.json"),serde_json::to_vec_pretty(&map)?)?;
++        std::env::remove_var("PROOFS_OOR_CAPTURE_COMMAND_LOG");
++        Ok(())
++    }
++}
+--- /dev/null
++++ b/src/oorandom_generic_scope.json
+@@ -0,0 +1,334 @@
++{
++  "schema": 1,
++  "stage": "PIN_DATA_DRAFT_NOT_COMPILED_OR_ACCEPTED",
++  "crate": "oorandom",
++  "version": "11.1.5",
++  "compiler_commit": "923c95cdf5ba65cea505aa2ea829f578e1506ed8",
++  "target": "x86_64-unknown-linux-gnu",
++  "kind": "external_conditional_blanket",
++  "local_declaration": false,
++  "keys": [
++    "<oorandom::Rand32 as core::convert::Into<U>>::into",
++    "<oorandom::Rand32 as core::convert::TryFrom<U>>::try_from",
++    "<oorandom::Rand32 as core::convert::TryInto<U>>::try_into",
++    "<oorandom::Rand64 as core::convert::Into<U>>::into",
++    "<oorandom::Rand64 as core::convert::TryFrom<U>>::try_from",
++    "<oorandom::Rand64 as core::convert::TryInto<U>>::try_into"
++  ],
++  "tool_version": "be86ab0f1989d04944292b345b24c435be3ad10a",
++  "configured_bindings20": [
++    {
++      "api": "Rand32::rand_u32",
++      "module": "Proofs",
++      "theorem": "Proofs.rand_u32_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand32::rand_i32",
++      "module": "Proofs",
++      "theorem": "Proofs.rand_i32_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand32::state",
++      "module": "Proofs",
++      "theorem": "Proofs.state32_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand32::from_state",
++      "module": "Proofs",
++      "theorem": "Proofs.from_state32_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand32::new_inc",
++      "module": "Proofs",
++      "theorem": "Proofs.new_inc32_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand32::new",
++      "module": "Proofs",
++      "theorem": "Proofs.new32_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand64::rand_u64",
++      "module": "Proofs",
++      "theorem": "Proofs.rand_u64_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand64::rand_i64",
++      "module": "Proofs",
++      "theorem": "Proofs.rand_i64_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand64::state",
++      "module": "Proofs",
++      "theorem": "Proofs.state64_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand64::from_state",
++      "module": "Proofs",
++      "theorem": "Proofs.from_state64_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand64::new_inc",
++      "module": "Proofs",
++      "theorem": "Proofs.new_inc64_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand64::new",
++      "module": "Proofs",
++      "theorem": "Proofs.new64_spec",
++      "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
++    },
++    {
++      "api": "Rand32::rand_range",
++      "module": "ExactRange",
++      "theorem": "ExactRange.rand32_contract",
++      "precondition": "Every represented state/range, typed width equals end.val-start.val. Invalid range asserts in debug extraction. For valid ranges, least accepted candidate n implies normal return with exact high-product-plus-start sample and candidate_n generator state; all rejected implies divergence. Canonical threshold is proved. Existence of an accepted index is conditional, not guaranteed; uniformity/period/runtime are unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
++    },
++    {
++      "api": "Rand64::rand_range",
++      "module": "ExactRange",
++      "theorem": "ExactRange.rand64_contract",
++      "precondition": "Every represented state/range, typed width equals end.val-start.val. Invalid range asserts in debug extraction. For valid ranges, least accepted candidate n implies normal return with exact high-product-plus-start sample and candidate_n generator state; all rejected implies divergence. Canonical threshold is proved. Existence of an accepted index is conditional, not guaranteed; uniformity/period/runtime are unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
++    },
++    {
++      "api": "<oorandom::Rand32 as core::convert::TryInto<U>>::try_into",
++      "module": "OriginalDelegationProofs",
++      "theorem": "OriginalDelegationProofs.rand32_try_into",
++      "precondition": "Runtime default x86_64, pinned rustc923c95; every valid modeled owner/input under actual Rust trait bounds and modeled supplied dictionary; exact delegation. No callback correctness/termination, arbitrary Rust Drop/global effects or const-evaluation guarantee. Rust bound: U: core::convert::TryFrom<oorandom::Rand32>. Separately trusted finite original-body-export patch963996393e9f9c67106e2dd64a9cc2a4fb48f9ec06f5aeb127c568f6a79defd1, binary96e2e328ec0b5a2e53599474ded998b450311f5d4fdf828b39b422885b03bb9b; not general translator equivalence."
++    },
++    {
++      "api": "<oorandom::Rand64 as core::convert::Into<U>>::into",
++      "module": "OriginalDelegationProofs",
++      "theorem": "OriginalDelegationProofs.rand64_into",
++      "precondition": "Runtime default x86_64, pinned rustc923c95; every valid modeled owner/input under actual Rust trait bounds and modeled supplied dictionary; exact delegation. No callback correctness/termination, arbitrary Rust Drop/global effects or const-evaluation guarantee. Rust bound: U: core::convert::From<oorandom::Rand64>. Separately trusted finite original-body-export patch963996393e9f9c67106e2dd64a9cc2a4fb48f9ec06f5aeb127c568f6a79defd1, binary96e2e328ec0b5a2e53599474ded998b450311f5d4fdf828b39b422885b03bb9b; not general translator equivalence."
++    },
++    {
++      "api": "<oorandom::Rand32 as core::convert::Into<U>>::into",
++      "module": "OriginalDelegationProofs",
++      "theorem": "OriginalDelegationProofs.rand32_into",
++      "precondition": "Runtime default x86_64, pinned rustc923c95; every valid modeled owner/input under actual Rust trait bounds and modeled supplied dictionary; exact delegation. No callback correctness/termination, arbitrary Rust Drop/global effects or const-evaluation guarantee. Rust bound: U: core::convert::From<oorandom::Rand32>. Separately trusted finite original-body-export patch963996393e9f9c67106e2dd64a9cc2a4fb48f9ec06f5aeb127c568f6a79defd1, binary96e2e328ec0b5a2e53599474ded998b450311f5d4fdf828b39b422885b03bb9b; not general translator equivalence."
++    },
++    {
++      "api": "<oorandom::Rand32 as core::convert::TryFrom<U>>::try_from",
++      "module": "GenericConversionProofs",
++      "theorem": "GenericConversions.rand32_try_from",
++      "precondition": "Runtime default x86_64, pinned rustc923c95; every valid modeled owner/input under actual Rust trait bounds and modeled supplied dictionary; exact delegation. No callback correctness/termination, arbitrary Rust Drop/global effects or const-evaluation guarantee. Rust bound: U: core::convert::Into<oorandom::Rand32>. Official source generation."
++    },
++    {
++      "api": "<oorandom::Rand64 as core::convert::TryFrom<U>>::try_from",
++      "module": "GenericConversionProofs",
++      "theorem": "GenericConversions.rand64_try_from",
++      "precondition": "Runtime default x86_64, pinned rustc923c95; every valid modeled owner/input under actual Rust trait bounds and modeled supplied dictionary; exact delegation. No callback correctness/termination, arbitrary Rust Drop/global effects or const-evaluation guarantee. Rust bound: U: core::convert::Into<oorandom::Rand64>. Official source generation."
++    },
++    {
++      "api": "<oorandom::Rand64 as core::convert::TryInto<U>>::try_into",
++      "module": "OriginalDelegationProofs",
++      "theorem": "OriginalDelegationProofs.rand64_try_into",
++      "precondition": "Runtime default x86_64, pinned rustc923c95; every valid modeled owner/input under actual Rust trait bounds and modeled supplied dictionary; exact delegation. No callback correctness/termination, arbitrary Rust Drop/global effects or const-evaluation guarantee. Rust bound: U: core::convert::TryFrom<oorandom::Rand64>. Separately trusted finite original-body-export patch963996393e9f9c67106e2dd64a9cc2a4fb48f9ec06f5aeb127c568f6a79defd1, binary96e2e328ec0b5a2e53599474ded998b450311f5d4fdf828b39b422885b03bb9b; not general translator equivalence."
++    }
++  ],
++  "core_source_sha256": "aaab13973fa234bb93098ae621f3d22dd1a052744f12cf3190cef77c90f1dc4c",
++  "core_metadata_sha256": "9d482a779058b6f5a00a7201de79a43cf0f7894a529104fd0d5c937d1a485537",
++  "source_files": {
++    "README.md": "f89a2b834b4f7efba27e5f96c98d533dd617a74295264ba18ac26d5d2eb7ebca",
++    "tarpaulin-report.html": "e3ad0bc7e6f3e0876c6991cf23e9db903e8ccc32d6909ed612515a62442905ce",
++    "Cargo.toml.orig": "2643f41eb298e57f33182f611469571f5d799cd8d9f7cc8f58c4b8d2d7e5effb",
++    "LICENSE-MIT": "e3f96201e81ea40ed151ec06694dd5b1d9e6b94a74f47a1c45779c4b8a293888",
++    "Cargo.toml": "c2d20a6c59f36e8ce5912d434a19dd4946f1599ce36556d4879e2043c7dd1d14",
++    "src/lib.rs": "2543317e21d94f1b579b31d92882d7c3a088a6b6bd43362861468f078b455a4e",
++    "Cargo.lock": "2a2e0060c1e177710941d5c0307fee37c19d10ed202c22781021bbf093759a61"
++  },
++  "upstream_archive_sha256": "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e",
++  "proof_files": {
++    "proofs/lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
++    "proofs/ActualLoop32.lean": "bcc7a7a913f60510b73c68f06ae62eb734dc42cbfee581dc3772bcb89f89b869",
++    "proofs/RangeComplete64.lean": "9276f00ffd0d21ce97a775061fa1a7cafb4711a407ed5ded21742e1613b68630",
++    "proofs/PublicTrace64.lean": "2413ba86cfd4bc8f4c316bf86ceac45bd801d7116eee931f5750f28270e515aa",
++    "proofs/FullRange.lean": "7f7a1a52a02ebde81c2c14c20b0fd9c18791c15ce8120bba6ed77e8a9799e4d6",
++    "proofs/GenericConversionProofs.lean": "35a0661e4c8a6c0fc8450f26638f2c13b8ae0e5beb1cbee0abb872b9cd9cebbc",
++    "proofs/NatRangeArithmetic.lean": "5d3b1cc1e098b7a68a79a2b23fe12d34172aa7f9f2bd6f9f31f4b8d3854f6554",
++    "proofs/RangeComplete32.lean": "37e270275fdd247b3d19042f3329934bafd0bb593541aaf0c6a33b3b0c2d4613",
++    "proofs/EstablishedRange.lean": "63ba067c2e381991c7017568380a45d54b88701b677c912ab60c96ed0ba1cc10",
++    "proofs/Oorandom.lean": "82e27ed75aaa757dc53bd992f2910a0458428942c33ea05cada50ea1c0203412",
++    "proofs/Proofs.lean": "099aa781bfc1c91f3d55a428f1956fb5f0ae4afb74c15239682a596a5db9bc97",
++    "proofs/ActualLoop64.lean": "e89b886304eb2c96bebf314b0919082bb1ab9bb9939d6f989c1d9225c10a55ae",
++    "proofs/GenericTrace.lean": "1cf6e83006d3380842da90e77521f48d544f527fe4092770229f9c7a88b97633",
++    "proofs/PartialLoop.lean": "67b62acd1439d5eaaf08db5e70aa0fec663faeafb99b219e5055424f026ae406",
++    "proofs/lake-manifest.json": "68b22164c5610f6e480afbf0bd2bb4e255b134de8a3f16500cd2fa7b0e542976",
++    "proofs/PublicTrace32.lean": "d33d4373e5a1ceed27025c979d3262b6b201104d45c201f2cf7dea7087b12dd8",
++    "proofs/RangePartial32.lean": "c0d5441b1206e5ded9891fb692ffdbd65d9c37de7d33b1eeee81262cbfe3bc1d",
++    "proofs/Checkpoint.lean": "956117e0f3af8a2a9a14879396dfa46b4180f27a21ff17b8349577722b9a7169",
++    "proofs/ExactRange.lean": "38b441e9744eaca31ddd05c01bcef64b587840bb3019691cd706bbf79fd6752f",
++    "proofs/NegBridge.lean": "081397c3d9bf2be35e495aef80d5fba21112c83a58387723c82b2118ef6e3a6d",
++    "proofs/PublicDomain.lean": "01d7e919991623ed23ee90770c4e0601c8fa4552de0987aa3875422af5d5e00c",
++    "proofs/Zero64.lean": "1dfc39f99ff3a6ad4bd15bf8614cbe9264889241e4e56fdf4f1098fbc8f833f7",
++    "proofs/lakefile.lean": "e527bd6e54fcc26d21a6a517377797fef997224ae6054f7b68a66fa09ea86b46",
++    "proofs/TraceAudit.lean": "3b3a8f59f4363214127bd24c1574a63f0f8ce9467c6d6bdc70fece96bf109040",
++    "proofs/RangeArithmetic.lean": "48860c28775e284b8c2d365152ded2bb74695b490949b33bcc1f90162bcb9b74",
++    "proofs/RangePartial64.lean": "3c8f389d421d23eee2ce817f5784b7327e465b248a5fa58a5b3e0caaa97afab7",
++    "proofs/OriginalDelegationProofs.lean": "f78659fb368a3abf698e32d5ed84ed76bf3ae4e0a041776c84de1a20ac49270f",
++    "proofs/GeneratedDelegations/CoreDelegations.lean": "f3fb27bf3c635907995ea68472736993b654d5d5e11006e88764aac50f11a863",
++    "proofs/Generated/CoreConversions.lean": "e0cb1a9e86e53fd21130d9fab5e8e37607a3d982b4eb31e8df75678747606317",
++    "proofs/OorandomRangeOriginal/Types.lean": "d90b1d2170eff31f458983b5e235876eceff4a81f4ffdbf75aa5006a40f62992",
++    "proofs/OorandomRangeOriginal/Funs.lean": "e96b811ccca525b983676fa9a1d26601c383a364b6ab1c25b8b4569253aa4952"
++  },
++  "translation_files": {
++    "evidence/conditional-generic6/Cargo.lock": "1ca0895d1d3743000e502a662e423fd1ef33fb3ba08bb2b0d8c1f09a6f01286b",
++    "evidence/conditional-generic6/Cargo.toml": "5a8d7962932e2a5c505b1a88c196d1715bf81039ca2ba38915290e19a5c0bc29",
++    "evidence/conditional-generic6/CoreConversions.llbc": "3caeb69952e95d6a5d7c598c6a0ffc75a2bee7513eff3dea7bc240c4d1966545",
++    "evidence/conditional-generic6/CoreDelegations.llbc": "0965b58d9e12b7946f61480b60654588d865adb33da837b764cf2cec372590a4",
++    "evidence/conditional-generic6/HANDOFF.json": "7c9f306fb9c04d656bbf150633472695dd22839bd17602ee087650b6f98dff16",
++    "evidence/conditional-generic6/OpaqueDelegations.llbc": "7dbf9000ffbf581beb19f077be70b7f346e0a5c5f5b0b404f23c32758caed7e3",
++    "evidence/conditional-generic6/PortableCoreConversions.llbc": "2c76ebfd1dbb85b063d22f95c8e72f84188fa9c4680a73c71cb31d0354b908ba",
++    "evidence/conditional-generic6/README.md": "d8dd0ebe68c1bc3a1aad8add0d8145b2378d2e34c9a63888d956efe66065e75b",
++    "evidence/conditional-generic6/READY.json": "1750bd32e67122bee1568b26288378f3b0bae2e9558ab66714724fbdc7399d6c",
++    "evidence/conditional-generic6/TryFromOnly.llbc": "5afc88b754f8617acad5f1da8c15f57c2d2f77b134273441b75ef58f70d14abb",
++    "evidence/conditional-generic6/api-bindings6.json": "6bb4edca1df1b88bc61f8a3c34e37ae62e55998b8d8c848ba7f4cd80357f22bf",
++    "evidence/conditional-generic6/audit.log": "1b124c5d52e47e130b9415cbfcdb900113e245224496fbaebfafa1a25c0723e0",
++    "evidence/conditional-generic6/check_core_bodies.py": "3760a423847a42d2bc458d5bb36d910e306a4a552d6a5211187c15ae191f3015",
++    "evidence/conditional-generic6/cli-inactive-cache-cleanup.json": "38328a5b30490b2c8961b890e4efa0aed04f3755f8ad3d8ea7846085008a7394",
++    "evidence/conditional-generic6/core-delegations-extraction.log": "a64017b940f98b862c177597a367b7bbe7f07999ae860d3a5f1ecc4f0171c8b3",
++    "evidence/conditional-generic6/core-delegations-official.log": "fd7c4c3fae6ee58df2f4da3ad178e1c58e450a99f2b07c8848a23df8fbafa1cf",
++    "evidence/conditional-generic6/core-generic-aeneas.log": "72252950c3d96c16589f81dc3d06c9478c9446dcdd42f022251048ddfe736758",
++    "evidence/conditional-generic6/core-generic-extraction.log": "4cc8f582c1631001edb6e4e659ab4359933073520e51ed496fb335c1a450b6e3",
++    "evidence/conditional-generic6/core-template-extraction.log": "ca3b525bcd32c40f878409c54e8de38b82f743563091178b6636314b50766927",
++    "evidence/conditional-generic6/core-template.llbc": "aa2b6d5d451ecd175575f466c47261e9caf5487651f826d38dfc1e30199b36c1",
++    "evidence/conditional-generic6/core-template2-extraction.log": "1aa768c419930a8c72474d421aaabf2da599cb01960e9546a14c0fa1c796db2a",
++    "evidence/conditional-generic6/core-template3-extraction.log": "3ae27e1f381c0e2c701da3ae05e39ae2306452090c5ccacc137d3412ac6e4a96",
++    "evidence/conditional-generic6/custom-default/CoreDelegations.lean": "49ee2ad5fb794b497daa47c8f051b100df72fcf51776bf6e7ad0eff463183b2e",
++    "evidence/conditional-generic6/custom-default/translation.json": "d0b2a7bd4f1ec8e46635da2bc7f6f570ffb2cf1bfe4b8460c441ca7fcd83d0c9",
++    "evidence/conditional-generic6/custom-default.log": "f1eb62914d7ca3979f0b82b66fe58de41d62368697744b1ff8b5434a53399bb9",
++    "evidence/conditional-generic6/custom-enabled.log": "24e88efe761cd960bcfc7b2d48ec2089acb3280f79497601bb2328e6ecbaa3f9",
++    "evidence/conditional-generic6/default-output-comparison.json": "a441cae59db17ac1c94a9e80c961d7983ccfad8705ae3df9736f79f6dcd38758",
++    "evidence/conditional-generic6/enabled-output-comparison.json": "17164553e223950cd6bce51d6c88fa6759519989df08ae932ab2946df7f0b986",
++    "evidence/conditional-generic6/first-lean-build.log": "ce5c9541cc7d41c98584becee8c56cab1e46ab89409c4cf26c6d38baa6722ec7",
++    "evidence/conditional-generic6/generated/Generic6.lean": "3e048eda7f0d9c46aa72c7f6418f172aca348ab87f0c060e3e2d6fca67e01987",
++    "evidence/conditional-generic6/generated/translation.json": "4a064500c78f2d37ec76a3c32ec5d0e9d15e15b1b30ec2d17d274a50b34aee03",
++    "evidence/conditional-generic6/generated-types/Generic6-types.lean": "a7d9140ff8ebbce5e512dbd7b78147a887a0dfaaf08cf9116f4eb23b1a76b73d",
++    "evidence/conditional-generic6/generated-types/translation.json": "e04acee923d02ad54084f376bc837c1c78c19c358a71b0b338783bb3250bf451",
++    "evidence/conditional-generic6/generic6-aeneas.log": "7ecba7df610470aeb5b8b59a520732a36d0af52996ff720eea6dbaaa28399c10",
++    "evidence/conditional-generic6/generic6-extraction.log": "11707ff41c219115cabc1caf8078a9418c0e7188d50e8aa8f39d370ec1d140be",
++    "evidence/conditional-generic6/generic6-types-aeneas.log": "24b3d160e9c2f1cd4d62cdf0b159cfa6a36ae0aac852109c89eae47c16d33f9b",
++    "evidence/conditional-generic6/generic6-types-extraction.log": "914a8fc4c577ca256fd8ac9c76ea8a2f77533782cf397e86a5d7f84e9b04e532",
++    "evidence/conditional-generic6/generic6-types.llbc": "5ab3194ea851226499d7851f3091a25e901c5f286b79d795ed870d84df6db134",
++    "evidence/conditional-generic6/generic6.llbc": "fbd8d6ab24fb3f0b049f99e192fd11b504632709af3a4a50bf02ced024d38f47",
++    "evidence/conditional-generic6/independent-reviews/ENDIAN-FINAL-REVIEW.json": "0e3647054ce0e9cd37ef350b645d9ed59a59d300d52ad1c66bfdfced4fbb0fe6",
++    "evidence/conditional-generic6/independent-reviews/PRNG-FINAL-REVIEW.md": "dc959f2fa3e94f0ab0954959e892a22dd505b48c8069d19cea3ba81e7756c056",
++    "evidence/conditional-generic6/independent-reviews/PRNG-checks.json": "9a4d5b8e5f9e3a1882a784180e1e687c92ec056c5807884106b4390baa5ca27d",
++    "evidence/conditional-generic6/initial-driver-inputs/Cargo.lock": "1ca0895d1d3743000e502a662e423fd1ef33fb3ba08bb2b0d8c1f09a6f01286b",
++    "evidence/conditional-generic6/initial-driver-inputs/Cargo.toml": "cabac2a5107fce07a922724818c42aecb5ae006bc17744b165e3383b4e470877",
++    "evidence/conditional-generic6/initial-driver-inputs/CoreConversions.llbc": "3caeb69952e95d6a5d7c598c6a0ffc75a2bee7513eff3dea7bc240c4d1966545",
++    "evidence/conditional-generic6/initial-driver-inputs/CoreDelegations.llbc": "0965b58d9e12b7946f61480b60654588d865adb33da837b764cf2cec372590a4",
++    "evidence/conditional-generic6/negative-no-target-roles.log": "fc6d58259352034c2a43665d8a19c35207114912b6f58f8ebfa2f456477efd4b",
++    "evidence/conditional-generic6/negative-one-role.log": "2892b2910fea3e8bccc07a713fa9eb2ab72a7c85f5a738a9ab24d0a919ada2f3",
++    "evidence/conditional-generic6/negative-opaque-bodies.log": "56a557a62133f247cc059bea372a312577e6b9d1790ba2e39db54a86db4efe82",
++    "evidence/conditional-generic6/official-delegations/CoreDelegations.lean": "49ee2ad5fb794b497daa47c8f051b100df72fcf51776bf6e7ad0eff463183b2e",
++    "evidence/conditional-generic6/official-delegations/translation.json": "9afc76be09a2de70f3c863baff5845b61dd156e8dc59779946114ce305d9903a",
++    "evidence/conditional-generic6/opaque-delegations-extraction.log": "69fa9d82c87937925fad1ed8e78b2e25505fab4940b6120739b05250295a86b4",
++    "evidence/conditional-generic6/original-core-bodies.json": "9c257f0c5eb675721b9d9900607be08e191b2fde6b5355cd37645812530309c1",
++    "evidence/conditional-generic6/original-delegations-lean-build.log": "843ce52211d0f19bf35fe763eabd6cbc621b83c15ff9a1fd77a5f684ba6e5f5c",
++    "evidence/conditional-generic6/original-source-provenance.json": "7fb88ab7c222539091809e82fe959b4be450bc43d09554bc3ac238921e28e56a",
++    "evidence/conditional-generic6/portable-core-aeneas.log": "f2576d1b4d698d744b65b46aae130ad301fcebddd52d342b568cd88d661da596",
++    "evidence/conditional-generic6/portable-core-extraction.log": "7704fae554abd45f27fabbcebcf5b81c6f22eebb8ff81ca62a14229c2fe04d35",
++    "evidence/conditional-generic6/portable-core-final-aeneas.log": "c467ee11a2b90e4a20915c62523bc9410b9aa0cf937f668240ab80b10a8b33a0",
++    "evidence/conditional-generic6/portable-core-final-extraction.log": "f423a8b98c60273d340184134455fea3e985f0b2c9dd96fcdbc3e4201bdf8e3e",
++    "evidence/conditional-generic6/portable-custom-final/CoreDelegations.lean": "f3fb27bf3c635907995ea68472736993b654d5d5e11006e88764aac50f11a863",
++    "evidence/conditional-generic6/portable-custom-final/translation.json": "d088a5d06cec7fb9b25b51e159b6a2b9eabbf64bc6c38a5717174f93ae87274c",
++    "evidence/conditional-generic6/portable-delegations-aeneas.log": "0b743f2b670e1d9754a76d06a1b839916e765618e80c51930ee26dde27614755",
++    "evidence/conditional-generic6/portable-delegations-extraction.log": "2a95b5a0b17c2f38760217d1417d0e0798329132e46595a4dad21def1c610ea7",
++    "evidence/conditional-generic6/portable-generation-comparison.json": "b03b8250c34288d71c668b61498fe99a518e985da9fde29c4b51aded6353a4ef",
++    "evidence/conditional-generic6/portable-official/PortableCoreConversions.lean": "e0cb1a9e86e53fd21130d9fab5e8e37607a3d982b4eb31e8df75678747606317",
++    "evidence/conditional-generic6/portable-official/translation.json": "5d00945aa681d8f96ff9b0deeec46fd3933a09bf9c522e65d480b7e6085069f3",
++    "evidence/conditional-generic6/portable-official-final/CoreConversions.lean": "e0cb1a9e86e53fd21130d9fab5e8e37607a3d982b4eb31e8df75678747606317",
++    "evidence/conditional-generic6/portable-official-final/translation.json": "fdb2d6b018ed1cf9771bbc8a36667c292c932934c5487e476bfddb7e8542f95c",
++    "evidence/conditional-generic6/portable-reproduce.log": "e890581907f4ede6d2ea83c6b416acb6d163d80b0714dad96a7e450cbae0fd70",
++    "evidence/conditional-generic6/private-tool-build-resource.json": "820e3c61ff70aec2581076f1ce0412be2928982ca306677d441c124c48e0d59b",
++    "evidence/conditional-generic6/private-tool-build-run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++    "evidence/conditional-generic6/private-tool-build-time.log": "2be8de153270bcc10eaa1bc2f817c103486437ac1f50d4ae5d4458064f6525f3",
++    "evidence/conditional-generic6/private-tool-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++    "evidence/conditional-generic6/private-tool-cache-cleanup.json": "e2fbe68c3904fc24f29e2b629b6544d2a7796aa52964137acbdeca5f9a49a89b",
++    "evidence/conditional-generic6/private-tool-clone.log": "547b6c7d2c073d72b0bcc8e00f56ba4a287ba28b9335c97f6d57efdd66dbfef5",
++    "evidence/conditional-generic6/probe-aeneas.log": "7d9cbcf37fa51e1defdd61c328faabc562ec47e4336ec5a45f6b3e6ba65d22cf",
++    "evidence/conditional-generic6/probe-extraction.log": "ab38a96eebf759ff1190889385b87419d9ce07f1266c6d672c551015b51b17d2",
++    "evidence/conditional-generic6/probe-lean/Probe.lean": "4940b83ee51960220b295228b1139f1dd0cb3e22dbb9ea8e1c155b31e1431743",
++    "evidence/conditional-generic6/probe-lean/translation.json": "30ba892eea21bbac5d74dc375465d44ee870d6890e88a7f8900ae1b6a0aa06e3",
++    "evidence/conditional-generic6/probe.llbc": "1baeb7abd200b7543c1d1d93525a4ccbb32bb969a280085855866f390771bdd1",
++    "evidence/conditional-generic6/proofs/Audit.lean": "a223b9beab06e84aac83d78137a1c25919c71a84f1ad666a896b22b442de4d0f",
++    "evidence/conditional-generic6/proofs/Generated/CoreConversions.lean": "e0cb1a9e86e53fd21130d9fab5e8e37607a3d982b4eb31e8df75678747606317",
++    "evidence/conditional-generic6/proofs/Generated/translation.json": "fdb2d6b018ed1cf9771bbc8a36667c292c932934c5487e476bfddb7e8542f95c",
++    "evidence/conditional-generic6/proofs/GeneratedDelegations/CoreDelegations.lean": "f3fb27bf3c635907995ea68472736993b654d5d5e11006e88764aac50f11a863",
++    "evidence/conditional-generic6/proofs/GeneratedDelegations/translation.json": "d088a5d06cec7fb9b25b51e159b6a2b9eabbf64bc6c38a5717174f93ae87274c",
++    "evidence/conditional-generic6/proofs/Oorandom.lean": "82e27ed75aaa757dc53bd992f2910a0458428942c33ea05cada50ea1c0203412",
++    "evidence/conditional-generic6/proofs/OriginalDelegationProofs.lean": "f78659fb368a3abf698e32d5ed84ed76bf3ae4e0a041776c84de1a20ac49270f",
++    "evidence/conditional-generic6/proofs/Proofs.lean": "35a0661e4c8a6c0fc8450f26638f2c13b8ae0e5beb1cbee0abb872b9cd9cebbc",
++    "evidence/conditional-generic6/proofs/WholeAudit.lean": "742baf2352d1cc43e4eee4e1c7ea4a97a0ebbf12bb18fd3d6791809b75f72bfd",
++    "evidence/conditional-generic6/proofs/lake-manifest.json": "d57e9bf875dab4ff54c323bc802a7b88abee1ff90621eb98fcd47e1276bdd657",
++    "evidence/conditional-generic6/proofs/lakefile.lean": "57f617e55604ae958f248b0b3dc43dc1f6beb0fabd4f7a85f978fb7b43ee1e3c",
++    "evidence/conditional-generic6/proofs/lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
++    "evidence/conditional-generic6/regenerate.py": "a52d7c6d41676b0ddd2d96c3b770b500faf10598353ff5fd632cecea41d762a8",
++    "evidence/conditional-generic6/second-lean-build.log": "f4d6933b2c2efa1af17e89330b9d3b9aa36578a58fd77a58255ef7e9331b344f",
++    "evidence/conditional-generic6/source/core/convert-mod.rs": "aaab13973fa234bb93098ae621f3d22dd1a052744f12cf3190cef77c90f1dc4c",
++    "evidence/conditional-generic6/source/oorandom/Cargo.toml": "c2d20a6c59f36e8ce5912d434a19dd4946f1599ce36556d4879e2043c7dd1d14",
++    "evidence/conditional-generic6/source/oorandom/Cargo.toml.orig": "2643f41eb298e57f33182f611469571f5d799cd8d9f7cc8f58c4b8d2d7e5effb",
++    "evidence/conditional-generic6/source/oorandom/LICENSE-MIT": "e3f96201e81ea40ed151ec06694dd5b1d9e6b94a74f47a1c45779c4b8a293888",
++    "evidence/conditional-generic6/source/oorandom/README.md": "f89a2b834b4f7efba27e5f96c98d533dd617a74295264ba18ac26d5d2eb7ebca",
++    "evidence/conditional-generic6/source/oorandom/src/lib.rs": "2543317e21d94f1b579b31d92882d7c3a088a6b6bd43362861468f078b455a4e",
++    "evidence/conditional-generic6/source/oorandom/tarpaulin-report.html": "e3ad0bc7e6f3e0876c6991cf23e9db903e8ccc32d6909ed612515a62442905ce",
++    "evidence/conditional-generic6/source-audit-final.log": "ac2a4f2d533e845be534fb1ccccb3888a41d4431b6d7f914090f198175f4cd70",
++    "evidence/conditional-generic6/source-audit-fixed.log": "ac2a4f2d533e845be534fb1ccccb3888a41d4431b6d7f914090f198175f4cd70",
++    "evidence/conditional-generic6/source-audit-portable-final.log": "ac2a4f2d533e845be534fb1ccccb3888a41d4431b6d7f914090f198175f4cd70",
++    "evidence/conditional-generic6/source-audit.log": "2c1afd324c1eeaa562153379ef08850c321410de54e1abe1dc20a3e54cf1804b",
++    "evidence/conditional-generic6/src/lib.rs": "972e882106d6f12475f9cff58a643aa325e76b720184046cc900edba6f7c79d1",
++    "evidence/conditional-generic6/third-lean-build.log": "b5238e1431d9f52016ccd6a7794012ae6f028161f1fc91eeeeab823ce0a36103",
++    "evidence/conditional-generic6/tool/aeneas-original-core-export.gz": "6ec1cf54cc6f27f7a04489645fff4410744498b0c2885a15c9e8a4798ead9973",
++    "evidence/conditional-generic6/tool/export-original-core.patch": "963996393e9f9c67106e2dd64a9cc2a4fb48f9ec06f5aeb127c568f6a79defd1",
++    "evidence/conditional-generic6/tool/provenance.json": "bab3bb436fc3928453b8fcc7f86fd77f4ad71c53a9ed2039beec3a3e0008733f",
++    "evidence/conditional-generic6/tool/source-after/src/Config.ml": "16bbe19831b45341a6eb43669a332d5159ebcf339adc7d0cfa155925b30e9772",
++    "evidence/conditional-generic6/tool/source-after/src/Main.ml": "98e09430e121d394e43da0a1eb1c1f02fc8a5a847dcdeb30b11121a1ae93954b",
++    "evidence/conditional-generic6/tool/source-after/src/Translate.ml": "f59e56147f69edc3d948ef37427004703b6d695cda24bf75cc275368561416af",
++    "evidence/conditional-generic6/tool/source-after/src/extract/Extract.ml": "492e33966652a98e0458407932f2e37691bd90c9e3b177a56b8bc047ad1c1222",
++    "evidence/conditional-generic6/tool/source-before/src/Config.ml": "3b8bb65d67e53f87948a1161027764795ffd02a6a4fd91c4bca0adfa588ed88c",
++    "evidence/conditional-generic6/tool/source-before/src/Main.ml": "41e7556907d3a134efc33c777035958d56bf1e30f1e988bed2a6dec8cba37def",
++    "evidence/conditional-generic6/tool/source-before/src/Translate.ml": "9668e7181f536da01bc7a2bf0dcc9d5d418b75e23f99106fefce19b3de389b37",
++    "evidence/conditional-generic6/tool/source-before/src/extract/Extract.ml": "28c5c0ff71aa52fbbb2a8828f1c588a4a8cd87f2e41d3e6a4b444bcb5bc661b9",
++    "evidence/conditional-generic6/tool-negative-results.json": "27de9b4be99d4d445d8fba7e2e2c12176e2c0f315dfd2a4fb5db2a59d4d8a98f",
++    "evidence/conditional-generic6/tryfrom-only-extraction.log": "aba32a2e37ab0cf51636725faa00caf3f47798eda4c7c45b7b358e08813fb5fb",
++    "evidence/conditional-generic6/verify.bash": "f450ed40bb0fc277a653392d4607c7f0a97f62a536361a383cfe922ef6b9b0c0",
++    "evidence/conditional-generic6/whole-coimport-audit.log": "e44bbc47c0e9973fcbd75bad4cea406e5d160099d38a9d81ebe56ba672c188c6",
++    "evidence/conditional-generic6/FREEZE-MANIFEST.json": "810776b9a405bb4d25ff160a703bae28373fd81f56c3a47da15fe3a88bdee0ca"
++  },
++  "driver_lock_path": "evidence/conditional-generic6/Cargo.lock",
++  "custom_archive_path": "evidence/conditional-generic6/tool/aeneas-original-core-export.gz",
++  "custom_binary_sha256": "96e2e328ec0b5a2e53599474ded998b450311f5d4fdf828b39b422885b03bb9b",
++  "generated_outputs": {
++    "official": {
++      "CoreConversions.lean": "e0cb1a9e86e53fd21130d9fab5e8e37607a3d982b4eb31e8df75678747606317",
++      "translation.json": "fdb2d6b018ed1cf9771bbc8a36667c292c932934c5487e476bfddb7e8542f95c"
++    },
++    "custom": {
++      "CoreDelegations.lean": "f3fb27bf3c635907995ea68472736993b654d5d5e11006e88764aac50f11a863",
++      "translation.json": "d088a5d06cec7fb9b25b51e159b6a2b9eabbf64bc6c38a5717174f93ae87274c"
++    }
++  },
++  "official_tools": {
++    "charon": {
++      "sha256": "79dfdb2fba1fc991dc336d056151c6c06f016462a83885b4325cff93085baa55",
++      "version": "0.1.291 (08d7c9d50144bd84848212c24701253585e90d1f)"
++    },
++    "aeneas": {
++      "sha256": "f37fd52cd42a0ee78b5bdaa70bc518caa07bba3ed54fd9759eb2c0a58451b8a8",
++      "version": "aeneas be86ab0"
++    }
++  }
++}
