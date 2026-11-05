@@ -4,6 +4,10 @@ The requested scope is all public APIs of thirteen exact crate versions, excludi
 
 The previous reports contain **56 actual mapped body-contract proofs in their stated configurations and input/model domains**. Those guarantees are retained verbatim in `current-coverage-audit.json` and the original `proofs.toml` files. Their existence is distinct from whether they cover every success/error/panic case of an API, every feature/target configuration, external trait dependencies, and the entire crate. Configuration applicability is not inferred merely from matching a method name. The normalize-line-endings guarantee is explicitly for adapted source with the documented Kani bridge.
 
+## Single strict-inventory entry point
+
+[All13 strict source inventories and current405 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
+
 ## Current public results
 
 **Thirteen reports contain 405 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
