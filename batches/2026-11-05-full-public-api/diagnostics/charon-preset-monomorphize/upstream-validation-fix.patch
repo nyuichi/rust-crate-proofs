@@ -1,0 +1,114 @@
+commit f679421a5946296f1f6628dcb67907bafece2639
+Author: Nadrieril <nadrieril+git@gmail.com>
+Date:   Fri Oct 16 18:37:00 2026 +0200
+
+    Apply presets before validation options
+
+diff --git a/charon/src/bin/charon-driver/driver.rs b/charon/src/bin/charon-driver/driver.rs
+index b48fd810f..acf20d73c 100644
+--- a/charon/src/bin/charon-driver/driver.rs
++++ b/charon/src/bin/charon-driver/driver.rs
+@@ -192,7 +192,7 @@ pub fn run_rustc_driver() -> Result<Option<(TransformCtx, CliOpts)>, CharonFailu
+     // Retrieve the Charon options by deserializing them from the environment variable
+     // (cargo-charon serialized the arguments and stored them in a specific environment
+     // variable before calling cargo with `RUSTC_WRAPPER=charon-driver`).
+-    let mut options = match env::var(options::CHARON_ARGS)
++    let options = match env::var(options::CHARON_ARGS)
+         .ok()
+         .map(|opts| serde_json::from_str::<options::CliOpts>(&opts).unwrap())
+     {
+@@ -230,8 +230,6 @@ pub fn run_rustc_driver() -> Result<Option<(TransformCtx, CliOpts)>, CharonFailu
+         run_compiler_with_callbacks(compiler_args, &mut RunCompilerNormallyCallbacks)?;
+         None
+     } else {
+-        options.apply_preset();
+-
+         error_ctx.continue_on_failure = !options.abort_on_error;
+         error_ctx.error_on_warnings = options.error_on_warnings;
+ 
+diff --git a/charon/src/bin/charon/main.rs b/charon/src/bin/charon/main.rs
+index 9cf9b193a..57b972c30 100644
+--- a/charon/src/bin/charon/main.rs
++++ b/charon/src/bin/charon/main.rs
+@@ -71,6 +71,11 @@ pub fn main() -> Result<()> {
+         }
+         Charon::Cargo(subcmd_cargo) => {
+             let mut options = subcmd_cargo.opts;
++            if let Some(toml) = toml_config::read_toml() {
++                options = toml.apply(options);
++            }
++            options.apply_preset();
++            options.validate()?;
+             let targets = std::mem::take(&mut options.targets);
+             if targets.is_empty() {
+                 translate_with_cargo(options, subcmd_cargo.cargo)?
+@@ -85,6 +90,8 @@ pub fn main() -> Result<()> {
+         Charon::Rustc(mut subcmd_rustc) => {
+             let mut options = subcmd_rustc.opts;
+             options.rustc_args.append(&mut subcmd_rustc.rustc);
++            options.apply_preset();
++            options.validate()?;
+             let targets = std::mem::take(&mut options.targets);
+             if targets.is_empty() {
+                 translate_without_cargo(options)?
+@@ -134,10 +141,9 @@ pub fn main() -> Result<()> {
+ /// Run translation once per target (in parallel), then merge the results.
+ fn translate_multi_target(
+     targets: Vec<String>,
+-    mut options: CliOpts,
++    options: CliOpts,
+     translate_one: impl Fn(CliOpts, &str) -> anyhow::Result<ExitStatus> + Sync,
+ ) -> anyhow::Result<ExitStatus> {
+-    options.apply_preset();
+     let temp_dir = tempfile::tempdir().context("failed to create temp dir")?;
+ 
+     // Translate each target in its own thread.
+@@ -157,8 +163,6 @@ fn translate_multi_target(
+                     opts.dest_file = Some(temp_file.clone());
+                     // Don't recurse into multi-target.
+                     opts.targets.clear();
+-                    // Don't re-apply preset
+-                    opts.preset = None;
+                     // Suppress per-target printing; we'll print the merged result.
+                     opts.print_ullbc = false;
+                     opts.print_llbc = false;
+@@ -207,15 +211,8 @@ fn translate_multi_target(
+     Ok(ExitStatus::default())
+ }
+ 
+-fn translate_with_cargo(
+-    mut options: CliOpts,
+-    cargo_args: Vec<String>,
+-) -> anyhow::Result<ExitStatus> {
++fn translate_with_cargo(options: CliOpts, cargo_args: Vec<String>) -> anyhow::Result<ExitStatus> {
+     ensure_rustup();
+-    if let Some(toml) = toml_config::read_toml() {
+-        options = toml.apply(options);
+-    }
+-    options.validate()?;
+     let mut cmd = toolchain::in_toolchain("cargo")?;
+     cmd.env("RUSTC_WRAPPER", toolchain::driver_path());
+     // We pass a random value to prevent cargo from considering a charon run cacheable.
+@@ -254,7 +251,6 @@ fn translate_with_cargo(
+ 
+ fn translate_without_cargo(mut options: CliOpts) -> anyhow::Result<ExitStatus> {
+     ensure_rustup();
+-    options.validate()?;
+     let mut cmd = toolchain::driver_cmd()?;
+     let target = match arg_value(&options.rustc_args, "--target") {
+         Some(target) => target.to_owned(),
+diff --git a/charon/src/options.rs b/charon/src/options.rs
+index 68216fcc8..f50476560 100644
+--- a/charon/src/options.rs
++++ b/charon/src/options.rs
+@@ -614,7 +614,9 @@ impl CliOpts {
+                     self.reconstruct_panic_calls = true;
+                     self.reconstruct_asserts = true;
+                     self.reconstruct_matches = true;
+-                    self.resugar_drops = true;
++                    if !self.desugar_drops {
++                        self.resugar_drops = true;
++                    }
+                     if !self.monomorphize {
+                         self.ops_to_function_calls = true;
+                         self.index_to_function_calls = true;

@@ -25,12 +25,14 @@ sha256sum proofs/Generated/{Ascii.lean,translation.json} > evidence/generated-be
 python3 tools/extract.py
 sha256sum --check evidence/generated-before.sha256
 if rg -n '\bsorry\b|\baxiom\b' proofs --glob '*.lean' --glob '!**/.lake/**'; then exit 1; fi
-(cd proofs; lake build; lake env lean Proofs.lean) 2>&1 | tee evidence/verification.log
+(cd proofs; lake build) 2>&1 | tee evidence/verification.log
 python3 - <<'INNER'
 from pathlib import Path
 import re
-rows=re.findall(r"'(?:Proofs|StringProofs)\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
-assert len(rows)>=31,rows
+rows=re.findall(r"'(?:Proofs|StringProofs|SliceProofs)\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
+assert len(rows)>=38,rows
 for n,a in rows:assert set(a.split(', '))<={'propext','Classical.choice','Quot.sound'},(n,a)
-print('All twenty-eight API theorems and audited casefold/push helpers transitive axiom audits passed')
+print('All thirty-five API theorems and audited casefold/push helpers transitive axiom audits passed')
 INNER
+
+python3 tools/audit-all.py . evidence/machine-claims-audit

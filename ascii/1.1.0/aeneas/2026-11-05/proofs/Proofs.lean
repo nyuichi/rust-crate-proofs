@@ -1,3 +1,4 @@
+import SliceProofs
 import StringProofs
 import Generated.Ascii
 import DigitProofs
@@ -257,3 +258,12 @@ end Proofs
 #print axioms StringProofs.push_spec
 #print axioms StringProofs.push_maximum_spec
 #print axioms StringProofs.push_full_spec
+
+#print axioms SliceProofs.as_slice_spec
+#print axioms SliceProofs.as_mut_slice_spec
+#print axioms SliceProofs.len_spec
+#print axioms SliceProofs.is_empty_spec
+
+#print axioms SliceProofs.as_ascii_str_identity_spec
+#print axioms SliceProofs.as_ascii_str_unchecked_identity_spec
+#print axioms SliceProofs.as_mut_ascii_str_unchecked_identity_spec

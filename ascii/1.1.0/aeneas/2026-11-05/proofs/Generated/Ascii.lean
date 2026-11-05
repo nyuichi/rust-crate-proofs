@@ -565,6 +565,43 @@ def
   (self : ascii_char.AsciiChar) : Result ascii_char.AsciiChar := do
   ok self
 
+/-- [ascii::ascii_str::AsciiStr]
+    Source: 'src/ascii_str.rs', lines 26:0-28:1
+    Visibility: public -/
+structure ascii_str.AsciiStr where
+  slice : Slice ascii_char.AsciiChar
+
+/-- [ascii::ascii_str::{ascii::ascii_str::AsciiStr}::as_slice]:
+    Source: 'src/ascii_str.rs', lines 50:4-52:5
+    Visibility: public -/
+def ascii_str.AsciiStr.as_slice
+  (self : ascii_str.AsciiStr) : Result (Slice ascii_char.AsciiChar) := do
+  ok self.slice
+
+/-- [ascii::ascii_str::{ascii::ascii_str::AsciiStr}::as_mut_slice]:
+    Source: 'src/ascii_str.rs', lines 57:4-59:5
+    Visibility: public -/
+def ascii_str.AsciiStr.as_mut_slice
+  (self : ascii_str.AsciiStr) :
+  Result ((Slice ascii_char.AsciiChar) × (Slice ascii_char.AsciiChar →
+    ascii_str.AsciiStr))
+  := do
+  let back := fun s => ({ slice := s } : ascii_str.AsciiStr)
+  ok (self.slice, back)
+
+/-- [ascii::ascii_str::{ascii::ascii_str::AsciiStr}::len]:
+    Source: 'src/ascii_str.rs', lines 142:4-144:5
+    Visibility: public -/
+def ascii_str.AsciiStr.len (self : ascii_str.AsciiStr) : Result Std.Usize := do
+  ok (Slice.len self.slice)
+
+/-- [ascii::ascii_str::{ascii::ascii_str::AsciiStr}::is_empty]:
+    Source: 'src/ascii_str.rs', lines 158:4-160:5
+    Visibility: public -/
+def ascii_str.AsciiStr.is_empty (self : ascii_str.AsciiStr) : Result Bool := do
+  let i ← ascii_str.AsciiStr.len self
+  ok (i = 0#usize)
+
 /-- [ascii::ascii_str::AsAsciiStrError]
     Source: 'src/ascii_str.rs', lines 807:0-807:34
     Visibility: public -/
@@ -577,6 +614,33 @@ def ascii_str.AsAsciiStrError := Std.Usize
 def ascii_str.AsAsciiStrError.valid_up_to
   (self : ascii_str.AsAsciiStrError) : Result Std.Usize := do
   ok self
+
+/-- [ascii::ascii_str::{impl ascii::ascii_str::AsAsciiStr<ascii::ascii_char::AsciiChar> for ascii::ascii_str::AsciiStr}::as_ascii_str]:
+    Source: 'src/ascii_str.rs', lines 1004:4-1006:5
+    Visibility: public -/
+def ascii_str.AsciiStr.Insts.AsciiAscii_strAsAsciiStrAsciiChar.as_ascii_str
+  (self : ascii_str.AsciiStr) :
+  Result (core.result.Result ascii_str.AsciiStr ascii_str.AsAsciiStrError)
+  := do
+  ok (core.result.Result.Ok self)
+
+/-- [ascii::ascii_str::{impl ascii::ascii_str::AsAsciiStr<ascii::ascii_char::AsciiChar> for ascii::ascii_str::AsciiStr}::as_ascii_str_unchecked]:
+    Source: 'src/ascii_str.rs', lines 1009:4-1011:5
+    Visibility: public -/
+def
+  ascii_str.AsciiStr.Insts.AsciiAscii_strAsAsciiStrAsciiChar.as_ascii_str_unchecked
+  (self : ascii_str.AsciiStr) : Result ascii_str.AsciiStr := do
+  ok self
+
+/-- [ascii::ascii_str::{impl ascii::ascii_str::AsMutAsciiStr<ascii::ascii_char::AsciiChar> for ascii::ascii_str::AsciiStr}::as_mut_ascii_str_unchecked]:
+    Source: 'src/ascii_str.rs', lines 1027:4-1029:5
+    Visibility: public -/
+def
+  ascii_str.AsciiStr.Insts.AsciiAscii_strAsMutAsciiStrAsciiChar.as_mut_ascii_str_unchecked
+  (self : ascii_str.AsciiStr) :
+  Result (ascii_str.AsciiStr × (ascii_str.AsciiStr → ascii_str.AsciiStr))
+  := do
+  ok (self, fun self1 => self1)
 
 /-- [ascii::ascii_string::AsciiString]
     Source: 'src/ascii_string.rs', lines 25:0-27:1
