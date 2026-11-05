@@ -7,10 +7,14 @@ ROOT=HERE.parents[1]
 p=argparse.ArgumentParser();p.add_argument('--publish',action='store_true');p.add_argument('--crate',action='append',default=[]);a=p.parse_args()
 ledger_path=HERE/'proof-updates.json';ledger=json.loads(ledger_path.read_text())
 rows=[r for r in ledger['updates'] if r['crate'] in a.crate and r['publication_status']=='new_catalogue_quota_hold' and r['publisher_fresh_record_status']=='passed']
-if len(rows)>5:raise SystemExit('Select no more than five pending crate imports per invocation; service quota remains authoritative.')
+current=json.loads((HERE/'current-public-reports.json').read_text())
+if not rows:
+ print(f"No pending legacy publication records. {len(current['reports'])} reports / {current['mapped_contract_sum']} scoped model contracts are already public; full API completion remains false.")
+ print('New proof snapshots require their own source/configuration and fresh recorded run; this script does not reuse prior results for changed snapshots.')
+ raise SystemExit(0)
 for r in rows:print(r['crate'],r['version'],r['publisher_run_id'])
 if not a.publish:
- print('Plan only. Select --crate NAME explicitly; --publish makes service requests. Quota reset is not verified against the deployed revision.')
+ print('Plan only. Select --crate NAME explicitly; --publish makes service requests. Service limits remain authoritative; stop on any error. Historical import quota notes do not describe the current SARIF-first publication protocol.')
  raise SystemExit(0)
 for r in rows:
  manifest=(ROOT/r['artifact_path']/'Cargo.toml').resolve();proof=manifest.parent/'proofs'
