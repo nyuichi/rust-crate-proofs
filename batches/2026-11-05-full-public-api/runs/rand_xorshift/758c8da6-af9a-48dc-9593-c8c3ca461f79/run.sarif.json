@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "artifacts": [
+        {
+          "contents": {
+            "text": "✔ [1796/1799] Built RandXorshift.Types (1.7s)\n✔ [1797/1799] Built RandXorshift.FunsExternal (1.6s)\n✔ [1798/1799] Built RandXorshift.Funs (1.7s)\nℹ [1799/1799] Built Proofs (2.2s)\ninfo: Proofs.lean:32:0: 'Proofs.try_next_u32_spec' depends on axioms: [propext, Classical.choice, Quot.sound]\nBuild completed successfully (1799 jobs).\n\n$ lake env lean --stdin (proofs.rs theorem/axiom audit)\nproofs.rs:checked:Proofs.try_next_u32_spec\n"
+          }
+        },
+        {
+          "contents": {
+            "text": "info: aeneas: materializing new dependency\ninfo: aeneas: fetching revision 'be86ab0f1989d04944292b345b24c435be3ad10a' from https://github.com/AeneasVerif/aeneas\ninfo: aeneas: checking out revision 'be86ab0f1989d04944292b345b24c435be3ad10a'\ninfo: mathlib: materializing new dependency\ninfo: mathlib: fetching revision '56a005855ea17e0b0958f73ec801ae140b0a1679' from https://github.com/leanprover-community/mathlib4.git\ninfo: mathlib: checking out revision '56a005855ea17e0b0958f73ec801ae140b0a1679'\ninfo: plausible: materializing new dependency\ninfo: plausible: fetching revision 'dfa4f38190d07c37e315953e08b90fe2d95b3c24' from https://github.com/leanprover-community/plausible\ninfo: plausible: checking out revision 'dfa4f38190d07c37e315953e08b90fe2d95b3c24'\ninfo: LeanSearchClient: materializing new dependency\ninfo: LeanSearchClient: fetching revision 'd6b4c7be5be75ec4917c873ac50c756dc1436372' from https://github.com/leanprover-community/LeanSearchClient\ninfo: LeanSearchClient: checking out revision 'd6b4c7be5be75ec4917c873ac50c756dc1436372'\ninfo: importGraph: materializing new dependency\ninfo: importGraph: fetching revision 'a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93' from https://github.com/leanprover-community/import-graph\ninfo: importGraph: checking out revision 'a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93'\ninfo: proofwidgets: materializing new dependency\ninfo: proofwidgets: fetching revision 'df72b022e558978a1c50264cfc4d7fec86fa8e04' from https://github.com/leanprover-community/ProofWidgets4\ninfo: proofwidgets: checking out revision 'df72b022e558978a1c50264cfc4d7fec86fa8e04'\ninfo: aesop: materializing new dependency\ninfo: aesop: fetching revision '4a174c490d8707121c4a9290800489f105d85e07' from https://github.com/leanprover-community/aesop\ninfo: aesop: checking out revision '4a174c490d8707121c4a9290800489f105d85e07'\ninfo: Qq: materializing new dependency\ninfo: Qq: fetching revision 'dce0ad79c486cb1fb504af04f953c3466b0c6db8' from https://github.com/leanprover-community/quote4\ninfo: Qq: checking out revision 'dce0ad79c486cb1fb504af04f953c3466b0c6db8'\ninfo: batteries: materializing new dependency\ninfo: batteries: fetching revision '66e469188fe07963e5cf666c7d4433f45b8131c5' from https://github.com/leanprover-community/batteries\ninfo: batteries: checking out revision '66e469188fe07963e5cf666c7d4433f45b8131c5'\ninfo: Cli: materializing new dependency\ninfo: Cli: fetching revision 'c24fe6078c630e89b489bffe59b3e20ac30d12c8' from https://github.com/leanprover/lean4-cli\ninfo: Cli: checking out revision 'c24fe6078c630e89b489bffe59b3e20ac30d12c8'\n"
+          }
+        }
+      ],
+      "automationDetails": {
+        "guid": "758c8da6-af9a-48dc-9593-c8c3ca461f79"
+      },
+      "invocations": [
+        {
+          "arguments": [
+            "build",
+            "+Proofs"
+          ],
+          "endTimeUtc": "2026-11-05T11:34:45.090351096+00:00",
+          "environmentVariables": {},
+          "executableLocation": {
+            "uri": "lake"
+          },
+          "executionSuccessful": true,
+          "exitCode": 0,
+          "startTimeUtc": "2026-11-05T11:33:13.918181774+00:00",
+          "stderr": {
+            "index": 1
+          },
+          "stdout": {
+            "index": 0
+          },
+          "workingDirectory": {
+            "uri": "rand_xorshift/0.5.0/aeneas/2026-11-05/proofs/"
+          }
+        }
+      ],
+      "properties": {
+        "proofs": {
+          "aeneas": {
+            "audit_command": [
+              "lake",
+              "env",
+              "lean",
+              "--stdin"
+            ],
+            "audit_source": "import Lean\nimport Proofs\nopen Lean Elab Command\n\nrun_cmd do\n  let theorem_name := `Proofs.try_next_u32_spec\n  match (← getEnv).find? theorem_name with\n  | some (.thmInfo _) => pure ()\n  | _ => throwError \"Expected a theorem: Proofs.try_next_u32_spec\"\n  let axioms ← Lean.collectAxioms theorem_name\n  for ax in axioms do\n    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do\n      throwError \"Unapproved axiom in Proofs.try_next_u32_spec: {ax}\"\n  liftIO <| IO.println \"proofs.rs:checked:Proofs.try_next_u32_spec\"\n",
+            "backend": "lean",
+            "lean_dir": "proofs",
+            "proofs": [
+              {
+                "api": "<rand_xorshift::XorShiftRng as rand_core::TryRng>::try_next_u32",
+                "module": "Proofs",
+                "precondition": "Any four-u32 internal state, including all zero; three explicit std Wrapping operator models are used and independently checked with Kani.",
+                "theorem": "Proofs.try_next_u32_spec"
+              }
+            ]
+          },
+          "contracts": [
+            {
+              "api_paths": [
+                "<rand_xorshift::XorShiftRng as TryRng>::try_next_u32",
+                "<rand_xorshift::XorShiftRng as rand_core::TryRng>::try_next_u32"
+              ],
+              "file": "rand_xorshift/0.5.0/aeneas/2026-11-05/proofs/Proofs.lean",
+              "first_line": 1,
+              "harness": "Proofs.try_next_u32_spec",
+              "last_line": 32,
+              "precondition": "Any four-u32 internal state, including all zero; three explicit std Wrapping operator models are used and independently checked with Kani."
+            }
+          ],
+          "crate": "rand_xorshift",
+          "dependencies": [
+            {
+              "crate": "cobs",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "0.3.0"
+            },
+            {
+              "crate": "postcard",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.1.3"
+            },
+            {
+              "crate": "proc-macro2",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.0.103"
+            },
+            {
+              "crate": "quote",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.0.42"
+            },
+            {
+              "crate": "rand_core",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "0.10.0"
+            },
+            {
+              "crate": "serde",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.0.228"
+            },
+            {
+              "crate": "serde_core",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.0.228"
+            },
+            {
+              "crate": "serde_derive",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.0.228"
+            },
+            {
+              "crate": "syn",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "2.0.111"
+            },
+            {
+              "crate": "thiserror",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "2.0.17"
+            },
+            {
+              "crate": "thiserror-impl",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "2.0.17"
+            },
+            {
+              "crate": "unicode-ident",
+              "source": "registry+https://github.com/rust-lang/crates.io-index",
+              "version": "1.0.22"
+            }
+          ],
+          "platform": "linux x86_64",
+          "recorderVersion": "0.4.1",
+          "rustc": "rustc 1.100.0-nightly (923c95cdf 2026-09-16)\nbinary: rustc\ncommit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8\ncommit-date: 2026-09-16\nhost: x86_64-unknown-linux-gnu\nrelease: 1.100.0-nightly\nLLVM version: 23.1.1",
+          "schemaVersion": 2,
+          "target": null,
+          "version": "0.5.0"
+        }
+      },
+      "results": [
+        {
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Lean checked theorem Proofs.try_next_u32_spec; axioms limited to propext, Classical.choice, Quot.sound"
+          },
+          "properties": {
+            "harness": "Proofs.try_next_u32_spec"
+          },
+          "ruleId": "aeneas.lean.theorem"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "aeneas",
+          "version": "be86ab0f1989d04944292b345b24c435be3ad10a"
+        }
+      },
+      "versionControlProvenance": [
+        {
+          "repositoryUri": "https://github.com/nyuichi/rust-crate-proofs",
+          "revisionId": "4f5d8712ad17938c68893ba018a7bf669b2f78b0"
+        }
+      ]
+    }
+  ],
+  "version": "2.1.0"
+}
