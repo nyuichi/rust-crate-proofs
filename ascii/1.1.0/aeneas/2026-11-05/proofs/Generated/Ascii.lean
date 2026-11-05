@@ -154,6 +154,37 @@ inductive ascii_char.AsciiChar where
 | Tilde : ascii_char.AsciiChar
 | DEL : ascii_char.AsciiChar
 
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::as_byte]:
+    Source: 'src/ascii_char.rs', lines 386:4-388:5
+    Visibility: public -/
+def ascii_char.AsciiChar.as_byte
+  (self : ascii_char.AsciiChar) : Result Std.U8 := do
+  let self1 := read_discriminant self
+  ok (UScalar.cast .U8 self1)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::to_not_upper]:
+    Source: 'src/ascii_char.rs', lines 406:4-408:5 -/
+def ascii_char.AsciiChar.to_not_upper
+  (self : ascii_char.AsciiChar) : Result Std.U8 := do
+  let self1 := read_discriminant self
+  let i ← lift (UScalar.cast .U8 self1)
+  ok (i ||| 32#u8)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_alphabetic]:
+    Source: 'src/ascii_char.rs', lines 413:4-415:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_alphabetic
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let i ← ascii_char.AsciiChar.to_not_upper self
+  ok ((i >= 97#u8) && (i <= 122#u8))
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_alphabetic]:
+    Source: 'src/ascii_char.rs', lines 422:4-424:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_alphabetic
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  ascii_char.AsciiChar.is_alphabetic self
+
 /-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_digit]:
     Source: 'src/ascii_char.rs', lines 459:4-461:5
     Visibility: public -/
@@ -164,6 +195,22 @@ def ascii_char.AsciiChar.is_ascii_digit
   let self2 := read_discriminant self
   let i1 ← lift (UScalar.cast .U8 self2)
   ok ((i >= 48#u8) && (i1 <= 57#u8))
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_alphanumeric]:
+    Source: 'src/ascii_char.rs', lines 466:4-468:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_alphanumeric
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let b ← ascii_char.AsciiChar.is_alphabetic self
+  let b1 ← ascii_char.AsciiChar.is_ascii_digit self
+  ok (b || b1)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_alphanumeric]:
+    Source: 'src/ascii_char.rs', lines 475:4-477:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_alphanumeric
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  ascii_char.AsciiChar.is_alphanumeric self
 
 /-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_blank]:
     Source: 'src/ascii_char.rs', lines 493:4-495:5
@@ -200,5 +247,68 @@ def ascii_char.AsciiChar.is_ascii_control
   let self2 := read_discriminant self
   let i1 ← lift (UScalar.cast .U8 self2)
   ok ((i < 32#u8) || (i1 = 127#u8))
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_graphic]:
+    Source: 'src/ascii_char.rs', lines 547:4-549:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_graphic
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let i ← ascii_char.AsciiChar.as_byte self
+  let i1 ← 32#u8 + 1#u8
+  let i2 ← lift (core.num.U8.wrapping_sub i i1)
+  ok (i2 < 94#u8)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_printable]:
+    Source: 'src/ascii_char.rs', lines 562:4-564:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_printable
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let i ← ascii_char.AsciiChar.as_byte self
+  let i1 ← lift (core.num.U8.wrapping_sub i 32#u8)
+  ok (i1 < 95#u8)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_lowercase]:
+    Source: 'src/ascii_char.rs', lines 577:4-579:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_lowercase
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let i ← ascii_char.AsciiChar.as_byte self
+  let i1 ← lift (core.num.U8.wrapping_sub i 97#u8)
+  ok (i1 < 26#u8)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_lowercase]:
+    Source: 'src/ascii_char.rs', lines 586:4-588:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_lowercase
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  ascii_char.AsciiChar.is_lowercase self
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_uppercase]:
+    Source: 'src/ascii_char.rs', lines 601:4-603:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_uppercase
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let i ← ascii_char.AsciiChar.as_byte self
+  let i1 ← lift (core.num.U8.wrapping_sub i 65#u8)
+  ok (i1 < 26#u8)
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_uppercase]:
+    Source: 'src/ascii_char.rs', lines 610:4-612:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_uppercase
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  ascii_char.AsciiChar.is_uppercase self
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_hexdigit]:
+    Source: 'src/ascii_char.rs', lines 643:4-645:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_hexdigit
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let b ← ascii_char.AsciiChar.is_ascii_digit self
+  let self1 := read_discriminant self
+  let i ← lift (UScalar.cast .U8 self1)
+  let i1 ← lift (i ||| 32#u8)
+  let i2 ← lift (core.num.U8.wrapping_sub i1 97#u8)
+  ok (b || (i2 < 6#u8))
 
 end ascii

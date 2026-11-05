@@ -8,6 +8,7 @@ cargo test --locked 2>&1 | tee evidence/tests.log
 sha256sum proofs/{RandPcg.lean,translation.json} > evidence/generated-before.sha256
 python3 tools/extract.py 2>&1 | tee evidence/extraction.log
 sha256sum --check evidence/generated-before.sha256
+python3 tools/check-serde-translation.py | tee evidence/serde-equivalence.log
 if rg -n '\b(sorry|axiom)\b' proofs/Proofs.lean proofs/RandPcg.lean; then exit 1; fi
 (cd proofs; lake build; lake env lean Proofs.lean) 2>&1 | tee evidence/verification.log
 python3 - <<'AUDIT'

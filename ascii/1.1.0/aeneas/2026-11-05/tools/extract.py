@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess,json
 r=Path(__file__).resolve().parents[1]
-roots=['ascii::ascii_char::AsciiChar::is_ascii_blank', 'ascii::ascii_char::AsciiChar::is_ascii_digit', 'ascii::ascii_char::AsciiChar::is_ascii_whitespace', 'ascii::ascii_char::AsciiChar::is_ascii_control']
+roots = ['ascii::ascii_char::AsciiChar::is_ascii_blank', 'ascii::ascii_char::AsciiChar::is_ascii_digit', 'ascii::ascii_char::AsciiChar::is_ascii_whitespace', 'ascii::ascii_char::AsciiChar::is_ascii_control', 'ascii::ascii_char::AsciiChar::is_ascii_alphabetic', 'ascii::ascii_char::AsciiChar::is_ascii_alphanumeric', 'ascii::ascii_char::AsciiChar::is_ascii_graphic', 'ascii::ascii_char::AsciiChar::is_ascii_printable', 'ascii::ascii_char::AsciiChar::is_ascii_lowercase', 'ascii::ascii_char::AsciiChar::is_ascii_uppercase', 'ascii::ascii_char::AsciiChar::is_ascii_hexdigit', 'ascii::ascii_char::AsciiChar::as_byte']
 cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence']
 for root in roots:cmd+=['--start-from',root]
 (r/'evidence/extraction-command.json').write_text(json.dumps(cmd,indent=2)+'\n')

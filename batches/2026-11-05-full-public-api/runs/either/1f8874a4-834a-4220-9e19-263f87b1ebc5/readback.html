@@ -1,0 +1,653 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #27 — Branch operations, borrowed views and payload factoring in Either · proofs.rs</title><meta name="description" content="For either 1.19.0 with default features on x86_64, is_left/is_right identify the actual branch; left/right return the corresponding optional payload; left_or/ri"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Branch operations, borrowed views and payload factoring in Either · either 1.19.0 · proofs.rs"><meta property="og:description" content="For either 1.19.0 with default features on x86_64, is_left/is_right identify the actual branch; left/right return the corresponding optional payload; left_or/ri"><meta property="og:url" content="https://proofs.rs/report/27?v=2"><meta property="og:image" content="https://proofs.rs/og/report/27/2.png"><meta property="og:image:alt" content="Branch operations, borrowed views and payload factoring in Either · either 1.19.0"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Branch operations, borrowed views and payload factoring in Either · either 1.19.0 · proofs.rs"><meta name="twitter:description" content="For either 1.19.0 with default features on x86_64, is_left/is_right identify the actual branch; left/right return the corresponding optional payload; left_or/ri"><meta name="twitter:image" content="https://proofs.rs/og/report/27/2.png"><meta name="twitter:image:alt" content="Branch operations, borrowed views and payload factoring in Either · either 1.19.0"><link rel="canonical" href="https://proofs.rs/report/27"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F27">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/either?version=1.19.0">either 1.19.0</a> <span aria-hidden="true">/</span> <a href="/crate/either?version=1.19.0#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #27 — Branch operations, borrowed views and payload factoring in Either</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">14 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 01:23 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Branch%20operations%2C%20borrowed%20views%20and%20payload%20factoring%20in%20Either%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F27%3Fv%3D2"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Branch%20operations%2C%20borrowed%20views%20and%20payload%20factoring%20in%20Either%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F27%3Fv%3D2"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/27?v=2" aria-current="page">v2</a> · <a href="/report/27?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For either 1.19.0 with default features on x86_64, is_left/is_right identify the actual branch; left/right return the corresponding optional payload; left_or/right_or select that payload or the given default; flip swaps the branch and a separate composition theorem proves flipping twice returns the original value. left_and/right_and select the supplied value or preserve the opposite payload. factor_none moves the optional payload outside Either while retaining its tag. factor_first/factor_second move the common tuple component outside Either. as_ref preserves the variant and referenced value; as_mut preserves the initial view and its generated backward function writes a matching-variant replacement payload back to the original variant. The fourteen original bodies terminate normally in the model for all well-typed values in their stated domains.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (14)</h2><section class="api-category"><h3>Methods</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;(L, T), (R, T)&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::factor_second" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/70c66954e1dc485f39e240dd2fdf2f861b8bf93804232cc04ad51e4c935262b4">factor_second</a>(self: Self) -&gt; (Either&lt;L, R&gt;, T)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/edb21584-505e-4ed1-81cd-b314d086555a?report_revision=2">Claim #12</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;(T, L), (T, R)&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::factor_first" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/001116cc3fcbf6a6173ba37482d05fc424ae084558dbcb5066c14d367948ced9">factor_first</a>(self: Self) -&gt; (T, Either&lt;L, R&gt;)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/df823c22-b18f-4890-a2b0-348416426bb4?report_revision=2">Claim #11</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;L, R&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::as_mut" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/ba5322bfd26cc26b798afd0c2156988a8c3af7e121305172500d6c1eba6cb8ee">as_mut</a>(self: &amp;mut Self) -&gt; Either&lt;&amp;mut L, &amp;mut R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/fe8a46c6-af6d-4552-a4db-4cc6a657d9e8?report_revision=2">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="either::Either::as_ref" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/2a1a74f4ebbe20c3dcb68344ff03fb3408fc8b837b8ae31aaac29156bf14c1c1">as_ref</a>(self: &amp;Self) -&gt; Either&lt;&amp;L, &amp;R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7c327ea5-6f33-46a5-9633-30f934442911?report_revision=2">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="either::Either::flip" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/21070662bec510ab438b5771b114de055fdfa599ad5cc5160ff9b1e6a16f9652">flip</a>(self: Self) -&gt; Either&lt;R, L&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/2f7de010-8d6c-4ff4-839b-5201cfd9695f?report_revision=2">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_left" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/142b5e1317102f0a0850e6205e8ce4697d25db7734552e06678ec8c1a2ac7f83">is_left</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/bc32a7b4-912b-4e5f-a60c-d3c7eed42963?report_revision=2">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_right" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/5379a396696d68be44f224cfe1d91108d66dafd4c7759882e3d0a7b768a4acce">is_right</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9550ce81-e4de-485e-b43d-005baa9a4255?report_revision=2">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/38afc026838d2d42ae946a276ef2b3c3c795412706b265080f4e47e74f30af83">left</a>(self: Self) -&gt; Option&lt;L&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/350ab33c-953f-4c38-9ce7-19eb5b6d84d1?report_revision=2">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_and" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/60233705d2b0bee08c0ad6ac63d67101af819051e2164ec00a5037e1a2c268a3">left_and</a>&lt;S&gt;(self: Self, other: Either&lt;S, R&gt;) -&gt; Either&lt;S, R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/453c0ea5-5b29-472d-8688-8283bc915dbf?report_revision=2">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/abf93889afb90228f6cd10b8d84409b75740d27db8b0de0ab1597a7148518ce9">left_or</a>(self: Self, other: L) -&gt; L</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8cc7eb7f-83e5-479e-b62c-c28fe74f2be3?report_revision=2">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9e57aa2fa054d07d02d9e3e23f854c1fc90351fa1c774fb5ffab315cde969681">right</a>(self: Self) -&gt; Option&lt;R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/2e8d8552-9b5d-40d8-8430-5d8e46af8269?report_revision=2">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_and" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/07b720a0c384fb465c3f734bf4cd79e900de68b41e11079a6af28238c1f8f659">right_and</a>&lt;S&gt;(self: Self, other: Either&lt;L, S&gt;) -&gt; Either&lt;L, S&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/88ceebc3-2185-480a-af70-6c8a228975ae?report_revision=2">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/766ddd387fbb107f18747d7fcf8b7b387fdb26ceb4d006e63114646a5861cee9">right_or</a>(self: Self, other: R) -&gt; R</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e96f1db9-2d55-44fb-a40b-dc3cc0e2fae2?report_revision=2">Claim #7</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;core::option::Option&lt;L&gt;, core::option::Option&lt;R&gt;&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::factor_none" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/0ecb0a971b37f9b9d49721aeafb358f35f19f31e6b77326ea91b177c9dd62b0c">factor_none</a>(self: Self) -&gt; Option&lt;Either&lt;L, R&gt;&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/13394920-52f2-42d9-a479-b4fc793cc290?report_revision=2">Claim #10</a></span></div></div></section></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/bfd99993002c959e3581f36a16497af7a25606fb" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/bfd99993002c959e3581f36a16497af7a25606fb</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-27-source-1
+git -C report-27-source-1 checkout --detach bfd99993002c959e3581f36a16497af7a25606fb
+git -C report-27-source-1 submodule update --init --recursive --checkout
+cd report-27-source-1/either/1.19.0/aeneas/2026-11-05/proofs
+
+lake build +Proofs
+
+printf &#39;%s&#39; &#39;import Lean
+import Proofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.is_left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_left_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_left_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_left_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_right_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_right_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_right_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.left_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.left_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.left_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.right_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.right_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.right_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.flip_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.flip_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.flip_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.flip_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.left_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.left_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.left_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.left_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.right_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.right_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.right_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.right_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.left_and_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.left_and_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.left_and_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.left_and_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.right_and_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.right_and_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.right_and_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.right_and_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.factor_none_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.factor_none_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.factor_none_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.factor_none_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.factor_first_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.factor_first_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.factor_first_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.factor_first_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.factor_second_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.factor_second_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.factor_second_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.factor_second_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.as_ref_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.as_ref_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.as_ref_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.as_ref_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.as_mut_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.as_mut_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.as_mut_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.as_mut_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/bfd99993002c959e3581f36a16497af7a25606fb">Source on GitHub</a> · <a href="/api/v1/runs/1f8874a4-834a-4220-9e19-263f87b1ebc5/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 14 checks passed · 0 failed</p><p class="meta">2026-11-05T01:56:56.879588424+00:00 · 140.9 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e69735f6c6566745f73706563"><td>Lean checked theorem Proofs.is_left_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_left_spec</code></div></td><td>Passed</td><td><a href="/claim/bc32a7b4-912b-4e5f-a60c-d3c7eed42963?report_revision=2">Claim #1</a></td></tr><tr id="check-50726f6f66732e69735f72696768745f73706563"><td>Lean checked theorem Proofs.is_right_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_right_spec</code></div></td><td>Passed</td><td><a href="/claim/9550ce81-e4de-485e-b43d-005baa9a4255?report_revision=2">Claim #2</a></td></tr><tr id="check-50726f6f66732e6c6566745f73706563"><td>Lean checked theorem Proofs.left_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.left_spec</code></div></td><td>Passed</td><td><a href="/claim/350ab33c-953f-4c38-9ce7-19eb5b6d84d1?report_revision=2">Claim #3</a></td></tr><tr id="check-50726f6f66732e72696768745f73706563"><td>Lean checked theorem Proofs.right_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.right_spec</code></div></td><td>Passed</td><td><a href="/claim/2e8d8552-9b5d-40d8-8430-5d8e46af8269?report_revision=2">Claim #4</a></td></tr><tr id="check-50726f6f66732e666c69705f73706563"><td>Lean checked theorem Proofs.flip_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.flip_spec</code></div></td><td>Passed</td><td><a href="/claim/2f7de010-8d6c-4ff4-839b-5201cfd9695f?report_revision=2">Claim #5</a></td></tr><tr id="check-50726f6f66732e6c6566745f6f725f73706563"><td>Lean checked theorem Proofs.left_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.left_or_spec</code></div></td><td>Passed</td><td><a href="/claim/8cc7eb7f-83e5-479e-b62c-c28fe74f2be3?report_revision=2">Claim #6</a></td></tr><tr id="check-50726f6f66732e72696768745f6f725f73706563"><td>Lean checked theorem Proofs.right_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.right_or_spec</code></div></td><td>Passed</td><td><a href="/claim/e96f1db9-2d55-44fb-a40b-dc3cc0e2fae2?report_revision=2">Claim #7</a></td></tr><tr id="check-50726f6f66732e6c6566745f616e645f73706563"><td>Lean checked theorem Proofs.left_and_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.left_and_spec</code></div></td><td>Passed</td><td><a href="/claim/453c0ea5-5b29-472d-8688-8283bc915dbf?report_revision=2">Claim #8</a></td></tr><tr id="check-50726f6f66732e72696768745f616e645f73706563"><td>Lean checked theorem Proofs.right_and_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.right_and_spec</code></div></td><td>Passed</td><td><a href="/claim/88ceebc3-2185-480a-af70-6c8a228975ae?report_revision=2">Claim #9</a></td></tr><tr id="check-50726f6f66732e666163746f725f6e6f6e655f73706563"><td>Lean checked theorem Proofs.factor_none_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.factor_none_spec</code></div></td><td>Passed</td><td><a href="/claim/13394920-52f2-42d9-a479-b4fc793cc290?report_revision=2">Claim #10</a></td></tr><tr id="check-50726f6f66732e666163746f725f66697273745f73706563"><td>Lean checked theorem Proofs.factor_first_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.factor_first_spec</code></div></td><td>Passed</td><td><a href="/claim/df823c22-b18f-4890-a2b0-348416426bb4?report_revision=2">Claim #11</a></td></tr><tr id="check-50726f6f66732e666163746f725f7365636f6e645f73706563"><td>Lean checked theorem Proofs.factor_second_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.factor_second_spec</code></div></td><td>Passed</td><td><a href="/claim/edb21584-505e-4ed1-81cd-b314d086555a?report_revision=2">Claim #12</a></td></tr><tr id="check-50726f6f66732e61735f7265665f73706563"><td>Lean checked theorem Proofs.as_ref_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.as_ref_spec</code></div></td><td>Passed</td><td><a href="/claim/7c327ea5-6f33-46a5-9633-30f934442911?report_revision=2">Claim #13</a></td></tr><tr id="check-50726f6f66732e61735f6d75745f73706563"><td>Lean checked theorem Proofs.as_mut_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.as_mut_spec</code></div></td><td>Passed</td><td><a href="/claim/fe8a46c6-af6d-4552-a4db-4cc6a657d9e8?report_revision=2">Claim #14</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T01:56:56.879588424+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T01:59:17.740084811+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">either/1.19.0/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">bfd99993002c959e3581f36a16497af7a25606fb</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/62] Built AeneasMeta.Simp.RegisterCommand (73s)
+✔ [437/586] Built AeneasMeta.UtilsCore (74s)
+✔ [558/683] Built Aeneas.Std.Global (74s)
+✔ [570/683] Built AeneasMeta.BvEnumToBitVec (74s)
+✔ [1575/1798] Built AeneasMeta.OptionConfig (76s)
+✔ [1797/1798] Built Generated.Either (2.7s)
+⚠ [1798/1798] Built Proofs (2.5s)
+warning: Proofs.lean:6:149: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:6:166: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:6:179: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:6:193: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:6:206: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:6:222: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:7:168: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:7:181: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:7:195: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:7:208: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:7:224: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:8:128: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:8:144: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:8:174: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:8:188: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:8:201: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:8:217: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:9:130: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:9:146: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:9:163: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:9:190: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:9:203: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:9:219: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:133: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:149: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:166: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:179: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:206: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:222: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:100: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:116: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:133: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:146: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:173: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:189: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:148: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:164: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:181: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:194: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:208: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:237: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:150: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:166: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:183: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:196: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:210: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:223: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:29:87: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleLEither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleREither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:29:130: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleREither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:29:226: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:29:304: This simp argument is unused:
+  Either.Right.constructor
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once, Either.Left.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:30:88: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleLEither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleREither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:30:131: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleREither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:30:174: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:30:280: This simp argument is unused:
+  Either.Left.constructor
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: Proofs.lean:32:0: &#39;Proofs.as_ref_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:33:0: &#39;Proofs.as_mut_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:34:0: &#39;Proofs.left_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:35:0: &#39;Proofs.right_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:36:0: &#39;Proofs.factor_first_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:37:0: &#39;Proofs.factor_second_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:38:0: &#39;Proofs.factor_none_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:40:0: &#39;Proofs.is_left_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:41:0: &#39;Proofs.is_right_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:42:0: &#39;Proofs.left_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:43:0: &#39;Proofs.right_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:44:0: &#39;Proofs.flip_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:45:0: &#39;Proofs.flip_twice&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:46:0: &#39;Proofs.left_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:47:0: &#39;Proofs.right_or_spec&#39; depends on axioms: [propext, Quot.sound]
+Build completed successfully (1798 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.is_left_spec
+proofs.rs:checked:Proofs.is_right_spec
+proofs.rs:checked:Proofs.left_spec
+proofs.rs:checked:Proofs.right_spec
+proofs.rs:checked:Proofs.flip_spec
+proofs.rs:checked:Proofs.left_or_spec
+proofs.rs:checked:Proofs.right_or_spec
+proofs.rs:checked:Proofs.left_and_spec
+proofs.rs:checked:Proofs.right_and_spec
+proofs.rs:checked:Proofs.factor_none_spec
+proofs.rs:checked:Proofs.factor_first_spec
+proofs.rs:checked:Proofs.factor_second_spec
+proofs.rs:checked:Proofs.as_ref_spec
+proofs.rs:checked:Proofs.as_mut_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Original crates.io either 1.19.0 Rust files and Cargo.toml, archive-compared; default features, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. The union of the fourteen roots is extracted once into one Generated module and proved in one Proofs module.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, official Charon/Aeneas translation, standard-library models and Lean kernel are trusted. Transitive theorem axioms are limited to propext, Classical.choice and Quot.sound. No local helper contracts or custom models are assumed. Reference contracts use Aeneas's value and backward-function semantics; they do not independently verify the compiler borrow checker or Rust aliasing model.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Only the fourteen named methods and the two-flip composition are proved. Remaining inherent methods, callback-taking APIs, iterators, pinning, standard trait implementations and serde remain unproved. Rust destructor behavior and resource consumption are outside the pure value model. All-feature/no-default configurations and other targets were not proved.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (2)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde" target="_blank" rel="noopener noreferrer"><code>serde</code></a> <code>^1.0.95</code> · optional</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde_json" target="_blank" rel="noopener noreferrer"><code>serde_json</code></a> <code>^1.0.0</code> · dev</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F27">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer></body></html>
