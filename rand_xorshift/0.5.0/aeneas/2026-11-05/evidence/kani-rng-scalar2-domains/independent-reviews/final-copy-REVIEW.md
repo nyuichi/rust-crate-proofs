@@ -1,0 +1,3 @@
+PASS final integration source/report scope. Independently matched26+27 frozen file hashes, both exact harnesses and root original Rust/Cargo; old primary claim including all preconditions unchanged. The584 publicseed-image and656 concrete-seqwire domains are distinct, withzero included only in the latter after directDeserialize. ActualRng/TryRng returnedword and wholeEqstate relations are not independent recurrence specifications.
+
+INTEGRATION-ERRATA and reportlimits explicitly supersede stale STATE-DOMAIN/PREPARED byfinalSTATUS, preserve source LE explanation/kernel distinction, relocation-not-rerun, August/September boundary and no seed_from_u64/MIRprobe guarantee. No new source/model/primary, build orsolver. Fresh/publicgate remains publisher.

@@ -1,0 +1,95 @@
+use serde::{Serialize,Serializer};
+use serde::ser::{self,SerializeStruct,Impossible};
+use rand_core::SeedableRng;
+use rand_xorshift::XorShiftRng;
+#[derive(Debug,PartialEq,Eq)] struct E(u32);
+impl core::fmt::Display for E { fn fmt(&self,f:&mut core::fmt::Formatter<'_>)->core::fmt::Result {write!(f,"error")} }
+impl core::error::Error for E {}
+impl ser::Error for E {fn custom<T:core::fmt::Display>(_:T)->Self {E(u32::MAX)}}
+struct Sink { bytes:[u8;16], fields:usize, fail:u8, code:u32, calls:usize, nested:bool }
+impl Sink { fn stage(&mut self,n:u8)->Result<(),E>{self.calls+=1;if self.fail==n {Err(E(self.code))}else{Ok(())}} }
+impl<'a> Serializer for &'a mut Sink {
+ type Ok=();type Error=E;
+ type SerializeSeq=Impossible<(),E>;type SerializeTuple=Impossible<(),E>;type SerializeTupleStruct=Impossible<(),E>;type SerializeTupleVariant=Impossible<(),E>;type SerializeMap=Impossible<(),E>;type SerializeStruct=Self;type SerializeStructVariant=Impossible<(),E>;
+ fn serialize_struct(self,name:&'static str,len:usize)->Result<Self,E>{ assert_eq!(name,"XorShiftRng");assert_eq!(len,4);self.stage(0)?;Ok(self) }
+ fn serialize_u32(self,v:u32)->Result<(),E>{ assert!(self.nested);assert!(self.fields<4);self.stage((2+2*self.fields)as u8)?;let b=v.to_le_bytes();for i in 0..4{self.bytes[4*self.fields+i]=b[i];}Ok(()) }
+fn serialize_bool(self,_:bool)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_i8(self,_:i8)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_i16(self,_:i16)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_i32(self,_:i32)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_i64(self,_:i64)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_i128(self,_:i128)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_u8(self,_:u8)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_u16(self,_:u16)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_u64(self,_:u64)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_u128(self,_:u128)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_f32(self,_:f32)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_f64(self,_:f64)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_char(self,_:char)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_str(self,_:&str)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_bytes(self,_:&[u8])->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_none(self)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_unit(self)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_unit_struct(self,_:&'static str)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_unit_variant(self,_:&'static str,_:u32,_:&'static str)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_seq(self,_:Option<usize>)->Result<Self::SerializeSeq,E>{Err(E(u32::MAX))}
+fn serialize_tuple(self,_:usize)->Result<Self::SerializeTuple,E>{Err(E(u32::MAX))}
+fn serialize_tuple_struct(self,_:&'static str,_:usize)->Result<Self::SerializeTupleStruct,E>{Err(E(u32::MAX))}
+fn serialize_tuple_variant(self,_:&'static str,_:u32,_:&'static str,_:usize)->Result<Self::SerializeTupleVariant,E>{Err(E(u32::MAX))}
+fn serialize_map(self,_:Option<usize>)->Result<Self::SerializeMap,E>{Err(E(u32::MAX))}
+fn serialize_struct_variant(self,_:&'static str,_:u32,_:&'static str,_:usize)->Result<Self::SerializeStructVariant,E>{Err(E(u32::MAX))}
+fn serialize_some<T:?Sized+Serialize>(self,_:&T)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_newtype_struct<T:?Sized+Serialize>(self,_:&'static str,_:&T)->Result<(),E>{Err(E(u32::MAX))}
+fn serialize_newtype_variant<T:?Sized+Serialize>(self,_:&'static str,_:u32,_:&'static str,_:&T)->Result<(),E>{Err(E(u32::MAX))}
+fn collect_str<T:?Sized+core::fmt::Display>(self,_:&T)->Result<(),E>{Err(E(u32::MAX))}
+}
+impl SerializeStruct for &mut Sink {type Ok=();type Error=E;
+ fn serialize_field<T:?Sized+Serialize>(&mut self,key:&'static str,v:&T)->Result<(),E>{assert!(self.fields<4);assert_eq!(key,["x","y","z","w"][self.fields]);self.stage((1+2*self.fields)as u8)?;self.nested=true;v.serialize(&mut **self)?;self.nested=false;self.fields+=1;Ok(())}
+ fn skip_field(&mut self,_:&'static str)->Result<(),E>{Err(E(u32::MAX))}
+ fn end(self)->Result<(),E>{assert_eq!(self.fields,4);self.stage(9)}
+}
+
+use serde::{Deserialize,Deserializer};
+use serde::de::{self,Visitor,SeqAccess,DeserializeSeed};
+impl de::Error for E {
+ fn custom<T:core::fmt::Display>(_:T)->Self{E(u32::MAX)}
+ fn invalid_length(n:usize,_:&dyn de::Expected)->Self{E(0x100+n as u32)}
+}
+struct Input{bytes:[u8;16],length:usize,index:usize,fail:u8,code:u32,calls:usize}
+impl Input {fn stage(&mut self,n:u8)->Result<(),E>{self.calls+=1;if n==self.fail{Err(E(self.code))}else{Ok(())}}}
+struct Word<'a>(&'a mut Input);
+impl<'de> Deserializer<'de> for Word<'_>{type Error=E;
+ fn deserialize_any<V:Visitor<'de>>(self,_:V)->Result<V::Value,E>{Err(E(u32::MAX))}
+ fn deserialize_u32<V:Visitor<'de>>(self,v:V)->Result<V::Value,E>{self.0.stage((2+2*self.0.index)as u8)?;let i=4*self.0.index;v.visit_u32(u32::from_le_bytes([self.0.bytes[i],self.0.bytes[i+1],self.0.bytes[i+2],self.0.bytes[i+3]]))}
+ serde::forward_to_deserialize_any!{bool i8 i16 i32 i64 i128 u8 u16 u64 u128 f32 f64 char str string bytes byte_buf option unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any}
+}
+impl<'de> SeqAccess<'de> for &mut Input{type Error=E;
+ fn next_element_seed<T:DeserializeSeed<'de>>(&mut self,seed:T)->Result<Option<T::Value>,E>{self.stage((1+2*self.index)as u8)?;if self.index>=self.length{return Ok(None)}let val=seed.deserialize(Word(&mut **self))?;self.index+=1;Ok(Some(val))}
+}
+impl<'de> Deserializer<'de> for &mut Input{type Error=E;
+ fn deserialize_any<V:Visitor<'de>>(self,_:V)->Result<V::Value,E>{Err(E(u32::MAX))}
+ fn deserialize_struct<V:Visitor<'de>>(self,name:&'static str,fields:&'static[&'static str],v:V)->Result<V::Value,E>{assert_eq!(name,"XorShiftRng");assert_eq!(fields,["x","y","z","w"]);self.stage(0)?;v.visit_seq(self)}
+ serde::forward_to_deserialize_any!{bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string bytes byte_buf option unit unit_struct newtype_struct seq tuple tuple_struct map enum identifier ignored_any}
+}
+
+// Original fixed successful Deserialize protocol, all16 wire bytes symbolic.
+// This is not a universal Deserializer or state-reachability theorem.
+#[cfg(kani)] fn from_wire(bytes:[u8;16])->XorShiftRng {
+ let mut input=Input{bytes,length:4,index:0,fail:9,code:0,calls:0};
+ let rng=XorShiftRng::deserialize(&mut input).unwrap();
+ assert_eq!(input.calls,9);assert_eq!(input.index,4);rng
+}
+#[cfg(kani)] #[kani::proof] #[kani::unwind(20)]
+fn original_rng_next32_allwire(){
+ let bytes:[u8;16]=kani::any();let mut a=from_wire(bytes);let mut b=a.clone();
+ let x=<XorShiftRng as rand_core::Rng>::next_u32(&mut a);
+ let y=match <XorShiftRng as rand_core::TryRng>::try_next_u32(&mut b){Ok(v)=>v,Err(e)=>match e{}};
+ assert_eq!(x,y);assert!(a==b);
+}
+#[cfg(kani)] #[kani::proof] #[kani::unwind(20)]
+fn original_rng_next64_allwire(){
+ let bytes:[u8;16]=kani::any();let mut a=from_wire(bytes);let mut b=a.clone();
+ let x=<XorShiftRng as rand_core::Rng>::next_u64(&mut a);
+ let y=match <XorShiftRng as rand_core::TryRng>::try_next_u64(&mut b){Ok(v)=>v,Err(e)=>match e{}};
+ assert_eq!(x,y);assert!(a==b);
+}

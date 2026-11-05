@@ -1,0 +1,4 @@
+PASS for the all16wire concrete successful seq4 Deserialize domain and direct Rng/TryRng scalar/equal-poststate contract. Independently matched27 frozen hashes, source-domain pins, original runtime/Cargo archive and raw326+330 successful checks with4unreachable. Zero state is included. All-four-word coverage is a source/LE inverse explanation, not an independent kernel theorem or compiler equivalence claim.
+
+Editorial correction before publication: STATE-DOMAIN.md retains “Its solver is not yet run.” from pre-run preparation. STATUS supersedes this scalar2 sentence too; preserve frozen raw and explain chronology in public prose. No arbitrary Deserializer/history/period claim or build/solver rerun.
+The analogous upcoming-scalar2 note in STATE-DOMAIN.json mechanical_boundary is also stale and superseded by STATUS.

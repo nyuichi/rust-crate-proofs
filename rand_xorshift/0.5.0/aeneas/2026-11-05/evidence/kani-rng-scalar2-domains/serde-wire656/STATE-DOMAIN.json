@@ -1,0 +1,30 @@
+{
+  "status": "source justification, not new solver proof",
+  "sources": {
+    "original_fields": {
+      "path": "/workspace/full-api/prng/sources/rand_xorshift-0.5.0/src/lib.rs",
+      "sha256": "3f97f40f8fc00127a6e683bc1ef549d4811dbd0d27da586320234e63884f2237"
+    },
+    "expanded_serde": {
+      "path": "/workspace/full-api/prng/expanded/rand_xorshift/all-features.rs",
+      "sha256": "e71b02ae11c52fa3470849b577205f39ba1071c28db27fe1bf45b687e3514b94"
+    },
+    "serde_core_deserialize": {
+      "path": "/workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.228/src/de/impls.rs",
+      "sha256": "9fb7a0322af51971fe1fa8f5b56c7ca3716622a6e9127b86bddfc0742c11383c"
+    },
+    "reused_protocol": {
+      "path": "/workspace/full-api/prng/kani-xorshift-deserialize/src/lib.rs",
+      "sha256": "f4dbc153814632d678fdf6b41397e78969cca5c4193fea824003039e8443abc8"
+    }
+  },
+  "ranges": {
+    "fields": "lib.rs52\u201359",
+    "derive_visit_seq": "expanded180\u2013221",
+    "wrapping_deserialize": "serde_core impls3090\u20133098"
+  },
+  "domain": "u32^4; all128bits, includingzero; nofrom_seednonzerofallback",
+  "wire_decode": "word[j]=sum_i bytes[4*j+i]*2^(8*i),j0..3,i0..3",
+  "inverse": "bytes[4*j+i]=((word[j]>>(8*i))&255), unique for every u32^4",
+  "mechanical_boundary": "Existing600Kani concrete protocol allwire roundtrip; upcoming scalar2 not executed yet. Source argument for surjectivity is not standalone machine-checked Lean theorem."
+}

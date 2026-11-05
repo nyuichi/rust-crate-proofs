@@ -1,0 +1,5 @@
+Original XorShift external Rng scalar2 supplement
+
+Two original fully-qualified Rng calls are compared with actual TryRng calls on cloned public-from_seed inputs. Every16byte seed is arbitrary, including zero fallback; returned word and whole four-word state equality are checked. This is a public API relation, not an independent recurrence or all private/serde states/all histories proof. 290+294=584 CaDiCaL checks pass,0failures;10unreachable reachability conditions are reported. Actual std derives are used as observers, not separately claimed.
+
+Original source/manifest/model/observer are unchanged. Existing baseline rand_core0.10.0 lock and archive retained. Z3 failed SMT SSA map::at/status6 before verdict for both harnesses; these logs are historical failures, not API counterexamples. No Aeneas machine count increase. Kani nightlyAugust differs from official Aeneas September. Cargo.executed.toml records executed absolute original dependency; packaged Cargo.toml only relocates identical source to ./original and has not been rerun.
