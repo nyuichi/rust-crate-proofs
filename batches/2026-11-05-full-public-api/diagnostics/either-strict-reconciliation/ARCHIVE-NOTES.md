@@ -1,0 +1,1 @@
+The14 frozen manifest-listed files are preserved; large JSON uses deterministic gzip with original names, lengths and SHA256 in ARCHIVE-INDEX.json. Decompress before using archived scripts. CHECKPOINT is historical; FINAL and README give the completed read-only reconciliation. No new proof/publication run or full API completion follows.
