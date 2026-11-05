@@ -1,0 +1,58 @@
+Recorded SARIF (validated without storage): /home/agent/.local/share/cargo-proofs/3ce4fea016909fbd3d967adcbdb3c335fa806bc637f888c8a6c331f3b4622fa3/runs/ba5bdefe-109b-48e1-9e0c-7ce57a7770fb/run.sarif.json
+Proofs.encoded_len_spec → base16ct::encoded_len
+  precondition: Input length at most usize::MAX / 2; default features, x86_64, debug assertions enabled.
+  evidence: https://github.com/nyuichi/rust-crate-proofs/blob/46fe4e0285ea9305b9b12bbe46126bd11214014e/base16ct/1.0.0/aeneas/2026-11-05/proofs/Proofs.lean#L1-L29
+Proofs.decoded_len_spec → base16ct::decoded_len
+  precondition: Every well-typed input slice, regardless of byte contents; default features, x86_64, debug assertions enabled.
+  evidence: https://github.com/nyuichi/rust-crate-proofs/blob/46fe4e0285ea9305b9b12bbe46126bd11214014e/base16ct/1.0.0/aeneas/2026-11-05/proofs/Proofs.lean#L1-L29
+Proofs.error_to_fmt_spec → <core::fmt::Error as From<base16ct::Error>>::from
+  precondition: Both Error variants; default features on x86_64.
+  evidence: https://github.com/nyuichi/rust-crate-proofs/blob/46fe4e0285ea9305b9b12bbe46126bd11214014e/base16ct/1.0.0/aeneas/2026-11-05/proofs/Proofs.lean#L1-L29
+Report: Base16 length calculations and formatting-error conversion
+3 claims; 0 removal(s).
+  run_ids: null -> ["ba5bdefe-109b-48e1-9e0c-7ce57a7770fb"]
+  crate: null -> "base16ct"
+  version: null -> "1.0.0"
+  title: null -> "Base16 length calculations and formatting-error conversion"
+  explanation: null -> "For base16ct 1.0.0, decoded_len terminates normally for every input slice. It returns Ok of exactly half the input length when that length is even, and Err(InvalidLength) exactly when it is odd. It examines length only, so this result does not validate hexadecimal characters. encoded_len returns exactly twice the input length without a panic when the length is at most usize::MAX / 2. The handwritten From<Error> conversion into core::fmt::Error always returns the formatting error value normally for either source error, intentionally discarding which error occurred. These are body proofs of the unchanged published APIs; the length proofs quantify arbitrary slice lengths representable in the model."
+  trusted_assumptions: null -> "The Rust compiler, official Charon/Aeneas translation, standard-library slice/scalar models and Lean kernel are trusted. The proofs add no local axioms or custom standard-library models. Transitive theorem dependencies use only propext, Classical.choice and Quot.sound."
+  tool_version_id: null -> "aeneas-be86ab0f1989d04944292b345b24c435be3ad10a"
+  environment: null -> "Original crates.io base16ct 1.0.0 source files and Cargo.toml, byte-compared against the archived release; default features, debug assertions enabled, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. Official targeted extraction; no Rust or generated Lean changes. A local cargo-proofs API-discovery patch recognizes the crate-owned Error argument in From<Error> for foreign core::fmt::Error; exact-one API resolution and axiom policy are unchanged."
+  evidence_url: null -> "https://github.com/nyuichi/rust-crate-proofs/tree/46fe4e0285ea9305b9b12bbe46126bd11214014e"
+  limitations: null -> "Only decoded_len, encoded_len and From<Error> for core::fmt::Error are covered; Display formatting is not proved. Hexadecimal encoding, decoding, character validation, destination writes, allocation and encode_str's unchecked UTF-8 conversion are not verified. encoded_len behavior above usize::MAX / 2 is outside the proved precondition. Other targets, feature configurations and release overflow behavior were not checked."
+  + claim 06581502d27708522deb41386cd115675b5be0bd7894640c762fa328da05aece
+  + claim d6506e77a4c6b304eada87104a9e909a72bb54d0f96b47d5489237899a2f10b1
+  + claim e65a1cec3279d8d23d7ee11682f88697478d851d81247fdec4cf0cebadfb0cc9
+{
+  "claims": [
+    {
+      "api_item_id": "06581502d27708522deb41386cd115675b5be0bd7894640c762fa328da05aece",
+      "evidence_url": "https://github.com/nyuichi/rust-crate-proofs/blob/46fe4e0285ea9305b9b12bbe46126bd11214014e/base16ct/1.0.0/aeneas/2026-11-05/proofs/Proofs.lean#L1-L29",
+      "precondition": "Input length at most usize::MAX / 2; default features, x86_64, debug assertions enabled."
+    },
+    {
+      "api_item_id": "e65a1cec3279d8d23d7ee11682f88697478d851d81247fdec4cf0cebadfb0cc9",
+      "evidence_url": "https://github.com/nyuichi/rust-crate-proofs/blob/46fe4e0285ea9305b9b12bbe46126bd11214014e/base16ct/1.0.0/aeneas/2026-11-05/proofs/Proofs.lean#L1-L29",
+      "precondition": "Every well-typed input slice, regardless of byte contents; default features, x86_64, debug assertions enabled."
+    },
+    {
+      "api_item_id": "d6506e77a4c6b304eada87104a9e909a72bb54d0f96b47d5489237899a2f10b1",
+      "evidence_url": "https://github.com/nyuichi/rust-crate-proofs/blob/46fe4e0285ea9305b9b12bbe46126bd11214014e/base16ct/1.0.0/aeneas/2026-11-05/proofs/Proofs.lean#L1-L29",
+      "precondition": "Both Error variants; default features on x86_64."
+    }
+  ],
+  "crate": "base16ct",
+  "dependencies": [],
+  "environment": "Original crates.io base16ct 1.0.0 source files and Cargo.toml, byte-compared against the archived release; default features, debug assertions enabled, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. Official targeted extraction; no Rust or generated Lean changes. A local cargo-proofs API-discovery patch recognizes the crate-owned Error argument in From<Error> for foreign core::fmt::Error; exact-one API resolution and axiom policy are unchanged.",
+  "evidence_url": "https://github.com/nyuichi/rust-crate-proofs/tree/46fe4e0285ea9305b9b12bbe46126bd11214014e",
+  "explanation": "For base16ct 1.0.0, decoded_len terminates normally for every input slice. It returns Ok of exactly half the input length when that length is even, and Err(InvalidLength) exactly when it is odd. It examines length only, so this result does not validate hexadecimal characters. encoded_len returns exactly twice the input length without a panic when the length is at most usize::MAX / 2. The handwritten From<Error> conversion into core::fmt::Error always returns the formatting error value normally for either source error, intentionally discarding which error occurred. These are body proofs of the unchanged published APIs; the length proofs quantify arbitrary slice lengths representable in the model.",
+  "limitations": "Only decoded_len, encoded_len and From<Error> for core::fmt::Error are covered; Display formatting is not proved. Hexadecimal encoding, decoding, character validation, destination writes, allocation and encode_str's unchecked UTF-8 conversion are not verified. encoded_len behavior above usize::MAX / 2 is outside the proved precondition. Other targets, feature configurations and release overflow behavior were not checked.",
+  "run_ids": [
+    "ba5bdefe-109b-48e1-9e0c-7ce57a7770fb"
+  ],
+  "title": "Base16 length calculations and formatting-error conversion",
+  "tool_version_id": "aeneas-be86ab0f1989d04944292b345b24c435be3ad10a",
+  "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, standard-library slice/scalar models and Lean kernel are trusted. The proofs add no local axioms or custom standard-library models. Transitive theorem dependencies use only propext, Classical.choice and Quot.sound.",
+  "version": "1.0.0"
+}
+Dry run: no report published.

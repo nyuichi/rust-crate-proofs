@@ -1,0 +1,46 @@
+   Compiling nohash-debug-probe v0.1.0 (/workspace/full-api/endian/nohash-debug-probe)
+warning: unexpected `cfg` condition name: `kani`
+ --> src/lib.rs:1:11
+  |
+1 | #[cfg(all(kani, feature="expect-no-debug", debug_assertions))]
+  |           ^^^^
+  |
+  = help: expected names are: `docsrs`, `feature`, and `test` and 34 more
+  = help: consider using a Cargo feature instead
+  = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+           [lints.rust]
+           unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+  = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(kani)");` to the top of the `build.rs`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition name: `kani`
+ --> src/lib.rs:3:11
+  |
+3 | #[cfg(all(kani, not(feature="expect-no-debug"), not(debug_assertions)))]
+  |           ^^^^
+  |
+  = help: consider using a Cargo feature instead
+  = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+           [lints.rust]
+           unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+  = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(kani)");` to the top of the `build.rs`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `kani`
+ --> src/lib.rs:5:7
+  |
+5 | #[cfg(kani)]
+  |       ^^^^
+  |
+  = help: consider using a Cargo feature instead
+  = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+           [lints.rust]
+           unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+  = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(kani)");` to the top of the `build.rs`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: `nohash-debug-probe` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.85s
+     Running `target/debug/examples/native`
+exhaustive_cases=1024; debug_assertions=true

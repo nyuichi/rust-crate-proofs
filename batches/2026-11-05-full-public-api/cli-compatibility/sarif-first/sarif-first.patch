@@ -1,0 +1,223 @@
+--- a/src/publish.rs
++++ b/src/publish.rs
+@@ -15,47 +15,63 @@
+     path::Path,
+ };
+ 
+-/// Validate exact opt-in bindings returned by the official immutable SARIF upload.
+-/// No catalogue alias fallback is permitted for this narrow source-key scope.
+-fn exact_uploaded_bindings(project: &Project, tool: &crate::config::Tool, record: &record::Record,
+-    bytes: &[u8], response: &Value, metadata: &Value) -> Result<Vec<(String, String)>> {
++/// Validate official preparation/upload bindings against the exact immutable run.
++/// Only recorded candidate paths are accepted, never inferred aliases.
++fn validated_run_bindings(project: &Project, tool: &crate::config::Tool, record: &record::Record,
++    bytes: &[u8], response: &Value, metadata: Option<&Value>, registered_tool: &str) -> Result<Vec<(String, String)>> {
+     use sha2::{Digest, Sha256};
+-    ensure!(project.name == "endian-type" && project.version == "0.2.0"
+-        && tool.is_aeneas() && tool.exact_source_bindings.is_some(), "Unsupported uploaded binding scope");
+     let parsed: Value = serde_json::from_slice(bytes)?;
+     ensure!(parsed == record.sarif, "Upload bytes differ from the loaded immutable SARIF");
+     let run = &record.sarif["runs"][0];
+     let proof = &run["properties"]["proofs"];
+     let id = run["automationDetails"]["guid"].as_str().context("Missing run ID")?;
+     let digest = format!("{:x}", Sha256::digest(bytes));
+-    ensure!(response["id"] == id && metadata["id"] == id
+-        && response["sha256"] == digest && metadata["sha256"] == digest,
++    ensure!(response["id"] == id && response["sha256"] == digest,
+         "Uploaded binding run/hash mismatch");
+-    ensure!(metadata["crate"] == project.name && metadata["version"] == project.version
+-        && metadata["tool_version_id"] == format!("aeneas-{}", tool.version)
+-        && metadata["size"].as_u64() == Some(bytes.len() as u64), "Uploaded binding metadata mismatch");
+-    ensure!(run["tool"]["driver"]["name"] == tool.name && run["tool"]["driver"]["version"] == tool.version, "Uploaded binding tool mismatch");
+-    ensure!(proof["crate"] == project.name && proof["version"] == project.version
+-        && proof["aeneas"] == crate::aeneas::configuration(tool)?, "Uploaded binding configuration mismatch");
+-    let expected: BTreeSet<_> = tool.proofs.iter().map(|p| p.api.as_str()).collect();
+-    let actual: BTreeSet<_> = record.contracts.iter().filter_map(|c|
+-        (c.api_paths.len() == 1).then(|| c.api_paths[0].as_str())).collect();
+-    ensure!(record.contracts.len() == 66 && expected.len() == 66 && actual == expected,
+-        "Uploaded binding contract keys mismatch");
++    if let Some(metadata) = metadata {
++        ensure!(metadata["id"] == id && metadata["sha256"] == digest
++            && metadata["crate"] == project.name && metadata["version"] == project.version
++            && metadata["tool_version_id"] == registered_tool
++            && metadata["size"].as_u64() == Some(bytes.len() as u64), "Uploaded binding metadata mismatch");
++    }
++    ensure!(run["tool"]["driver"]["name"] == tool.name && run["tool"]["driver"]["version"] == tool.version,
++        "Uploaded binding tool mismatch");
++    ensure!(proof["crate"] == project.name && proof["version"] == project.version,
++        "Uploaded binding crate/version mismatch");
++    if tool.is_aeneas() {
++        ensure!(proof["aeneas"] == crate::aeneas::configuration(tool)?, "Uploaded binding configuration mismatch");
++        ensure!(tool.proofs.len() == record.contracts.len() && tool.proofs.iter().all(|p|
++            record.contracts.iter().filter(|c| c.harness == p.theorem && c.precondition == p.precondition
++                && c.api_paths.contains(&record::qualify_api_path(&project.lib_name, &p.api))).count() == 1), "Uploaded binding configured proof mismatch");
++    }
++    ensure!(!record.contracts.is_empty(), "No recorded contracts");
+     let apis = response["apis"].as_array().context("Missing uploaded API bindings")?;
+-    ensure!(apis.len() == 66, "Uploaded binding count mismatch");
++    ensure!(apis.len() == record.contracts.len(), "Uploaded binding count mismatch");
+     let mut ids = BTreeSet::new();
+     let mut out = Vec::new();
+     for (index, (api, contract)) in apis.iter().zip(&record.contracts).enumerate() {
+         let api_id = api["api_item_id"].as_str().context("Missing uploaded API ID")?;
+         ensure!(api["contract_index"].as_u64() == Some(index as u64)
+-            && api["display_path"] == contract.api_paths[0] && api["origin"] == "recorded",
++            && api["display_path"].as_str().is_some_and(|p| contract.api_paths.iter().any(|x| x == p))
++            && matches!(api["origin"].as_str(), Some("recorded" | "rustdoc")),
+             "Uploaded binding index/path/origin mismatch");
+         ensure!(api_id.len() == 64 && api_id.bytes().all(|c| c.is_ascii_hexdigit())
+             && ids.insert(api_id), "Duplicate or malformed uploaded API ID");
+-        out.push((api_id.to_owned(), contract.api_paths[0].clone()));
++        out.push((api_id.to_owned(), api["display_path"].as_str().unwrap().to_owned()));
+     }
+     Ok(out)
++}
++
++fn validate_aeneas_source_bindings(crate_name: &str, discovered: &[crate::scan::Contract], record: &record::Record,
++    bindings: &[(String, String)]) -> Result<()> {
++    ensure!(bindings.len() == record.contracts.len(), "Source binding count mismatch");
++    for ((_, key), contract) in bindings.iter().zip(&record.contracts) {
++        let matches: Vec<_> = discovered.iter().filter(|c| c.api_paths.iter().any(|p| record::qualify_api_path(crate_name,p) == *key)).collect();
++        ensure!(matches.len() == 1 && matches[0].harness == contract.harness
++            && matches[0].precondition == contract.precondition,
++            "Returned API binding must resolve to exactly one matching original source callable: {key}");
++    }
++    Ok(())
+ }
+ 
+ pub struct Options {
+@@ -414,26 +430,21 @@
+     ensure!(contracts.len() <= 100, "Too many claims");
+     let tool = api.tool_version(&config.tool.name, &config.tool.version)?;
+     let sarif_bytes = fs::read(run_dir.join("run.sarif.json"))?;
+-    let exact_scope = crate::aeneas::exact_source_binding_keys(&project, &config.tool)?.is_some();
+-    let upload_bindings = if options.dry_run {
+-        println!("Recorded SARIF (will upload on publish): {}", run_dir.join("run.sarif.json").display());
+-        None
++    crate::aeneas::exact_source_binding_keys(&project, &config.tool)?;
++    let discovered = if config.tool.is_aeneas() { Some(crate::aeneas::discover(&project, &config.tool)?) } else { None };
++    let prepared = if options.dry_run {
++        println!("Recorded SARIF (validated without storage): {}", run_dir.join("run.sarif.json").display());
++        api.upload("/api/v1/runs/prepare", &sarif_bytes)?
+     } else {
+-        let response = api.upload(&format!("/api/v1/runs/{run_id}/sarif"), &sarif_bytes)?;
+-        if exact_scope {
+-            let metadata = api.get(&format!("/api/v1/runs/{run_id}"))?;
+-            Some(exact_uploaded_bindings(&project, &config.tool, &recorded, &sarif_bytes, &response, &metadata)?)
+-        } else { None }
++        api.upload(&format!("/api/v1/runs/{run_id}/sarif"), &sarif_bytes)?
+     };
+-    api.prepare(&project.name, &project.version)?;
++    let metadata = if options.dry_run { None } else { Some(api.get(&format!("/api/v1/runs/{run_id}"))?) };
++    let bindings = validated_run_bindings(&project, &config.tool, &recorded, &sarif_bytes, &prepared, metadata.as_ref(), &tool)?;
++    if let Some(discovered) = &discovered { validate_aeneas_source_bindings(&project.lib_name,discovered, &recorded, &bindings)?; }
+     let mut claims = vec![];
+     let mut seen = BTreeSet::new();
+     for (index, contract) in contracts.iter().enumerate() {
+-        let (api_id, api_path) = if let Some(bindings) = &upload_bindings {
+-            bindings[index].clone()
+-        } else {
+-            api.resolve(&project.name, &project.version, &contract.api_paths)?
+-        };
++        let (api_id, api_path) = bindings[index].clone();
+         ensure!(
+             seen.insert(api_id.clone()),
+             "Multiple contracts resolve to the same public API {api_path}"
+@@ -595,6 +606,27 @@
+         toml::from_str("[report]\ntitle='Local'\n[tool]\nname='kani'\nversion='0.66.0'\n").unwrap()
+     }
+     #[test]
++    #[ignore = "Read-only original-project source discovery requires explicit local evidence paths"]
++    fn recorded_source_real_project_probe() {
++        let manifest=std::env::var("PROOFS_BINDING_PROJECT").unwrap();
++        let p=Project::load(&ProjectArgs{manifest_path:Some(manifest.into()),..Default::default()}).unwrap();
++        let config=p.config().unwrap();
++        let bytes=fs::read(std::env::var("PROOFS_BINDING_SARIF").unwrap()).unwrap();
++        let sarif:Value=serde_json::from_slice(&bytes).unwrap();
++        let contracts=serde_json::from_value(sarif["runs"][0]["properties"]["proofs"]["contracts"].clone()).unwrap();
++        let record=record::Record{sarif,contracts};
++        let discovered=crate::aeneas::discover(&p,&config.tool).unwrap();
++        let mut bindings:Vec<_>=record.contracts.iter().enumerate().map(|(i,c)|(format!("{i:064x}"),c.api_paths[0].clone())).collect();
++        for (index,contract) in record.contracts.iter().enumerate() {
++            for path in &contract.api_paths {
++                bindings[index].1=path.clone();
++                validate_aeneas_source_bindings(&p.lib_name,&discovered,&record,&bindings).unwrap();
++            }
++            bindings[index].1=contract.api_paths[0].clone();
++        }
++        println!("Validated {} immutable contracts and all original recorded candidate spellings against exactly one current original source callable each; no server operation",record.contracts.len());
++    }
++    #[test]
+     #[ignore = "Read-only diagnostic requiring explicit local evidence paths"]
+     fn exact_upload_real_evidence_probe() {
+         let read = |name: &str| fs::read(std::env::var(name).unwrap()).unwrap();
+@@ -607,7 +639,7 @@
+         let record=record::Record{sarif,contracts};
+         let p=Project{name:"endian-type".into(),version:"0.2.0".into(),lib_name:"endian_type".into(),
+             manifest:"Cargo.toml".into(),root_source:"src/lib.rs".into(),features:BTreeSet::new(),cfg:BTreeSet::new()};
+-        let bindings=exact_uploaded_bindings(&p,&config.tool,&record,&bytes,&response,&metadata).unwrap();
++        let bindings=validated_run_bindings(&p,&config.tool,&record,&bytes,&response,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).unwrap();
+         assert_eq!(bindings.len(),66);
+         println!("Validated all 66 exact returned bindings against immutable local SARIF, config and server metadata");
+     }
+@@ -636,21 +668,40 @@
+             json!({"contract_index":i,"api_item_id":format!("{i:064x}"),"display_path":c.api_paths[0],"origin":"recorded"})).collect::<Vec<_>>()});
+         let metadata=json!({"id":"run-1","sha256":hash,"crate":p.name,"version":p.version,
+             "tool_version_id":format!("aeneas-{}",tool.version),"size":bytes.len()});
+-        assert_eq!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&response,&metadata).unwrap().len(),66);
++        assert_eq!(validated_run_bindings(&p,&tool,&record,&bytes,&response,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).unwrap().len(),66);
++        // A transient prepare has no stored run metadata; it still must match
++        // immutable bytes, registered configuration and exact indexed paths.
++        assert_eq!(validated_run_bindings(&p,&tool,&record,&bytes,&response,None,
++            metadata["tool_version_id"].as_str().unwrap()).unwrap().len(),66);
++        let mut rustdoc=response.clone();rustdoc["apis"][0]["origin"]=json!("rustdoc");
++        assert!(validated_run_bindings(&p,&tool,&record,&bytes,&rustdoc,None,
++            metadata["tool_version_id"].as_str().unwrap()).is_ok());
++        let source:Vec<_>=record.contracts.iter().map(|c|crate::scan::Contract{api_paths:c.api_paths.clone(),
++            precondition:c.precondition.clone(),file:"Proofs.lean".into(),first_line:1,last_line:2,harness:c.harness.clone()}).collect();
++        let bound=validated_run_bindings(&p,&tool,&record,&bytes,&response,None,
++            metadata["tool_version_id"].as_str().unwrap()).unwrap();
++        assert!(validate_aeneas_source_bindings(&p.lib_name,&source,&record,&bound).is_ok());
++        let mut ambiguous=source.clone();ambiguous.push(source[0].clone());
++        assert!(validate_aeneas_source_bindings(&p.lib_name,&ambiguous,&record,&bound).is_err());
++        let mut wrong_harness=source.clone();wrong_harness[0].harness="other".into();
++        assert!(validate_aeneas_source_bindings(&p.lib_name,&wrong_harness,&record,&bound).is_err());
++        let mut erased=bound.clone();erased[0].1="<endian_type::BigEndian as Trait0>::f".into();
++        assert!(validate_aeneas_source_bindings(&p.lib_name,&source,&record,&erased).is_err());
++
+         for (field,bad) in [("id",json!("other-run")),("sha256",json!("wrong-hash")),("apis",json!([]))] {
+-            let mut x=response.clone();x[field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
+-        }
+-        for (field,bad) in [("contract_index",json!(1)),("display_path",json!("erased_alias")),("origin",json!("rustdoc")),("api_item_id",json!(""))] {
+-            let mut x=response.clone();x["apis"][0][field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++            let mut x=response.clone();x[field]=bad;assert!(validated_run_bindings(&p,&tool,&record,&bytes,&x,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).is_err());
++        }
++        for (field,bad) in [("contract_index",json!(1)),("display_path",json!("erased_alias")),("origin",json!("fabricated")),("api_item_id",json!(""))] {
++            let mut x=response.clone();x["apis"][0][field]=bad;assert!(validated_run_bindings(&p,&tool,&record,&bytes,&x,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).is_err());
+         }
+         let mut x=response.clone();x["apis"][1]["api_item_id"]=x["apis"][0]["api_item_id"].clone();
+-        assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        assert!(validated_run_bindings(&p,&tool,&record,&bytes,&x,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).is_err());
+         for (field,bad) in [("crate",json!("other")),("version",json!("other")),("tool_version_id",json!("other")),("size",json!(0))] {
+-            let mut x=metadata.clone();x[field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&response,&x).is_err());
++            let mut x=metadata.clone();x[field]=bad;assert!(validated_run_bindings(&p,&tool,&record,&bytes,&response,Some(&x), metadata["tool_version_id"].as_str().unwrap()).is_err());
+         }
+         let mut other=tool;other.proofs[0].api="other-key".into();
+-        assert!(exact_uploaded_bindings(&p,&other,&record,&bytes,&response,&metadata).is_err());
+-        let mut bytes=bytes;bytes.push(b' ');assert!(exact_uploaded_bindings(&p,&other,&record,&bytes,&response,&metadata).is_err());
++        assert!(validated_run_bindings(&p,&other,&record,&bytes,&response,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).is_err());
++        let mut bytes=bytes;bytes.push(b' ');assert!(validated_run_bindings(&p,&other,&record,&bytes,&response,Some(&metadata), metadata["tool_version_id"].as_str().unwrap()).is_err());
+     }
+     #[test]
+     fn enriched_dependency_details_do_not_change_publication_content() {
+--- a/src/record.rs
++++ b/src/record.rs
+@@ -806,7 +806,7 @@
+     );
+     Ok((results, verified))
+ }
+-fn qualify_api_path(crate_name: &str, path: &str) -> String {
++pub(crate) fn qualify_api_path(crate_name: &str, path: &str) -> String {
+     // Qualified trait paths already contain the public crate-qualified type.
+     if path.starts_with('<') {
+         path.to_owned()

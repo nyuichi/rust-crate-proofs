@@ -1,0 +1,790 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #33 — Exact integer and floating bit serialization, with explicit failure conditions · proofs.rs</title><meta name="description" content="byteorder-lite 0.1.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endi"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Exact integer and floating bit serialization, with explicit failure conditions · byteorder-lite 0.1.0 · proofs.rs"><meta property="og:description" content="byteorder-lite 0.1.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endi"><meta property="og:url" content="https://proofs.rs/report/33?v=1"><meta property="og:image" content="https://proofs.rs/og/report/33/1.png"><meta property="og:image:alt" content="Exact integer and floating bit serialization, with explicit failure conditions · byteorder-lite 0.1.0"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Exact integer and floating bit serialization, with explicit failure conditions · byteorder-lite 0.1.0 · proofs.rs"><meta name="twitter:description" content="byteorder-lite 0.1.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endi"><meta name="twitter:image" content="https://proofs.rs/og/report/33/1.png"><meta name="twitter:image:alt" content="Exact integer and floating bit serialization, with explicit failure conditions · byteorder-lite 0.1.0"><link rel="canonical" href="https://proofs.rs/report/33"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F33">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/byteorder-lite?version=0.1.0">byteorder-lite 0.1.0</a> <span aria-hidden="true">/</span> <a href="/crate/byteorder-lite?version=0.1.0#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #33 — Exact integer and floating bit serialization, with explicit failure conditions</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">26 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 05:07 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Exact%20integer%20and%20floating%20bit%20serialization%2C%20with%20explicit%20failure%20conditions%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F33%3Fv%3D1"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Exact%20integer%20and%20floating%20bit%20serialization%2C%20with%20explicit%20failure%20conditions%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F33%3Fv%3D1"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/33?v=1" aria-current="page">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>byteorder-lite 0.1.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endian order and preserve trailing bytes when the output is long enough; shorter buffers panic before writing. Float proofs quantify over every 32/64-bit representation, including NaN payloads and signed zeros, under explicit bit-pattern and std to_bits models. No floating arithmetic is modeled. The two handwritten Default methods always panic. The four variable-width unsigned writers additionally have exact byte-count/space guards, selected-byte output on success and assertion failure otherwise.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (26)</h2><section class="api-category"><h3>Recorded callables</h3><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as Default&gt;::default" data-claims="1"><span><a class="api-name" href="/api/1a17b55c60e9f07e6153fc93f2f69e6da5e30babea97d3de01e453e657df49c8">&lt;byteorder_lite::BigEndian as Default&gt;::default</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e9cad7b3-73b9-4a37-8e2d-f147f70f3764?report_revision=1">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_f32" data-claims="1"><span><a class="api-name" href="/api/7804d645702d52347f255f07e0c4b0a4252281f2a9c7925836c1d912e6ac1920">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_f32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/109d35ac-8b5c-4604-9ec7-a62ce0664e5e?report_revision=1">Claim #23</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_f64" data-claims="1"><span><a class="api-name" href="/api/b9564a53424c626c5c978eef67e606f0b98118a92ffbe5e0cd6664a3ea454042">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_f64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d81e5b8a-af67-4d77-91aa-c3229d5c68f1?report_revision=1">Claim #24</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i128" data-claims="1"><span><a class="api-name" href="/api/eb3077fbda4d544acc0e7c52cb9918c401a9118bb5b6ca429f2bbca73e473afe">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i128</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/feb3a33f-89b9-4d1d-8a61-7fe3a75ea813?report_revision=1">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i16" data-claims="1"><span><a class="api-name" href="/api/3e38f84a411114b832ce861281d6bf406eb8a9d02ca4fced5c2cae92b015365b">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i16</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/974281da-925a-4732-a75b-d791bce81c00?report_revision=1">Claim #11</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i32" data-claims="1"><span><a class="api-name" href="/api/6ec19a1babd2c4f76b20f3c64173a5ae684fa1e4934207c4b828c64768d89a46">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c01243c6-5dcb-4439-84d7-b872e5ef140e?report_revision=1">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i64" data-claims="1"><span><a class="api-name" href="/api/939c2fabfd1d114d530267b47b1792dad458660a9494c16598ac3cc0537386c3">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_i64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/34b0644e-d247-4c43-a5a0-0482788c2900?report_revision=1">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u128" data-claims="1"><span><a class="api-name" href="/api/722c213c9286dc7642601542d6e8e9d94ea6de7895220e0e5a1f1d26df09ad84">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u128</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4b6b41d3-115d-436f-9d76-ddce0afcc333?report_revision=1">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u16" data-claims="1"><span><a class="api-name" href="/api/11f3c1633cf57075eeb0cc992cfc693d4932d4e29b27bddbf98fc31bf44a8cad">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u16</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4e8fa062-481a-41ae-8027-a8d613b386bd?report_revision=1">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u32" data-claims="1"><span><a class="api-name" href="/api/e8618e3a0b4880d5d5225c84add288353a5364774192055238c9f1ab39c2c8fd">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a6a869f2-dc99-4592-9daf-0727a71e8fec?report_revision=1">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u64" data-claims="1"><span><a class="api-name" href="/api/42ace15ce1b5aab35e027c18b423d109f335112b387e6ae5fcafbc131db171f9">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7fc55523-feea-4b19-be1d-f019c8b0083e?report_revision=1">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_uint" data-claims="1"><span><a class="api-name" href="/api/3b7a6b0d461e17bebc467a99ae5cc8b6a910950a97c9a950a061f0c750a003bb">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_uint</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/108aa33d-00c9-4ac1-8e4b-25a6b3f2d49e?report_revision=1">Claim #19</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_uint128" data-claims="1"><span><a class="api-name" href="/api/540c633842ce62b2a84050702b41071e8d5d67e206416c52a10bde0a602f7b61">&lt;byteorder_lite::BigEndian as byteorder_lite::ByteOrder&gt;::write_uint128</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/01c8da98-5eac-423f-a566-8071370a3dab?report_revision=1">Claim #20</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as Default&gt;::default" data-claims="1"><span><a class="api-name" href="/api/ad0cbc9faf7487b682a126b881f8c9f3d249bc857ec7e363355ca553f9114d8d">&lt;byteorder_lite::LittleEndian as Default&gt;::default</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/985c89b9-380b-492a-9296-b865cb8b8e93?report_revision=1">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_f32" data-claims="1"><span><a class="api-name" href="/api/16e64af5887057ca47e65ba8cc0d570df5ea2f8409bdc31b531faf52ca48de7f">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_f32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4e40f227-803d-49bf-b6c7-dc2731442fe1?report_revision=1">Claim #25</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_f64" data-claims="1"><span><a class="api-name" href="/api/c75b827d19d95ba7f26e9e2b00dae96d1f95b16d9d6ca93db3aa37fd5fa2d637">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_f64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0ccebbbc-1341-4e91-a529-24acff329d43?report_revision=1">Claim #26</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i128" data-claims="1"><span><a class="api-name" href="/api/0b01f7f18f8aec9a670f95639b80356ee376fb26d2e0b49e77ed2e4a76b1a036">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i128</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e7b6d58b-2fe1-4f29-8a9a-8c8c9039ff79?report_revision=1">Claim #18</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i16" data-claims="1"><span><a class="api-name" href="/api/8dd86004ca01572f280481de38365d6561c2670eac13e683dfec5b06630d2cb5">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i16</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a00169fc-e71a-43ad-ab89-dacc9d888ba2?report_revision=1">Claim #15</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i32" data-claims="1"><span><a class="api-name" href="/api/085b6a8e6b8d05c5640da2aa87e436c0c2ae370a2b767aeacc9873c0d215dd73">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/95a67878-ee98-4811-a5a1-3b814bcdae84?report_revision=1">Claim #16</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i64" data-claims="1"><span><a class="api-name" href="/api/156abb855ca695e6e88c65e887d2b04623f8d845515fe76a4279dddff8f91c55">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_i64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d4f15f69-c15c-44d7-ad1f-34d7c825b8c3?report_revision=1">Claim #17</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u128" data-claims="1"><span><a class="api-name" href="/api/ed319b05fce54e709edeaa5375fe7c74d86197bc25873897d0981910619c1ef1">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u128</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/11a19c78-3baa-4db7-a770-dbeaa3146134?report_revision=1">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u16" data-claims="1"><span><a class="api-name" href="/api/36a1924eba736ca62f015cffe185daaba3d671cbbb3fc362d389a8811e431d07">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u16</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/aab61fb3-4095-47d7-9bc1-be2174f0880e?report_revision=1">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u32" data-claims="1"><span><a class="api-name" href="/api/62a8049cf127f4623da8225ccef210d9ae859b6b759e16fa130f1ae8c08747b4">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c7f037e4-166e-473e-807d-c4c63c70f133?report_revision=1">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u64" data-claims="1"><span><a class="api-name" href="/api/c9f3f3d3b301b403463a22d281f14458b29df0f845f654f3517851a6587d3a66">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/719367ab-5172-44f5-8be9-70885ab0e9f6?report_revision=1">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_uint" data-claims="1"><span><a class="api-name" href="/api/628bf2f5b5978bf60974a939e075f2b8dac8147cdbd221424e1bf29774f2b25f">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_uint</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/b7279baf-8e09-4039-a6ae-79897f344fe8?report_revision=1">Claim #21</a></span></div></div><div class="catalog-row" data-api-path="&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_uint128" data-claims="1"><span><a class="api-name" href="/api/445a90fc85650b448e6872659dbb1ff469046d67f7e2b51cbf231d50c2f5efac">&lt;byteorder_lite::LittleEndian as byteorder_lite::ByteOrder&gt;::write_uint128</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6c9dfaa0-7527-4da1-a0a6-43510c1baf97?report_revision=1">Claim #22</a></span></div></div></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/c730051590dce08c1ede987497d6e45efb2f839a" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/c730051590dce08c1ede987497d6e45efb2f839a</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-33-source-1
+git -C report-33-source-1 checkout --detach c730051590dce08c1ede987497d6e45efb2f839a
+git -C report-33-source-1 submodule update --init --recursive --checkout
+cd report-33-source-1/byteorder-lite/0.1.0/aeneas/2026-11-05/proofs
+
+lake build +FloatProofs +Proofs +SignedProofs +VariableProofs
+
+printf &#39;%s&#39; &#39;import Lean
+import FloatProofs
+import Proofs
+import SignedProofs
+import VariableProofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.be_write_u16_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.be_write_u16_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.be_write_u16_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.be_write_u16_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.be_write_u32_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.be_write_u32_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.be_write_u32_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.be_write_u32_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.be_write_u64_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.be_write_u64_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.be_write_u64_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.be_write_u64_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.be_write_u128_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.be_write_u128_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.be_write_u128_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.be_write_u128_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.le_write_u16_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.le_write_u16_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.le_write_u16_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.le_write_u16_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.le_write_u32_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.le_write_u32_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.le_write_u32_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.le_write_u32_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.le_write_u64_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.le_write_u64_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.le_write_u64_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.le_write_u64_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.le_write_u128_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.le_write_u128_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.le_write_u128_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.le_write_u128_contract&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.BigEndian_default_panics
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.BigEndian_default_panics&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.BigEndian_default_panics: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.BigEndian_default_panics&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.LittleEndian_default_panics
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.LittleEndian_default_panics&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.LittleEndian_default_panics: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.LittleEndian_default_panics&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.be_write_i16_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.be_write_i16_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.be_write_i16_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.be_write_i16_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.be_write_i32_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.be_write_i32_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.be_write_i32_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.be_write_i32_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.be_write_i64_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.be_write_i64_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.be_write_i64_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.be_write_i64_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.be_write_i128_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.be_write_i128_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.be_write_i128_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.be_write_i128_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.le_write_i16_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.le_write_i16_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.le_write_i16_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.le_write_i16_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.le_write_i32_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.le_write_i32_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.le_write_i32_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.le_write_i32_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.le_write_i64_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.le_write_i64_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.le_write_i64_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.le_write_i64_contract&quot;
+
+run_cmd do
+  let theorem_name := `SignedProofs.le_write_i128_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SignedProofs.le_write_i128_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SignedProofs.le_write_i128_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SignedProofs.le_write_i128_contract&quot;
+
+run_cmd do
+  let theorem_name := `VariableProofs.be_write_uint_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: VariableProofs.be_write_uint_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in VariableProofs.be_write_uint_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:VariableProofs.be_write_uint_contract&quot;
+
+run_cmd do
+  let theorem_name := `VariableProofs.be_write_uint128_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: VariableProofs.be_write_uint128_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in VariableProofs.be_write_uint128_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:VariableProofs.be_write_uint128_contract&quot;
+
+run_cmd do
+  let theorem_name := `VariableProofs.le_write_uint_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: VariableProofs.le_write_uint_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in VariableProofs.le_write_uint_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:VariableProofs.le_write_uint_contract&quot;
+
+run_cmd do
+  let theorem_name := `VariableProofs.le_write_uint128_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: VariableProofs.le_write_uint128_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in VariableProofs.le_write_uint128_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:VariableProofs.le_write_uint128_contract&quot;
+
+run_cmd do
+  let theorem_name := `FloatProofs.be_write_f32_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FloatProofs.be_write_f32_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FloatProofs.be_write_f32_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FloatProofs.be_write_f32_contract&quot;
+
+run_cmd do
+  let theorem_name := `FloatProofs.be_write_f64_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FloatProofs.be_write_f64_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FloatProofs.be_write_f64_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FloatProofs.be_write_f64_contract&quot;
+
+run_cmd do
+  let theorem_name := `FloatProofs.le_write_f32_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FloatProofs.le_write_f32_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FloatProofs.le_write_f32_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FloatProofs.le_write_f32_contract&quot;
+
+run_cmd do
+  let theorem_name := `FloatProofs.le_write_f64_contract
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FloatProofs.le_write_f64_contract&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FloatProofs.le_write_f64_contract: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FloatProofs.le_write_f64_contract&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/c730051590dce08c1ede987497d6e45efb2f839a">Source on GitHub</a> · <a href="/api/v1/runs/e8dccb37-fc7b-4d92-9229-262a8dd66cc3/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 26 checks passed · 0 failed</p><p class="meta">2026-11-05T04:00:38.879726879+00:00 · 126.3 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e62655f77726974655f7531365f636f6e7472616374"><td>Lean checked theorem Proofs.be_write_u16_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.be_write_u16_contract</code></div></td><td>Passed</td><td><a href="/claim/4e8fa062-481a-41ae-8027-a8d613b386bd?report_revision=1">Claim #1</a></td></tr><tr id="check-50726f6f66732e62655f77726974655f7533325f636f6e7472616374"><td>Lean checked theorem Proofs.be_write_u32_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.be_write_u32_contract</code></div></td><td>Passed</td><td><a href="/claim/a6a869f2-dc99-4592-9daf-0727a71e8fec?report_revision=1">Claim #2</a></td></tr><tr id="check-50726f6f66732e62655f77726974655f7536345f636f6e7472616374"><td>Lean checked theorem Proofs.be_write_u64_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.be_write_u64_contract</code></div></td><td>Passed</td><td><a href="/claim/7fc55523-feea-4b19-be1d-f019c8b0083e?report_revision=1">Claim #3</a></td></tr><tr id="check-50726f6f66732e62655f77726974655f753132385f636f6e7472616374"><td>Lean checked theorem Proofs.be_write_u128_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.be_write_u128_contract</code></div></td><td>Passed</td><td><a href="/claim/4b6b41d3-115d-436f-9d76-ddce0afcc333?report_revision=1">Claim #4</a></td></tr><tr id="check-50726f6f66732e6c655f77726974655f7531365f636f6e7472616374"><td>Lean checked theorem Proofs.le_write_u16_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.le_write_u16_contract</code></div></td><td>Passed</td><td><a href="/claim/aab61fb3-4095-47d7-9bc1-be2174f0880e?report_revision=1">Claim #5</a></td></tr><tr id="check-50726f6f66732e6c655f77726974655f7533325f636f6e7472616374"><td>Lean checked theorem Proofs.le_write_u32_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.le_write_u32_contract</code></div></td><td>Passed</td><td><a href="/claim/c7f037e4-166e-473e-807d-c4c63c70f133?report_revision=1">Claim #6</a></td></tr><tr id="check-50726f6f66732e6c655f77726974655f7536345f636f6e7472616374"><td>Lean checked theorem Proofs.le_write_u64_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.le_write_u64_contract</code></div></td><td>Passed</td><td><a href="/claim/719367ab-5172-44f5-8be9-70885ab0e9f6?report_revision=1">Claim #7</a></td></tr><tr id="check-50726f6f66732e6c655f77726974655f753132385f636f6e7472616374"><td>Lean checked theorem Proofs.le_write_u128_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.le_write_u128_contract</code></div></td><td>Passed</td><td><a href="/claim/11a19c78-3baa-4db7-a770-dbeaa3146134?report_revision=1">Claim #8</a></td></tr><tr id="check-50726f6f66732e426967456e6469616e5f64656661756c745f70616e696373"><td>Lean checked theorem Proofs.BigEndian_default_panics; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.BigEndian_default_panics</code></div></td><td>Passed</td><td><a href="/claim/e9cad7b3-73b9-4a37-8e2d-f147f70f3764?report_revision=1">Claim #9</a></td></tr><tr id="check-50726f6f66732e4c6974746c65456e6469616e5f64656661756c745f70616e696373"><td>Lean checked theorem Proofs.LittleEndian_default_panics; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.LittleEndian_default_panics</code></div></td><td>Passed</td><td><a href="/claim/985c89b9-380b-492a-9296-b865cb8b8e93?report_revision=1">Claim #10</a></td></tr><tr id="check-5369676e656450726f6f66732e62655f77726974655f6931365f636f6e7472616374"><td>Lean checked theorem SignedProofs.be_write_i16_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.be_write_i16_contract</code></div></td><td>Passed</td><td><a href="/claim/974281da-925a-4732-a75b-d791bce81c00?report_revision=1">Claim #11</a></td></tr><tr id="check-5369676e656450726f6f66732e62655f77726974655f6933325f636f6e7472616374"><td>Lean checked theorem SignedProofs.be_write_i32_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.be_write_i32_contract</code></div></td><td>Passed</td><td><a href="/claim/c01243c6-5dcb-4439-84d7-b872e5ef140e?report_revision=1">Claim #12</a></td></tr><tr id="check-5369676e656450726f6f66732e62655f77726974655f6936345f636f6e7472616374"><td>Lean checked theorem SignedProofs.be_write_i64_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.be_write_i64_contract</code></div></td><td>Passed</td><td><a href="/claim/34b0644e-d247-4c43-a5a0-0482788c2900?report_revision=1">Claim #13</a></td></tr><tr id="check-5369676e656450726f6f66732e62655f77726974655f693132385f636f6e7472616374"><td>Lean checked theorem SignedProofs.be_write_i128_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.be_write_i128_contract</code></div></td><td>Passed</td><td><a href="/claim/feb3a33f-89b9-4d1d-8a61-7fe3a75ea813?report_revision=1">Claim #14</a></td></tr><tr id="check-5369676e656450726f6f66732e6c655f77726974655f6931365f636f6e7472616374"><td>Lean checked theorem SignedProofs.le_write_i16_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.le_write_i16_contract</code></div></td><td>Passed</td><td><a href="/claim/a00169fc-e71a-43ad-ab89-dacc9d888ba2?report_revision=1">Claim #15</a></td></tr><tr id="check-5369676e656450726f6f66732e6c655f77726974655f6933325f636f6e7472616374"><td>Lean checked theorem SignedProofs.le_write_i32_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.le_write_i32_contract</code></div></td><td>Passed</td><td><a href="/claim/95a67878-ee98-4811-a5a1-3b814bcdae84?report_revision=1">Claim #16</a></td></tr><tr id="check-5369676e656450726f6f66732e6c655f77726974655f6936345f636f6e7472616374"><td>Lean checked theorem SignedProofs.le_write_i64_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.le_write_i64_contract</code></div></td><td>Passed</td><td><a href="/claim/d4f15f69-c15c-44d7-ad1f-34d7c825b8c3?report_revision=1">Claim #17</a></td></tr><tr id="check-5369676e656450726f6f66732e6c655f77726974655f693132385f636f6e7472616374"><td>Lean checked theorem SignedProofs.le_write_i128_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SignedProofs.le_write_i128_contract</code></div></td><td>Passed</td><td><a href="/claim/e7b6d58b-2fe1-4f29-8a9a-8c8c9039ff79?report_revision=1">Claim #18</a></td></tr><tr id="check-5661726961626c6550726f6f66732e62655f77726974655f75696e745f636f6e7472616374"><td>Lean checked theorem VariableProofs.be_write_uint_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>VariableProofs.be_write_uint_contract</code></div></td><td>Passed</td><td><a href="/claim/108aa33d-00c9-4ac1-8e4b-25a6b3f2d49e?report_revision=1">Claim #19</a></td></tr><tr id="check-5661726961626c6550726f6f66732e62655f77726974655f75696e743132385f636f6e7472616374"><td>Lean checked theorem VariableProofs.be_write_uint128_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>VariableProofs.be_write_uint128_contract</code></div></td><td>Passed</td><td><a href="/claim/01c8da98-5eac-423f-a566-8071370a3dab?report_revision=1">Claim #20</a></td></tr><tr id="check-5661726961626c6550726f6f66732e6c655f77726974655f75696e745f636f6e7472616374"><td>Lean checked theorem VariableProofs.le_write_uint_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>VariableProofs.le_write_uint_contract</code></div></td><td>Passed</td><td><a href="/claim/b7279baf-8e09-4039-a6ae-79897f344fe8?report_revision=1">Claim #21</a></td></tr><tr id="check-5661726961626c6550726f6f66732e6c655f77726974655f75696e743132385f636f6e7472616374"><td>Lean checked theorem VariableProofs.le_write_uint128_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>VariableProofs.le_write_uint128_contract</code></div></td><td>Passed</td><td><a href="/claim/6c9dfaa0-7527-4da1-a0a6-43510c1baf97?report_revision=1">Claim #22</a></td></tr><tr id="check-466c6f617450726f6f66732e62655f77726974655f6633325f636f6e7472616374"><td>Lean checked theorem FloatProofs.be_write_f32_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FloatProofs.be_write_f32_contract</code></div></td><td>Passed</td><td><a href="/claim/109d35ac-8b5c-4604-9ec7-a62ce0664e5e?report_revision=1">Claim #23</a></td></tr><tr id="check-466c6f617450726f6f66732e62655f77726974655f6636345f636f6e7472616374"><td>Lean checked theorem FloatProofs.be_write_f64_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FloatProofs.be_write_f64_contract</code></div></td><td>Passed</td><td><a href="/claim/d81e5b8a-af67-4d77-91aa-c3229d5c68f1?report_revision=1">Claim #24</a></td></tr><tr id="check-466c6f617450726f6f66732e6c655f77726974655f6633325f636f6e7472616374"><td>Lean checked theorem FloatProofs.le_write_f32_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FloatProofs.le_write_f32_contract</code></div></td><td>Passed</td><td><a href="/claim/4e40f227-803d-49bf-b6c7-dc2731442fe1?report_revision=1">Claim #25</a></td></tr><tr id="check-466c6f617450726f6f66732e6c655f77726974655f6636345f636f6e7472616374"><td>Lean checked theorem FloatProofs.le_write_f64_contract; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FloatProofs.le_write_f64_contract</code></div></td><td>Passed</td><td><a href="/claim/0ccebbbc-1341-4e91-a529-24acff329d43?report_revision=1">Claim #26</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T04:00:38.879726879+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T04:02:45.143387523+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">byteorder-lite/0.1.0/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">c730051590dce08c1ede987497d6e45efb2f839a</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/239] Built AeneasMeta.Simp.RegisterCommand (52s)
+✔ [6/239] Built AeneasMeta.BvEnumToBitVec (52s)
+✔ [484/828] Built Aeneas.Std.Global (52s)
+✔ [485/828] Built AeneasMeta.UtilsCore (52s)
+✔ [1797/1807] Built ByteorderLiteFloatRoots.Types (2.5s)
+✔ [1798/1807] Built ByteorderLiteApiRoots.Types (2.5s)
+✔ [1799/1807] Built Generated.ByteorderLite (2.5s)
+✔ [1800/1807] Built VariableGenerated.ByteorderLite (2.7s)
+✔ [1801/1807] Built ByteorderLiteApiRoots.Funs (2.6s)
+✔ [1802/1807] Built ByteorderLiteFloatRoots.FunsExternal (2.9s)
+✔ [1803/1807] Built ByteorderLiteFloatRoots.Funs (1.0s)
+⚠ [1804/1807] Built SignedProofs (4.5s)
+info: SignedProofs.lean:142:0: &#39;SignedProofs.be_write_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:143:0: &#39;SignedProofs.be_write_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:144:0: &#39;SignedProofs.be_write_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:145:0: &#39;SignedProofs.be_write_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:146:0: &#39;SignedProofs.le_write_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:147:0: &#39;SignedProofs.le_write_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:148:0: &#39;SignedProofs.le_write_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:149:0: &#39;SignedProofs.le_write_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+warning: SignedProofs.lean:155:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:175:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:195:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:215:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:235:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:255:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:275:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SignedProofs.lean:295:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: SignedProofs.lean:313:0: &#39;SignedProofs.be_write_i16_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:314:0: &#39;SignedProofs.be_write_i32_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:315:0: &#39;SignedProofs.be_write_i64_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:316:0: &#39;SignedProofs.be_write_i128_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:317:0: &#39;SignedProofs.le_write_i16_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:318:0: &#39;SignedProofs.le_write_i32_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:319:0: &#39;SignedProofs.le_write_i64_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SignedProofs.lean:320:0: &#39;SignedProofs.le_write_i128_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1805/1807] Built VariableProofs (7.7s)
+info: VariableProofs.lean:40:0: &#39;VariableProofs.pack_size_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:61:0: &#39;VariableProofs.be_write_uint_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+warning: VariableProofs.lean:114:2: Unused tactic linter: `all_goals omega` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: VariableProofs.lean:114:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: VariableProofs.lean:151:2: Unused tactic linter: `all_goals omega` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: VariableProofs.lean:151:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+info: VariableProofs.lean:154:0: &#39;VariableProofs.be_write_uint_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:155:0: &#39;VariableProofs.be_write_uint128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:156:0: &#39;VariableProofs.le_write_uint_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:157:0: &#39;VariableProofs.le_write_uint128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+warning: VariableProofs.lean:179:32: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:179:59: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:180:30: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:180:57: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:181:15: This simp argument is unused:
+  Std.bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [bind_tc_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:181:28: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:181:55: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: VariableProofs.lean:183:0: &#39;VariableProofs.be_write_uint_invalid&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+warning: VariableProofs.lean:199:32: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:199:59: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:200:30: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:200:57: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:201:15: This simp argument is unused:
+  Std.bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [bind_tc_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:201:28: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:201:55: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:216:32: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:216:59: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:217:30: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:217:57: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:218:15: This simp argument is unused:
+  Std.bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [bind_tc_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:218:28: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:218:55: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:233:32: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:233:59: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:234:30: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:234:57: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:235:15: This simp argument is unused:
+  Std.bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [bind_tc_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:235:28: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, Std.bind_fail, bind_tc_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: VariableProofs.lean:235:55: This simp argument is unused:
+  bind_tc_fail
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Std.bind_ok, bind_tc_ok, Std.bind_fail]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: VariableProofs.lean:270:0: &#39;VariableProofs.be_write_uint_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:271:0: &#39;VariableProofs.be_write_uint128_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:272:0: &#39;VariableProofs.le_write_uint_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: VariableProofs.lean:273:0: &#39;VariableProofs.le_write_uint128_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1806/1807] Built FloatProofs (3.3s)
+warning: FloatProofs.lean:18:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FloatProofs.lean:55:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FloatProofs.lean:92:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FloatProofs.lean:129:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: FloatProofs.lean:154:0: &#39;FloatProofs.be_write_f32_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FloatProofs.lean:155:0: &#39;FloatProofs.be_write_f64_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FloatProofs.lean:156:0: &#39;FloatProofs.le_write_f32_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FloatProofs.lean:157:0: &#39;FloatProofs.le_write_f64_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1807/1807] Built Proofs (4.2s)
+info: Proofs.lean:88:0: &#39;Proofs.be_write_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:89:0: &#39;Proofs.be_write_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:90:0: &#39;Proofs.be_write_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:91:0: &#39;Proofs.be_write_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:92:0: &#39;Proofs.le_write_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:93:0: &#39;Proofs.le_write_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:94:0: &#39;Proofs.le_write_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:95:0: &#39;Proofs.le_write_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:98:0: &#39;Proofs.BigEndian_default_panics&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:100:0: &#39;Proofs.LittleEndian_default_panics&#39; depends on axioms: [propext, Quot.sound]
+warning: Proofs.lean:107:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:121:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:135:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:149:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:163:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:177:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:191:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:205:47: This simp argument is unused:
+  core.slice.index.SliceIndexRangeToUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeToUsizeSlice.index_mut]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: Proofs.lean:217:0: &#39;Proofs.be_write_u16_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:218:0: &#39;Proofs.be_write_u32_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:219:0: &#39;Proofs.be_write_u64_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:220:0: &#39;Proofs.be_write_u128_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:221:0: &#39;Proofs.le_write_u16_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:222:0: &#39;Proofs.le_write_u32_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:223:0: &#39;Proofs.le_write_u64_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:224:0: &#39;Proofs.le_write_u128_contract&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1807 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.be_write_u16_contract
+proofs.rs:checked:Proofs.be_write_u32_contract
+proofs.rs:checked:Proofs.be_write_u64_contract
+proofs.rs:checked:Proofs.be_write_u128_contract
+proofs.rs:checked:Proofs.le_write_u16_contract
+proofs.rs:checked:Proofs.le_write_u32_contract
+proofs.rs:checked:Proofs.le_write_u64_contract
+proofs.rs:checked:Proofs.le_write_u128_contract
+proofs.rs:checked:Proofs.BigEndian_default_panics
+proofs.rs:checked:Proofs.LittleEndian_default_panics
+proofs.rs:checked:SignedProofs.be_write_i16_contract
+proofs.rs:checked:SignedProofs.be_write_i32_contract
+proofs.rs:checked:SignedProofs.be_write_i64_contract
+proofs.rs:checked:SignedProofs.be_write_i128_contract
+proofs.rs:checked:SignedProofs.le_write_i16_contract
+proofs.rs:checked:SignedProofs.le_write_i32_contract
+proofs.rs:checked:SignedProofs.le_write_i64_contract
+proofs.rs:checked:SignedProofs.le_write_i128_contract
+proofs.rs:checked:VariableProofs.be_write_uint_contract
+proofs.rs:checked:VariableProofs.be_write_uint128_contract
+proofs.rs:checked:VariableProofs.le_write_uint_contract
+proofs.rs:checked:VariableProofs.le_write_uint128_contract
+proofs.rs:checked:FloatProofs.be_write_f32_contract
+proofs.rs:checked:FloatProofs.be_write_f64_contract
+proofs.rs:checked:FloatProofs.le_write_f32_contract
+proofs.rs:checked:FloatProofs.le_write_f64_contract
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Archive-identical Rust/Cargo.toml; x86_64 default features, debug extraction. Rust nightly-2026-09-17, Charon08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean4.35.0. Kani0.68.0/CBMC6.11.0/Rust nightly-2026-08-21: six harnesses, 276 checks, no failures per crate.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>F32/F64 are explicit 32/64-bit logical patterns; two executable std to_bits models preserve those patterns as unsigned words, with checked Lean value-preservation lemmas. Guards require original writer bodies and allow no other float operation. Kani checks std bit identity for every pattern and actual released writers with 6/10-byte buffers. Connecting these Rust checks to the Lean representation is reviewed, not mechanized; Rust nightlies differ. Official translation/standard integer and slice models, Lean, and Kani/CBMC are trusted. Mapped audits permit only propext, Classical.choice and Quot.sound.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>This covers 24 selected writer methods and two handwritten Default methods, not all public APIs. Reads, remaining signed variable-width wrappers, bulk and in-place conversions, I/O extensions, other targets and release extraction remain unproved. The float result establishes bit serialization only: floating arithmetic, comparisons, rounding, numeric accuracy, NaN arithmetic and signaling behavior are not modeled. Kani public-writer buffer lengths are fixed at 6 and 10; arbitrary valid slice lengths are quantified separately by the Lean theorems. Panic messages and unwinding side effects are not specified.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (2)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/quickcheck" target="_blank" rel="noopener noreferrer"><code>quickcheck</code></a> <code>^0.9.2</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand" target="_blank" rel="noopener noreferrer"><code>rand</code></a> <code>^0.7</code> · dev</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F33">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>

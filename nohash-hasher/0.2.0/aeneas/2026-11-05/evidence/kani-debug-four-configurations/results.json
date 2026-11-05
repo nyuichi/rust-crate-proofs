@@ -1,0 +1,62 @@
+{
+  "crate": "nohash-hasher",
+  "version": "0.2.0",
+  "tool": "Kani 0.68.0",
+  "configs": [
+    {
+      "debug_assertions": true,
+      "checks": 2175,
+      "unreachable": 159,
+      "failed": 0,
+      "seconds": 115.25791,
+      "dependency_features": [
+        "default",
+        "std"
+      ],
+      "variant": "nohash-debug-probe",
+      "evidence_origin": "existing fixed std packet copied without new std Kani run",
+      "log": "evidence/debug-u8-final.log"
+    },
+    {
+      "debug_assertions": false,
+      "checks": 2143,
+      "unreachable": 159,
+      "failed": 0,
+      "seconds": 72.10398,
+      "dependency_features": [
+        "default",
+        "std"
+      ],
+      "variant": "nohash-debug-probe",
+      "evidence_origin": "existing fixed std packet copied without new std Kani run",
+      "log": "evidence/release-u8-final.log"
+    },
+    {
+      "dependency_no_std": true,
+      "debug_assertions": true,
+      "checks": 2175,
+      "failed": 0,
+      "unreachable": 159,
+      "seconds": 64.65347,
+      "log": "evidence/no-std-debug-kani.log",
+      "dependency_features": [],
+      "variant": "nohash-debug-no-std",
+      "evidence_origin": "new separate no_std Kani execution"
+    },
+    {
+      "dependency_no_std": true,
+      "debug_assertions": false,
+      "checks": 2143,
+      "failed": 0,
+      "unreachable": 159,
+      "seconds": 31.993742,
+      "log": "evidence/no-std-release-kani.log",
+      "dependency_features": [],
+      "variant": "nohash-debug-no-std",
+      "evidence_origin": "new separate no_std Kani execution"
+    }
+  ],
+  "scope": "NoHashHasher<u8>; Default then zero/one write_u8(any u8); default {:?}; fixed64 accept-all/first-error writer",
+  "generic_Debug_complete": false,
+  "claims_added": 0
+}

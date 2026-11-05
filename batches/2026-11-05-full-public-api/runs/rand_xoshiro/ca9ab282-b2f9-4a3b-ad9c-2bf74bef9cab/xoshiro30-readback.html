@@ -1,0 +1,749 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #30 — Exact xoshiro word outputs, projections and Seed512 byte views · proofs.rs</title><meta name="description" content="For rand_xoshiro 0.8.1, the unchanged native word-generating method of each of its fifteen generators returns Ok of the specified output scrambler and performs "><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Exact xoshiro word outputs, projections and Seed512 byte views · rand_xoshiro 0.8.1 · proofs.rs"><meta property="og:description" content="For rand_xoshiro 0.8.1, the unchanged native word-generating method of each of its fifteen generators returns Ok of the specified output scrambler and performs "><meta property="og:url" content="https://proofs.rs/report/30?v=1"><meta property="og:image" content="https://proofs.rs/og/report/30/1.png"><meta property="og:image:alt" content="Exact xoshiro word outputs, projections and Seed512 byte views · rand_xoshiro 0.8.1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Exact xoshiro word outputs, projections and Seed512 byte views · rand_xoshiro 0.8.1 · proofs.rs"><meta name="twitter:description" content="For rand_xoshiro 0.8.1, the unchanged native word-generating method of each of its fifteen generators returns Ok of the specified output scrambler and performs "><meta name="twitter:image" content="https://proofs.rs/og/report/30/1.png"><meta name="twitter:image:alt" content="Exact xoshiro word outputs, projections and Seed512 byte views · rand_xoshiro 0.8.1"><link rel="canonical" href="https://proofs.rs/report/30"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F30">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/rand_xoshiro?version=0.8.1">rand_xoshiro 0.8.1</a> <span aria-hidden="true">/</span> <a href="/crate/rand_xoshiro?version=0.8.1#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #30 — Exact xoshiro word outputs, projections and Seed512 byte views</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">30 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 04:58 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Exact%20xoshiro%20word%20outputs%2C%20projections%20and%20Seed512%20byte%20views%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F30%3Fv%3D1"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Exact%20xoshiro%20word%20outputs%2C%20projections%20and%20Seed512%20byte%20views%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F30%3Fv%3D1"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/30?v=1" aria-current="page">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For rand_xoshiro 0.8.1, the unchanged native word-generating method of each of its fifteen generators returns Ok of the specified output scrambler and performs the exact documented word-state transition. Coverage includes SplitMix64, both xoroshiro64 variants, all three xoroshiro128 variants, and all three variants of each xoshiro128, xoshiro256 and xoshiro512 family. For 32-bit-word engines the native method is try_next_u32; for 64-bit-word engines it is try_next_u64. SplitMix64::try_next_u32 is also proved independently, including its distinct Mix4 output formula, among the direct body proofs. Each theorem covers arbitrary internal words, including all-zero states, and establishes normal termination in the Aeneas model. Array-state representation theorems establish that the four-word and eight-word inputs cover every valid fixed-length engine state. Exact output formulas and resulting fields are defined independently of the generated Rust body in the output*/next* specifications. The selected original bodies have byte-identical official Aeneas translations under the default and serde feature configurations, so these body guarantees apply to both configurations; this does not verify the serde trait implementations. Nine further 32-bit APIs are verified through exact forwarding selectors whose calls to the unchanged original API are inlined by the Rust compiler: all three xoroshiro128, all three xoshiro256 and all three xoshiro512 variants. These establish the same state transition as their 64-bit method, with low 32 output bits for xoroshiro128++ and xoroshiro128**, and high 32 bits for the other seven variants. The selector source, typed receiver/return correspondence, target, original method inline scopes and absence of unknown externals are guarded. Default and serde selected programs are byte-identical. Four additional direct body proofs cover Seed512: Default initializes all 64 bytes to zero; AsRef exposes exactly the stored bytes; AsMut exposes those bytes and writes back every legal 64-byte replacement unchanged; iter initializes the standard slice-iterator model over those same bytes at position zero. SplitMix64::state is additionally proved to return exactly the eight little-endian bytes of its complete internal u64 state, for every state including zero. Thirty registered APIs comprise twenty-one direct bodies and nine compiler-inlined calls. Separate Kani evidence checks the five remaining 32-bit-engine try_next_u64 APIs against independent two-step little-endian word composition and exact poststate formulas for every internal state, including zero, under default and serde features. Each configuration passes five ordinary harnesses and 892 checks. These are separate Kani guarantees, not Aeneas machine claims or a cross-tool equivalence theorem.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (30)</h2><section class="api-category"><h3>Recorded callables</h3><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Seed512 as AsMut&lt;[u8]&gt;&gt;::as_mut" data-claims="1"><span><a class="api-name" href="/api/c28072a109a06e0178177253bbe2f85537e78c8bac0c9abd5887a5e58c95c7f7">&lt;rand_xoshiro::Seed512 as AsMut&lt;[u8]&gt;&gt;::as_mut</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e3073c1e-95eb-4990-bdd7-56bcd6bd9a82?report_revision=1">Claim #28</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Seed512 as AsRef&lt;[u8]&gt;&gt;::as_ref" data-claims="1"><span><a class="api-name" href="/api/945baf229de50341fcf9b1d3999b43157428e86b55c56781477790d8fcfd6f8d">&lt;rand_xoshiro::Seed512 as AsRef&lt;[u8]&gt;&gt;::as_ref</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/34021f54-a21b-4b23-97c8-78b410ea53a5?report_revision=1">Claim #27</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Seed512 as Default&gt;::default" data-claims="1"><span><a class="api-name" href="/api/90f1cd444bbc4e8c9e747edf8ac010e2ffb34662f4b507d23f91431b48dc6346">&lt;rand_xoshiro::Seed512 as Default&gt;::default</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d7b12740-74a6-4993-85ba-f8dedc4787a3?report_revision=1">Claim #26</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::SplitMix64 as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/31af78dea7cefb6e0c005a66c4255a6150cd273a0361abac23ec55a479aa070f">&lt;rand_xoshiro::SplitMix64 as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/fc494c22-0453-4aa0-8a92-0a55c4c91757?report_revision=1">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::SplitMix64 as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/601142edef35410fb900338482593a1e5d584bfa0b1382115576bb42544cca9b">&lt;rand_xoshiro::SplitMix64 as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/df2a7f82-cb6e-4db8-9d30-53cb8324a2e5?report_revision=1">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro128Plus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/9cc0de99a3db39000e3058afc7f3857507692be8647b92dc1a5073203ec7ec00">&lt;rand_xoshiro::Xoroshiro128Plus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/890e4052-3ecf-4c79-bc08-21252171765c?report_revision=1">Claim #17</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro128Plus as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/03496e0d60216248787eb63cbc07121807ce55dba6a196629c2f12e51e9fbd24">&lt;rand_xoshiro::Xoroshiro128Plus as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/145a2468-fa72-4c74-b46a-9e7179c716eb?report_revision=1">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro128PlusPlus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/4624a26229654315da81781a9e6d6099502964144b4c05d7f926f14a27f374a3">&lt;rand_xoshiro::Xoroshiro128PlusPlus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/88de6e3b-1bba-4fe7-972d-9c5e306559fc?report_revision=1">Claim #18</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro128PlusPlus as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/313ce72f66a99a4c1aae1b28a56832b3293b34a265c598939ede028314c4fabb">&lt;rand_xoshiro::Xoroshiro128PlusPlus as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8648aa34-084e-4025-a372-8f8454f473a8?report_revision=1">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro128StarStar as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/5fe9824394f5d4a6f6835a671c074b3afcdb687cd7463dce44340bec89775d8d">&lt;rand_xoshiro::Xoroshiro128StarStar as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/028f4ebc-85c8-4f85-a0d7-bc656690684e?report_revision=1">Claim #19</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro128StarStar as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/904966ccb80a542b8a09b6dcfddc0bf8d021a7bd0824329ae099ac336820db9b">&lt;rand_xoshiro::Xoroshiro128StarStar as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/79870ffe-7a2f-4b43-8ef3-6dd734ea1296?report_revision=1">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro64Star as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/cfede002a73b18a2fc501c4151692253e4d4c467d122409d568028d9b4746b4d">&lt;rand_xoshiro::Xoroshiro64Star as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0947bbc2-a0ef-453b-8fd4-a2b851f5fc7f?report_revision=1">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoroshiro64StarStar as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/c7aacd059c4fb0d1004dee101fcdd7ee80f5127362c9a780ca18e4d96dcb9280">&lt;rand_xoshiro::Xoroshiro64StarStar as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d2012e46-24fd-46e2-9179-a1c6d67daa8a?report_revision=1">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro128Plus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/e667af025435aba311fd4ef684fc9cd2893e16330e68ad160d11a03371abb890">&lt;rand_xoshiro::Xoshiro128Plus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e3f76306-2fbc-4b0b-ba19-456d28441224?report_revision=1">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro128PlusPlus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/6b05aad736cb35bb5ce62d8062cae41ac7bd77a6d938a97f12bfffa584e880c6">&lt;rand_xoshiro::Xoshiro128PlusPlus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1eb14927-9410-4485-a2d3-63a530b34283?report_revision=1">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro128StarStar as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/37b28f8e5db32f5a045369a390f576ff1c455d5036f5b46dd460c11126b2633c">&lt;rand_xoshiro::Xoshiro128StarStar as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d5570969-52a9-4bee-8ce8-b985f49e8d90?report_revision=1">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro256Plus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/199799330a337c6a5d82f1a19b709f2a735788037054b4c13d695a0634b27f66">&lt;rand_xoshiro::Xoshiro256Plus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c4adc937-9942-4d64-a407-dbaa58ce9a78?report_revision=1">Claim #20</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro256Plus as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/f1952187dcd5147e85285986a3a335d56629b5c972b31b92c422bb1d921157d5">&lt;rand_xoshiro::Xoshiro256Plus as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d274856a-37f4-40f9-aac0-ef840a8160b2?report_revision=1">Claim #11</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro256PlusPlus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/f3f7e9e72a915f18a7a7088da231a0fade2b38619d211aebda8bd97fcd7df0d7">&lt;rand_xoshiro::Xoshiro256PlusPlus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/96f3bd3e-dd36-462b-aead-722934b76106?report_revision=1">Claim #21</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro256PlusPlus as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/40bb39f577a86ba90278e57368f142378a425ee596e843eb950c732a18ccb351">&lt;rand_xoshiro::Xoshiro256PlusPlus as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a199d5ab-6418-4dd1-a9d2-db34a56328e3?report_revision=1">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro256StarStar as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/0c46b8a30b52f5fd386a74c2267757c0fd1f4b2c0a7e5dab8599efd3f6861e3a">&lt;rand_xoshiro::Xoshiro256StarStar as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e04c6fcf-95db-4b04-9826-1e03fe30261d?report_revision=1">Claim #22</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro256StarStar as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/cf010b7b12dcd13b01bcebcdc1f53021b336ec6453fcc8b8697463363a2cdc1d">&lt;rand_xoshiro::Xoshiro256StarStar as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/068f1700-6a87-417a-877b-af0f43f28bee?report_revision=1">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro512Plus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/ed0f0ca4c596c53f08ced85a5087747fa04c0475c5cb633e7e05ab47d1f276b4">&lt;rand_xoshiro::Xoshiro512Plus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/47f8b42e-65cb-47fd-8e75-1bcf1ecbf001?report_revision=1">Claim #23</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro512Plus as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/983254e7678404b6c35689b8d5bcb5c73831b4f557e9d3b4b34bbe7846bab030">&lt;rand_xoshiro::Xoshiro512Plus as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/681acb2a-6fc6-4a0e-b15f-5bd12b45ea5e?report_revision=1">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro512PlusPlus as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/bed55485066892ae85799a21eddd80643be035eeecd5e7c5954d73c5c0faa273">&lt;rand_xoshiro::Xoshiro512PlusPlus as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/b26ac131-9531-458d-9528-52f1e56459f1?report_revision=1">Claim #24</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro512PlusPlus as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/7230a9237e498dafcd5eb8d2740a74d8d9d8adc22111e0a272667c7ca4541fee">&lt;rand_xoshiro::Xoshiro512PlusPlus as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/747acc73-9dea-4336-a991-d301aee979c4?report_revision=1">Claim #15</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro512StarStar as TryRng&gt;::try_next_u32" data-claims="1"><span><a class="api-name" href="/api/03d8da73f0465e1a9a65fc5d490e1d14f9bfc5dde07752c2f8308eb5c77aad77">&lt;rand_xoshiro::Xoshiro512StarStar as TryRng&gt;::try_next_u32</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/db3e5673-6c89-4b23-b4c4-f347f909fec1?report_revision=1">Claim #25</a></span></div></div><div class="catalog-row" data-api-path="&lt;rand_xoshiro::Xoshiro512StarStar as TryRng&gt;::try_next_u64" data-claims="1"><span><a class="api-name" href="/api/8caa9da6dc081553e49090978f635cf570e59d11bd168645a18d771e8f5cfc60">&lt;rand_xoshiro::Xoshiro512StarStar as TryRng&gt;::try_next_u64</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0c51a5f8-cc62-4484-8d43-c5a317913b15?report_revision=1">Claim #16</a></span></div></div><div class="catalog-row" data-api-path="rand_xoshiro::Seed512::iter" data-claims="1"><span><a class="api-name" href="/api/7c57ca78ba82837b48ce026ff9710e32631d8dfe4ba63f8055f18f6d263e5b97">Seed512::iter</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0c6f9b11-998e-489b-be2d-faba5eb59535?report_revision=1">Claim #29</a></span></div></div><div class="catalog-row" data-api-path="rand_xoshiro::SplitMix64::state" data-claims="1"><span><a class="api-name" href="/api/b66b35eb1bb796048ff29a8dfa7bb4d58938973d64b6e455d8d6c282c4222c97">SplitMix64::state</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9187299b-bdd8-46f2-add8-57b94a947fb5?report_revision=1">Claim #30</a></span></div></div></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/4f097e0e57af4422b08b2362fc92a1babff70dca" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/4f097e0e57af4422b08b2362fc92a1babff70dca</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-30-source-1
+git -C report-30-source-1 checkout --detach 4f097e0e57af4422b08b2362fc92a1babff70dca
+git -C report-30-source-1 submodule update --init --recursive --checkout
+cd report-30-source-1/rand_xoshiro/0.8.1/aeneas/2026-11-05/proofs
+
+lake build +Proofs +SeedProofs +StateProofs +WrapperProofs
+
+printf &#39;%s&#39; &#39;import Lean
+import Proofs
+import SeedProofs
+import StateProofs
+import WrapperProofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.SplitMix64_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.SplitMix64_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.SplitMix64_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.SplitMix64_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.SplitMix64_32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.SplitMix64_32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.SplitMix64_32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.SplitMix64_32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoroshiro128Plus_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoroshiro128Plus_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoroshiro128Plus_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoroshiro128Plus_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoroshiro128PlusPlus_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoroshiro128PlusPlus_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoroshiro128PlusPlus_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoroshiro128PlusPlus_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoroshiro128StarStar_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoroshiro128StarStar_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoroshiro128StarStar_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoroshiro128StarStar_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoroshiro64Star_32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoroshiro64Star_32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoroshiro64Star_32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoroshiro64Star_32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoroshiro64StarStar_32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoroshiro64StarStar_32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoroshiro64StarStar_32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoroshiro64StarStar_32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro128Plus_32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro128Plus_32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro128Plus_32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro128Plus_32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro128PlusPlus_32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro128PlusPlus_32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro128PlusPlus_32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro128PlusPlus_32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro128StarStar_32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro128StarStar_32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro128StarStar_32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro128StarStar_32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro256Plus_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro256Plus_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro256Plus_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro256Plus_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro256PlusPlus_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro256PlusPlus_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro256PlusPlus_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro256PlusPlus_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro256StarStar_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro256StarStar_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro256StarStar_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro256StarStar_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro512Plus_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro512Plus_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro512Plus_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro512Plus_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro512PlusPlus_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro512PlusPlus_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro512PlusPlus_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro512PlusPlus_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.Xoshiro512StarStar_64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.Xoshiro512StarStar_64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.Xoshiro512StarStar_64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.Xoshiro512StarStar_64_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoshiro256Plus_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoshiro256Plus_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoshiro256Plus_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoshiro256Plus_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoshiro512Plus_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoshiro512Plus_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoshiro512Plus_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoshiro512Plus_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec&quot;
+
+run_cmd do
+  let theorem_name := `SeedProofs.default_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SeedProofs.default_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SeedProofs.default_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SeedProofs.default_spec&quot;
+
+run_cmd do
+  let theorem_name := `SeedProofs.as_ref_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SeedProofs.as_ref_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SeedProofs.as_ref_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SeedProofs.as_ref_spec&quot;
+
+run_cmd do
+  let theorem_name := `SeedProofs.as_mut_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SeedProofs.as_mut_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SeedProofs.as_mut_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SeedProofs.as_mut_spec&quot;
+
+run_cmd do
+  let theorem_name := `SeedProofs.iter_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: SeedProofs.iter_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in SeedProofs.iter_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:SeedProofs.iter_spec&quot;
+
+run_cmd do
+  let theorem_name := `StateProofs.splitmix_state_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: StateProofs.splitmix_state_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in StateProofs.splitmix_state_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:StateProofs.splitmix_state_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/4f097e0e57af4422b08b2362fc92a1babff70dca">Source on GitHub</a> · <a href="/api/v1/runs/ca9ab282-b2f9-4a3b-ad9c-2bf74bef9cab/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 30 checks passed · 0 failed</p><p class="meta">2026-11-05T04:31:13.683881791+00:00 · 99.2 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e53706c69744d697836345f36345f73706563"><td>Lean checked theorem Proofs.SplitMix64_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.SplitMix64_64_spec</code></div></td><td>Passed</td><td><a href="/claim/df2a7f82-cb6e-4db8-9d30-53cb8324a2e5?report_revision=1">Claim #1</a></td></tr><tr id="check-50726f6f66732e53706c69744d697836345f33325f73706563"><td>Lean checked theorem Proofs.SplitMix64_32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.SplitMix64_32_spec</code></div></td><td>Passed</td><td><a href="/claim/fc494c22-0453-4aa0-8a92-0a55c4c91757?report_revision=1">Claim #2</a></td></tr><tr id="check-50726f6f66732e586f726f736869726f313238506c75735f36345f73706563"><td>Lean checked theorem Proofs.Xoroshiro128Plus_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoroshiro128Plus_64_spec</code></div></td><td>Passed</td><td><a href="/claim/145a2468-fa72-4c74-b46a-9e7179c716eb?report_revision=1">Claim #3</a></td></tr><tr id="check-50726f6f66732e586f726f736869726f313238506c7573506c75735f36345f73706563"><td>Lean checked theorem Proofs.Xoroshiro128PlusPlus_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoroshiro128PlusPlus_64_spec</code></div></td><td>Passed</td><td><a href="/claim/8648aa34-084e-4025-a372-8f8454f473a8?report_revision=1">Claim #4</a></td></tr><tr id="check-50726f6f66732e586f726f736869726f31323853746172537461725f36345f73706563"><td>Lean checked theorem Proofs.Xoroshiro128StarStar_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoroshiro128StarStar_64_spec</code></div></td><td>Passed</td><td><a href="/claim/79870ffe-7a2f-4b43-8ef3-6dd734ea1296?report_revision=1">Claim #5</a></td></tr><tr id="check-50726f6f66732e586f726f736869726f3634537461725f33325f73706563"><td>Lean checked theorem Proofs.Xoroshiro64Star_32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoroshiro64Star_32_spec</code></div></td><td>Passed</td><td><a href="/claim/0947bbc2-a0ef-453b-8fd4-a2b851f5fc7f?report_revision=1">Claim #6</a></td></tr><tr id="check-50726f6f66732e586f726f736869726f363453746172537461725f33325f73706563"><td>Lean checked theorem Proofs.Xoroshiro64StarStar_32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoroshiro64StarStar_32_spec</code></div></td><td>Passed</td><td><a href="/claim/d2012e46-24fd-46e2-9179-a1c6d67daa8a?report_revision=1">Claim #7</a></td></tr><tr id="check-50726f6f66732e586f736869726f313238506c75735f33325f73706563"><td>Lean checked theorem Proofs.Xoshiro128Plus_32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro128Plus_32_spec</code></div></td><td>Passed</td><td><a href="/claim/e3f76306-2fbc-4b0b-ba19-456d28441224?report_revision=1">Claim #8</a></td></tr><tr id="check-50726f6f66732e586f736869726f313238506c7573506c75735f33325f73706563"><td>Lean checked theorem Proofs.Xoshiro128PlusPlus_32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro128PlusPlus_32_spec</code></div></td><td>Passed</td><td><a href="/claim/1eb14927-9410-4485-a2d3-63a530b34283?report_revision=1">Claim #9</a></td></tr><tr id="check-50726f6f66732e586f736869726f31323853746172537461725f33325f73706563"><td>Lean checked theorem Proofs.Xoshiro128StarStar_32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro128StarStar_32_spec</code></div></td><td>Passed</td><td><a href="/claim/d5570969-52a9-4bee-8ce8-b985f49e8d90?report_revision=1">Claim #10</a></td></tr><tr id="check-50726f6f66732e586f736869726f323536506c75735f36345f73706563"><td>Lean checked theorem Proofs.Xoshiro256Plus_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro256Plus_64_spec</code></div></td><td>Passed</td><td><a href="/claim/d274856a-37f4-40f9-aac0-ef840a8160b2?report_revision=1">Claim #11</a></td></tr><tr id="check-50726f6f66732e586f736869726f323536506c7573506c75735f36345f73706563"><td>Lean checked theorem Proofs.Xoshiro256PlusPlus_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro256PlusPlus_64_spec</code></div></td><td>Passed</td><td><a href="/claim/a199d5ab-6418-4dd1-a9d2-db34a56328e3?report_revision=1">Claim #12</a></td></tr><tr id="check-50726f6f66732e586f736869726f32353653746172537461725f36345f73706563"><td>Lean checked theorem Proofs.Xoshiro256StarStar_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro256StarStar_64_spec</code></div></td><td>Passed</td><td><a href="/claim/068f1700-6a87-417a-877b-af0f43f28bee?report_revision=1">Claim #13</a></td></tr><tr id="check-50726f6f66732e586f736869726f353132506c75735f36345f73706563"><td>Lean checked theorem Proofs.Xoshiro512Plus_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro512Plus_64_spec</code></div></td><td>Passed</td><td><a href="/claim/681acb2a-6fc6-4a0e-b15f-5bd12b45ea5e?report_revision=1">Claim #14</a></td></tr><tr id="check-50726f6f66732e586f736869726f353132506c7573506c75735f36345f73706563"><td>Lean checked theorem Proofs.Xoshiro512PlusPlus_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro512PlusPlus_64_spec</code></div></td><td>Passed</td><td><a href="/claim/747acc73-9dea-4336-a991-d301aee979c4?report_revision=1">Claim #15</a></td></tr><tr id="check-50726f6f66732e586f736869726f35313253746172537461725f36345f73706563"><td>Lean checked theorem Proofs.Xoshiro512StarStar_64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.Xoshiro512StarStar_64_spec</code></div></td><td>Passed</td><td><a href="/claim/0c51a5f8-cc62-4484-8d43-c5a317913b15?report_revision=1">Claim #16</a></td></tr><tr id="check-5772617070657250726f6f66732e586f726f736869726f313238506c75735f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/890e4052-3ecf-4c79-bc08-21252171765c?report_revision=1">Claim #17</a></td></tr><tr id="check-5772617070657250726f6f66732e586f726f736869726f313238506c7573506c75735f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/88de6e3b-1bba-4fe7-972d-9c5e306559fc?report_revision=1">Claim #18</a></td></tr><tr id="check-5772617070657250726f6f66732e586f726f736869726f31323853746172537461725f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/028f4ebc-85c8-4f85-a0d7-bc656690684e?report_revision=1">Claim #19</a></td></tr><tr id="check-5772617070657250726f6f66732e586f736869726f323536506c75735f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoshiro256Plus_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoshiro256Plus_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/c4adc937-9942-4d64-a407-dbaa58ce9a78?report_revision=1">Claim #20</a></td></tr><tr id="check-5772617070657250726f6f66732e586f736869726f323536506c7573506c75735f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/96f3bd3e-dd36-462b-aead-722934b76106?report_revision=1">Claim #21</a></td></tr><tr id="check-5772617070657250726f6f66732e586f736869726f32353653746172537461725f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/e04c6fcf-95db-4b04-9826-1e03fe30261d?report_revision=1">Claim #22</a></td></tr><tr id="check-5772617070657250726f6f66732e586f736869726f353132506c75735f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoshiro512Plus_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoshiro512Plus_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/47f8b42e-65cb-47fd-8e75-1bcf1ecbf001?report_revision=1">Claim #23</a></td></tr><tr id="check-5772617070657250726f6f66732e586f736869726f353132506c7573506c75735f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/b26ac131-9531-458d-9528-52f1e56459f1?report_revision=1">Claim #24</a></td></tr><tr id="check-5772617070657250726f6f66732e586f736869726f35313253746172537461725f33325f7669615f6f726967696e616c5f6170695f73706563"><td>Lean checked theorem WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec</code></div></td><td>Passed</td><td><a href="/claim/db3e5673-6c89-4b23-b4c4-f347f909fec1?report_revision=1">Claim #25</a></td></tr><tr id="check-5365656450726f6f66732e64656661756c745f73706563"><td>Lean checked theorem SeedProofs.default_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SeedProofs.default_spec</code></div></td><td>Passed</td><td><a href="/claim/d7b12740-74a6-4993-85ba-f8dedc4787a3?report_revision=1">Claim #26</a></td></tr><tr id="check-5365656450726f6f66732e61735f7265665f73706563"><td>Lean checked theorem SeedProofs.as_ref_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SeedProofs.as_ref_spec</code></div></td><td>Passed</td><td><a href="/claim/34021f54-a21b-4b23-97c8-78b410ea53a5?report_revision=1">Claim #27</a></td></tr><tr id="check-5365656450726f6f66732e61735f6d75745f73706563"><td>Lean checked theorem SeedProofs.as_mut_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SeedProofs.as_mut_spec</code></div></td><td>Passed</td><td><a href="/claim/e3073c1e-95eb-4990-bdd7-56bcd6bd9a82?report_revision=1">Claim #28</a></td></tr><tr id="check-5365656450726f6f66732e697465725f73706563"><td>Lean checked theorem SeedProofs.iter_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>SeedProofs.iter_spec</code></div></td><td>Passed</td><td><a href="/claim/0c6f9b11-998e-489b-be2d-faba5eb59535?report_revision=1">Claim #29</a></td></tr><tr id="check-537461746550726f6f66732e73706c69746d69785f73746174655f73706563"><td>Lean checked theorem StateProofs.splitmix_state_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>StateProofs.splitmix_state_spec</code></div></td><td>Passed</td><td><a href="/claim/9187299b-bdd8-46f2-add8-57b94a947fb5?report_revision=1">Claim #30</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T04:31:13.683881791+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T04:32:52.868446884+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">rand_xoshiro/0.8.1/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">4f097e0e57af4422b08b2362fc92a1babff70dca</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/57] Built AeneasMeta.Simp.RegisterCommand (726ms)
+✔ [4/57] Built AeneasMeta.Simp.RegisterCommand:c.o (39s)
+✔ [5/210] Built Aeneas.Std.Global (40s)
+✔ [154/487] Built AeneasMeta.UtilsCore (40s)
+✔ [181/487] Built AeneasMeta.BvEnumToBitVec (40s)
+✔ [1575/1807] Built AeneasMeta.OptionConfig (41s)
+✔ [1797/1807] Built Seed512.Types (1.6s)
+✔ [1798/1807] Built SplitMixState.Types (1.6s)
+✔ [1799/1807] Built XoshiroApiRoots.Types (1.8s)
+✔ [1800/1807] Built RandXoshiro (2.8s)
+✔ [1801/1807] Built Seed512.Funs (1.7s)
+✔ [1802/1807] Built SplitMixState.Funs (1.8s)
+✔ [1803/1807] Built XoshiroApiRoots.Funs (2.7s)
+ℹ [1804/1807] Built StateProofs (3.5s)
+info: StateProofs.lean:10:0: &#39;StateProofs.splitmix_state_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1805/1807] Built SeedProofs (3.7s)
+info: SeedProofs.lean:28:0: &#39;SeedProofs.default_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SeedProofs.lean:29:0: &#39;SeedProofs.as_ref_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SeedProofs.lean:30:0: &#39;SeedProofs.as_mut_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: SeedProofs.lean:31:0: &#39;SeedProofs.iter_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1806/1807] Built Proofs (8.1s)
+warning: Proofs.lean:264:37: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Proofs.lean:276:37: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+info: Proofs.lean:369:0: &#39;Proofs.SplitMix64_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:370:0: &#39;Proofs.SplitMix64_32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:371:0: &#39;Proofs.Xoroshiro128Plus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:372:0: &#39;Proofs.Xoroshiro128PlusPlus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:373:0: &#39;Proofs.Xoroshiro128StarStar_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:374:0: &#39;Proofs.Xoroshiro64Star_32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:375:0: &#39;Proofs.Xoroshiro64StarStar_32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:376:0: &#39;Proofs.Xoshiro128Plus_32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:377:0: &#39;Proofs.Xoshiro128PlusPlus_32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:378:0: &#39;Proofs.Xoshiro128StarStar_32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:379:0: &#39;Proofs.Xoshiro256Plus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:380:0: &#39;Proofs.Xoshiro256PlusPlus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:381:0: &#39;Proofs.Xoshiro256StarStar_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:382:0: &#39;Proofs.Xoshiro512Plus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:383:0: &#39;Proofs.Xoshiro512PlusPlus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:384:0: &#39;Proofs.Xoshiro512StarStar_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:385:0: &#39;Proofs.arr4_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:386:0: &#39;Proofs.arr8_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:387:0: &#39;Proofs.inputXoroshiro128Plus_64_surjective&#39; does not depend on any axioms
+info: Proofs.lean:388:0: &#39;Proofs.inputXoroshiro128PlusPlus_64_surjective&#39; does not depend on any axioms
+info: Proofs.lean:389:0: &#39;Proofs.inputXoroshiro128StarStar_64_surjective&#39; does not depend on any axioms
+info: Proofs.lean:390:0: &#39;Proofs.inputXoroshiro64Star_32_surjective&#39; does not depend on any axioms
+info: Proofs.lean:391:0: &#39;Proofs.inputXoroshiro64StarStar_32_surjective&#39; does not depend on any axioms
+info: Proofs.lean:392:0: &#39;Proofs.inputXoshiro128Plus_32_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:393:0: &#39;Proofs.inputXoshiro128PlusPlus_32_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:394:0: &#39;Proofs.inputXoshiro128StarStar_32_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:395:0: &#39;Proofs.inputXoshiro256Plus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:396:0: &#39;Proofs.inputXoshiro256PlusPlus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:397:0: &#39;Proofs.inputXoshiro256StarStar_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:398:0: &#39;Proofs.inputXoshiro512Plus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:399:0: &#39;Proofs.inputXoshiro512PlusPlus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:400:0: &#39;Proofs.inputXoshiro512StarStar_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1807/1807] Built WrapperProofs (6.8s)
+warning: WrapperProofs.lean:42:37: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:57:31: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:57:33: Variable name `c` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _c
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:73:35: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:73:37: Variable name `c` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _c
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:89:33: Variable name `a` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _a
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:89:37: Variable name `c` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _c
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:89:39: Variable name `d` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _d
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:105:31: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:105:35: Variable name `d` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _d
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:105:37: Variable name `e` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _e
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:105:39: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:105:41: Variable name `g` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _g
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:105:43: Variable name `h` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:123:35: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:123:39: Variable name `d` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _d
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:123:41: Variable name `e` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _e
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:123:43: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:123:45: Variable name `g` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _g
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:123:47: Variable name `h` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:33: Variable name `a` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _a
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:37: Variable name `c` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _c
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:39: Variable name `d` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _d
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:41: Variable name `e` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _e
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:43: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:45: Variable name `g` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _g
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:141:47: Variable name `h` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: WrapperProofs.lean:159:37: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: WrapperProofs.lean:171:37: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: WrapperProofs.lean:242:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:242:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:249:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:249:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:256:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:256:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:263:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:263:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:270:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:270:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:277:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:277:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:284:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:284:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:291:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:291:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+warning: WrapperProofs.lean:298:2: Unused tactic linter: `all_goals rfl` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+warning: WrapperProofs.lean:298:12: this tactic is never executed
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
+info: WrapperProofs.lean:300:0: &#39;WrapperProofs.Xoroshiro128Plus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:301:0: &#39;WrapperProofs.Xoroshiro128PlusPlus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:302:0: &#39;WrapperProofs.Xoroshiro128StarStar_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:303:0: &#39;WrapperProofs.Xoshiro256Plus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:304:0: &#39;WrapperProofs.Xoshiro256PlusPlus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:305:0: &#39;WrapperProofs.Xoshiro256StarStar_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:306:0: &#39;WrapperProofs.Xoshiro512Plus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:307:0: &#39;WrapperProofs.Xoshiro512PlusPlus_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:308:0: &#39;WrapperProofs.Xoshiro512StarStar_64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:309:0: &#39;WrapperProofs.arr4_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:310:0: &#39;WrapperProofs.arr8_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:311:0: &#39;WrapperProofs.inputXoroshiro128Plus_64_surjective&#39; does not depend on any axioms
+info: WrapperProofs.lean:312:0: &#39;WrapperProofs.inputXoroshiro128PlusPlus_64_surjective&#39; does not depend on any axioms
+info: WrapperProofs.lean:313:0: &#39;WrapperProofs.inputXoroshiro128StarStar_64_surjective&#39; does not depend on any axioms
+info: WrapperProofs.lean:314:0: &#39;WrapperProofs.inputXoshiro256Plus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:315:0: &#39;WrapperProofs.inputXoshiro256PlusPlus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:316:0: &#39;WrapperProofs.inputXoshiro256StarStar_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:317:0: &#39;WrapperProofs.inputXoshiro512Plus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:318:0: &#39;WrapperProofs.inputXoshiro512PlusPlus_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:319:0: &#39;WrapperProofs.inputXoshiro512StarStar_64_surjective&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:320:0: &#39;WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:321:0: &#39;WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:322:0: &#39;WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:323:0: &#39;WrapperProofs.Xoshiro256Plus_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:324:0: &#39;WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:325:0: &#39;WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:326:0: &#39;WrapperProofs.Xoshiro512Plus_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:327:0: &#39;WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: WrapperProofs.lean:328:0: &#39;WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1807 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.SplitMix64_64_spec
+proofs.rs:checked:Proofs.SplitMix64_32_spec
+proofs.rs:checked:Proofs.Xoroshiro128Plus_64_spec
+proofs.rs:checked:Proofs.Xoroshiro128PlusPlus_64_spec
+proofs.rs:checked:Proofs.Xoroshiro128StarStar_64_spec
+proofs.rs:checked:Proofs.Xoroshiro64Star_32_spec
+proofs.rs:checked:Proofs.Xoroshiro64StarStar_32_spec
+proofs.rs:checked:Proofs.Xoshiro128Plus_32_spec
+proofs.rs:checked:Proofs.Xoshiro128PlusPlus_32_spec
+proofs.rs:checked:Proofs.Xoshiro128StarStar_32_spec
+proofs.rs:checked:Proofs.Xoshiro256Plus_64_spec
+proofs.rs:checked:Proofs.Xoshiro256PlusPlus_64_spec
+proofs.rs:checked:Proofs.Xoshiro256StarStar_64_spec
+proofs.rs:checked:Proofs.Xoshiro512Plus_64_spec
+proofs.rs:checked:Proofs.Xoshiro512PlusPlus_64_spec
+proofs.rs:checked:Proofs.Xoshiro512StarStar_64_spec
+proofs.rs:checked:WrapperProofs.Xoroshiro128Plus_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoroshiro128PlusPlus_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoroshiro128StarStar_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoshiro256Plus_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoshiro256PlusPlus_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoshiro256StarStar_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoshiro512Plus_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoshiro512PlusPlus_32_via_original_api_spec
+proofs.rs:checked:WrapperProofs.Xoshiro512StarStar_32_via_original_api_spec
+proofs.rs:checked:SeedProofs.default_spec
+proofs.rs:checked:SeedProofs.as_ref_spec
+proofs.rs:checked:SeedProofs.as_mut_spec
+proofs.rs:checked:SeedProofs.iter_spec
+proofs.rs:checked:StateProofs.splitmix_state_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Original crates.io rand_xoshiro 0.8.1 Rust sources and Cargo.toml, archive-compared unchanged. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all sixteen original bodies, with macro-expanded transitions. Original tests, regeneration hashes, integrated build and transitive theorem audits are retained in evidence. Separate all-features (serde) extraction is retained in evidence/serde; generated Lean is byte-identical to the default extraction. For the nine selection-only forwarding callers, official Charon optimized MIR with mir-opt-level=4 and +Inline is used, with duplicate-defaulted-methods and remove-unused-self-clauses. Original dependency bodies retain dependency MIR. No original Rust source or Cargo manifest is changed. Path remapping affects provenance spelling only. A third official targeted extraction covers the four Seed512 bodies; default and serde generated Types/Funs are byte-identical and have no unknown externals.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, official Charon/Aeneas translation, official Aeneas array/scalar models and Lean kernel are trusted. No custom external models, source adaptations or local helper axioms are used. All API and supplementary direct/selector theorems have dependency audits permitting only propext, Classical.choice and Quot.sound. Standard shifts, rotations, wrapping arithmetic and array operations use official Aeneas models, rather than body proofs of Rust std implementations. The nine selector proofs additionally rely on Rust compiler inlining of the exact original API call; retained MIR scopes identify each original TryRng method and Rng wrapper. The selector does not replace or assume an opaque original API: generated native callees are body-proved and no unknown external definitions remain. Seed512 byte-view and iterator initialization proofs use the official array-to-slice and slice-iterator models. The mutable reference model specifies write-back of the fixed-length referent; resizing that referent is not a legal returned-slice operation in safe Rust.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Only twenty-one direct bodies and nine compiler-inlined original-API forwarding calls are covered, with default or serde features on x86_64-unknown-linux-gnu. The five 32-bit-engine try_next_u64 compositions are outside the Aeneas mappings and covered only by the separate Kani evidence. Buffer filling, seed construction, other RNG state serialization/accessors, jump/long_jump, Seed512 formatting and external iterator operations, manual Debug, serde and inherited/default/external blanket methods remain unproved. All-zero states are included in the exact step formulas; seed validity, nonzero-state invariants, full-period behavior, statistical distribution, independence and cryptographic security are not established. Other targets and dependency feature combinations were not checked. The other generators’ state serializers remain unproved; their size_of extraction boundary is not assumed away.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (3)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/postcard" target="_blank" rel="noopener noreferrer"><code>postcard</code></a> <code>^1.1.3</code> · dev</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/rand_core" target="_blank" rel="noopener noreferrer"><code>rand_core</code></a> <code>^0.10.0</code></span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde" target="_blank" rel="noopener noreferrer"><code>serde</code></a> <code>^1</code> · optional</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F30">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>

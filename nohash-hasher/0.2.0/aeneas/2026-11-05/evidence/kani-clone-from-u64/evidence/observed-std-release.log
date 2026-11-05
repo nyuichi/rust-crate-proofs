@@ -1,0 +1,471 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling nohash-hasher v0.2.0 (/workspace/full-api/endian/nohash-clone-from/observed-source)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling nohash-clone-observed-stage v0.1.0 (/workspace/full-api/endian/nohash-clone-from/observed-stage)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s
+Checking harness checks::actual_std_clone_from...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/endian/nohash-clone-from/observed-stage/target/kani/x86_64-unknown-linux-gnu/debug/build/nohash-clone-observed-stage/7982a4e661bb7a51/out/nohash_clone_observed_stage-7982a4e661bb7a51__RNvNtCslRgvFfZGEEt_27nohash_clone_observed_stage6checks21actual_std_clone_from.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0175292s
+size of program expression: 810 steps
+slicing removed 400 assignments
+Generated 123 VCC(s), 12 remaining after simplification
+Runtime Postprocess Equation: 0.000238701s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00235098s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 6.6e-06s
+Solving with CaDiCaL 3.0.0
+2614 variables, 4903 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000127503s
+Runtime decision procedure: 0.0025915s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+2615 variables, 4904 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.0117833s
+Runtime decision procedure: 0.0118742s
+
+RESULTS:
+Check 1: checks::actual_std_clone_from.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: src.finish() == expected_src"
+	 - Location: src/lib.rs:18:2 in function checks::actual_std_clone_from
+
+Check 2: checks::actual_std_clone_from.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: dst.finish() == if dst_written {dst_value}else{0}"
+	 - Location: src/lib.rs:19:2 in function checks::actual_std_clone_from
+
+Check 3: checks::actual_std_clone_from.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: dst.finish() == expected_src"
+	 - Location: src/lib.rs:21:2 in function checks::actual_std_clone_from
+
+Check 4: checks::actual_std_clone_from.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: src.finish() == expected_src"
+	 - Location: src/lib.rs:21:40 in function checks::actual_std_clone_from
+
+Check 5: checks::actual_std_clone_from.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: nohash_hasher::__verification_observe_u64(&dst) ==
+(expected_src,expected_flag)"
+	 - Location: src/lib.rs:23:2 in function checks::actual_std_clone_from
+
+Check 6: checks::actual_std_clone_from.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: nohash_hasher::__verification_observe_u64(&src) ==
+(expected_src,expected_flag)"
+	 - Location: src/lib.rs:24:2 in function checks::actual_std_clone_from
+
+Check 7: <std::option::Option<bool> as std::cmp::PartialEq>::eq.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 8: nohash_hasher::__verification_observe_u64.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../observed-source/src/lib.rs:436:6 in function nohash_hasher::__verification_observe_u64
+
+Check 9: nohash_hasher::__verification_observe_u64.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../observed-source/src/lib.rs:436:6 in function nohash_hasher::__verification_observe_u64
+
+Check 10: nohash_hasher::__verification_observe_u64.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../observed-source/src/lib.rs:436:6 in function nohash_hasher::__verification_observe_u64
+
+Check 11: nohash_hasher::__verification_observe_u64.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../observed-source/src/lib.rs:436:6 in function nohash_hasher::__verification_observe_u64
+
+Check 12: nohash_hasher::__verification_observe_u64.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../observed-source/src/lib.rs:436:6 in function nohash_hasher::__verification_observe_u64
+
+Check 13: nohash_hasher::__verification_observe_u64.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../observed-source/src/lib.rs:436:6 in function nohash_hasher::__verification_observe_u64
+
+Check 14: nohash_hasher::__verification_observe_u64.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../observed-source/src/lib.rs:436:11 in function nohash_hasher::__verification_observe_u64
+
+Check 15: checks::actual_std_clone_from.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:22:72 in function checks::actual_std_clone_from
+
+Check 16: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../observed-source/src/lib.rs:144:22 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone
+
+Check 17: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../observed-source/src/lib.rs:144:22 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone
+
+Check 18: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../observed-source/src/lib.rs:144:22 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone
+
+Check 19: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../observed-source/src/lib.rs:144:22 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone
+
+Check 20: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../observed-source/src/lib.rs:144:22 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone
+
+Check 21: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../observed-source/src/lib.rs:144:22 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone
+
+Check 22: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../observed-source/src/lib.rs:216:31 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 23: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../observed-source/src/lib.rs:216:31 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 24: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../observed-source/src/lib.rs:216:31 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 25: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../observed-source/src/lib.rs:216:31 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 26: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../observed-source/src/lib.rs:216:31 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 27: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../observed-source/src/lib.rs:216:31 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::finish
+
+Check 28: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../observed-source/src/lib.rs:207:43 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64
+
+Check 29: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../observed-source/src/lib.rs:207:43 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64
+
+Check 30: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../observed-source/src/lib.rs:207:43 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64
+
+Check 31: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../observed-source/src/lib.rs:207:43 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64
+
+Check 32: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../observed-source/src/lib.rs:207:43 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64
+
+Check 33: <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../observed-source/src/lib.rs:207:43 in function <nohash_hasher::NoHashHasher<u64> as std::hash::Hasher>::write_u64
+
+Check 34: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 35: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 36: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 37: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 38: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 39: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 40: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 41: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 42: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 43: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 44: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 45: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 46: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 47: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 48: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 49: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 50: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 51: <std::option::Option<bool> as std::cmp::PartialEq>::eq.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:2439:15 in function <std::option::Option<bool> as std::cmp::PartialEq>::eq
+
+Check 52: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 53: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 54: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 55: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 56: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 57: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 58: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 59: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 60: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 61: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 62: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 63: std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for bool>::eq
+
+Check 64: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 65: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 66: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 67: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 68: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 69: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:54 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 70: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 71: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 72: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 73: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 74: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 75: std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:2153:63 in function std::cmp::impls::<impl std::cmp::PartialEq for u64>::eq
+
+Check 76: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/clone.rs:249:9 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from
+
+Check 77: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/clone.rs:249:9 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from
+
+Check 78: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/clone.rs:249:9 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from
+
+Check 79: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/clone.rs:249:9 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from
+
+Check 80: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/clone.rs:249:9 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from
+
+Check 81: <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../../../../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/clone.rs:249:9 in function <nohash_hasher::NoHashHasher<u64> as std::clone::Clone>::clone_from
+
+
+SUMMARY:
+ ** 0 of 81 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.07809878s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.

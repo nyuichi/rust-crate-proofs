@@ -1,0 +1,104 @@
+{
+  "crate": "nohash-hasher",
+  "version": "0.2.0",
+  "tool": "Kani0.68.0",
+  "instantiation": "T=u64 only",
+  "reachable_states": "Default or one write_u64(any u64), independently for source/destination",
+  "original_stage": "unmodified original path dependency, finish() value observed",
+  "observed_stage": "byte-identical original prefix copy plus fixed read-only getter observes flag; original std clone_from body called directly",
+  "existing_Lean_model_composition": "separate evidence, not used here",
+  "generic_all_T": false,
+  "configurations": [
+    {
+      "stage": "original-stage",
+      "dependency_features": [
+        "std"
+      ],
+      "debug_assertions": true,
+      "checks": 47,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/original-std-debug.log",
+      "seconds": 0.062288128
+    },
+    {
+      "stage": "original-stage",
+      "dependency_features": [
+        "std"
+      ],
+      "debug_assertions": false,
+      "checks": 28,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/original-std-release.log",
+      "seconds": 0.04833384
+    },
+    {
+      "stage": "original-stage",
+      "dependency_features": [],
+      "debug_assertions": true,
+      "checks": 47,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/original-no-std-debug.log",
+      "seconds": 0.06632945
+    },
+    {
+      "stage": "original-stage",
+      "dependency_features": [],
+      "debug_assertions": false,
+      "checks": 28,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/original-no-std-release.log",
+      "seconds": 0.049292784
+    },
+    {
+      "stage": "observed-stage",
+      "dependency_features": [
+        "std"
+      ],
+      "debug_assertions": true,
+      "checks": 104,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/observed-std-debug.log",
+      "seconds": 0.107646614
+    },
+    {
+      "stage": "observed-stage",
+      "dependency_features": [
+        "std"
+      ],
+      "debug_assertions": false,
+      "checks": 81,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/observed-std-release.log",
+      "seconds": 0.07809878
+    },
+    {
+      "stage": "observed-stage",
+      "dependency_features": [],
+      "debug_assertions": true,
+      "checks": 104,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/observed-no-std-debug.log",
+      "seconds": 0.10395692
+    },
+    {
+      "stage": "observed-stage",
+      "dependency_features": [],
+      "debug_assertions": false,
+      "checks": 81,
+      "unreachable": 0,
+      "failed": 0,
+      "log": "evidence/observed-no-std-release.log",
+      "seconds": 0.071544096
+    }
+  ],
+  "rust_toolchain": "nightly-2026-08-21",
+  "std_body_goto_source": "core/src/clone.rs:249-250, compiler-provided standard library",
+  "other_std_versions": "not established by these runs"
+}
