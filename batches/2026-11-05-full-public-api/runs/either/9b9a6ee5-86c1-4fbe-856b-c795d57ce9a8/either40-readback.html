@@ -1,0 +1,1243 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #27 — Either branch operations, payload conversions and conditional composition · proofs.rs</title><meta name="description" content="The new manual Iterator::next implementation for Either passes the selected inner iterator state to its next dictionary and returns exactly its Option&lt;Item&gt; wit"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Either branch operations, payload conversions and conditional composition · either 1.19.0 · proofs.rs"><meta property="og:description" content="The new manual Iterator::next implementation for Either passes the selected inner iterator state to its next dictionary and returns exactly its Option&lt;Item&gt; wit"><meta property="og:url" content="https://proofs.rs/report/27?v=7"><meta property="og:image" content="https://proofs.rs/og/report/27/7.png"><meta property="og:image:alt" content="Either branch operations, payload conversions and conditional composition · either 1.19.0"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Either branch operations, payload conversions and conditional composition · either 1.19.0 · proofs.rs"><meta name="twitter:description" content="The new manual Iterator::next implementation for Either passes the selected inner iterator state to its next dictionary and returns exactly its Option&lt;Item&gt; wit"><meta name="twitter:image" content="https://proofs.rs/og/report/27/7.png"><meta name="twitter:image:alt" content="Either branch operations, payload conversions and conditional composition · either 1.19.0"><link rel="canonical" href="https://proofs.rs/report/27"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F27">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/either?version=1.19.0">either 1.19.0</a> <span aria-hidden="true">/</span> <a href="/crate/either?version=1.19.0#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #27 — Either branch operations, payload conversions and conditional composition</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">40 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 01:23 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Either%20branch%20operations%2C%20payload%20conversions%20and%20conditional%20composition%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F27%3Fv%3D7"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Either%20branch%20operations%2C%20payload%20conversions%20and%20conditional%20composition%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F27%3Fv%3D7"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/27?v=7" aria-current="page">v7</a> · <a href="/report/27?v=6">v6</a> · <a href="/report/27?v=5">v5</a> · <a href="/report/27?v=4">v4</a> · <a href="/report/27?v=3">v3</a> · <a href="/report/27?v=2">v2</a> · <a href="/report/27?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>The new manual Iterator::next implementation for Either passes the selected inner iterator state to its next dictionary and returns exactly its Option&lt;Item&gt; with the updated state under the same Either tag. None still retains the returned updated state. Normal item/state helpers assume only the selected inner next result; identical modeled failure/divergence propagate without using the other dictionary. This does not prove arbitrary inner iterator progress, termination, length bounds or fusedness. The new map_either/map_either_with contracts preserve the present variant while replacing its payload with the selected callback result; the context-aware form forwards the original context. Normal results require success only at that actual payload/context, and modeled failure/divergence propagate unchanged. inspect_left/right call the selected borrowed-value callback and return the original modeled self after success; on the other variant they return self without any callback premise. This self-retention is a property of the extracted shared-reference value model and does not certify unchanged observable Rust interior/global state under arbitrary callbacks. For either 1.19.0 with default features on x86_64, the forty named APIs have the following value-model contracts. either dispatches only to the callback for the present variant, passing exactly its payload; either_with additionally passes the original context as the first pair element. either_into dispatches that payload to the corresponding Into dictionary. Their main contracts preserve the selected computation's whole modeled Result without assuming success. Separate normal-value contracts need success only at the selected payload/context; failure and divergence helpers retain the same modeled outcome. The unused callback/conversion dictionary is unconstrained. Twelve earlier callback APIs compose a mathematical callback under their explicit normal-result premises for every callback argument, with selected failure propagated and nonselected results preserved. The real impl&lt;T&gt; IntoEither for T dictionary is linked to its original default, so into_either_with requires only normal predicate behavior at the actual borrowed input. Predicates/projections identify and retain the exact variant and optional payload; flip swaps it and flipping twice reconstructs the original. Eager selection preserves the indicated payload or supplied alternative. Optional and tuple factoring preserve tags and exact components. as_ref preserves the borrowed view; as_mut's backward function writes a matching-variant replacement payload back. The original handwritten conversions map Result Ok to Right and Err to Left, with exact payloads, and reverse those mappings; both roundtrips reconstruct every variant. left_or_default/right_or_default preserve the matching payload without a Default premise and otherwise delegate the Default computation's entire modeled outcome. Normal fallback values, modeled failure and divergence have separate explicit premises. The earlier thirty APIs return normally in this model under their stated conditions; the Default fallback pair and the three dispatch APIs retain abstract selected-computation outcomes. These are value-semantic guarantees with the destructor and callback boundaries stated below.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (40)</h2><section class="api-category"><h3>Methods</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;(L, T), (R, T)&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::factor_second" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/70c66954e1dc485f39e240dd2fdf2f861b8bf93804232cc04ad51e4c935262b4">factor_second</a>(self: Self) -&gt; (Either&lt;L, R&gt;, T)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/edb21584-505e-4ed1-81cd-b314d086555a?report_revision=7">Claim #12</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;(T, L), (T, R)&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::factor_first" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/001116cc3fcbf6a6173ba37482d05fc424ae084558dbcb5066c14d367948ced9">factor_first</a>(self: Self) -&gt; (T, Either&lt;L, R&gt;)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/df823c22-b18f-4890-a2b0-348416426bb4?report_revision=7">Claim #11</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;L, R&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::as_mut" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/ba5322bfd26cc26b798afd0c2156988a8c3af7e121305172500d6c1eba6cb8ee">as_mut</a>(self: &amp;mut Self) -&gt; Either&lt;&amp;mut L, &amp;mut R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/fe8a46c6-af6d-4552-a4db-4cc6a657d9e8?report_revision=7">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="either::Either::as_ref" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/2a1a74f4ebbe20c3dcb68344ff03fb3408fc8b837b8ae31aaac29156bf14c1c1">as_ref</a>(self: &amp;Self) -&gt; Either&lt;&amp;L, &amp;R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7c327ea5-6f33-46a5-9633-30f934442911?report_revision=7">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="either::Either::either" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/2810640706219697bdcd1af7d323b60b78c383385629b0834d9502d3b8693031">either</a>&lt;F, G, T&gt;(self: Self, f: F, g: G) -&gt; T where F: FnOnce(L) -&gt; T, G: FnOnce(R) -&gt; T</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f3ff66d5-9ae5-47de-8b44-7db7353f5a19?report_revision=7">Claim #33</a></span></div></div><div class="catalog-row" data-api-path="either::Either::either_into" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/bea3b172812b0f29748d47248953fed5f32cb39fb8c21dd86ebd2b9dda3e696a">either_into</a>&lt;T&gt;(self: Self) -&gt; T where L: Into&lt;T&gt;, R: Into&lt;T&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ed471fde-319c-4b07-883e-0923a3285d51?report_revision=7">Claim #35</a></span></div></div><div class="catalog-row" data-api-path="either::Either::either_with" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/f897e1be676824833f7ed6a7a3760749ac6869dbb45cc53b451a80f6b3033d6f">either_with</a>&lt;Ctx, F, G, T&gt;(self: Self, ctx: Ctx, f: F, g: G) -&gt; T where F: FnOnce(Ctx, L) -&gt; T, G: FnOnce(Ctx, R) -&gt; T</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9a68b7f0-27aa-4fad-a2a3-a8ad619fbb78?report_revision=7">Claim #34</a></span></div></div><div class="catalog-row" data-api-path="either::Either::flip" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/21070662bec510ab438b5771b114de055fdfa599ad5cc5160ff9b1e6a16f9652">flip</a>(self: Self) -&gt; Either&lt;R, L&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/2f7de010-8d6c-4ff4-839b-5201cfd9695f?report_revision=7">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="either::Either::inspect_left" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/33f4c44e64d63021abe01a6982c0bf084d628f4587a22aba8a0d27d3e697e260">inspect_left</a>&lt;F&gt;(self: Self, f: F) -&gt; Self where F: FnOnce(&amp;L)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/418a4803-1098-48dc-b1cd-d5b602107fa1?report_revision=7">Claim #38</a></span></div></div><div class="catalog-row" data-api-path="either::Either::inspect_right" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/ed318a7f5caef6c2107dbda8b90db68707732749e890b1b4c556e62deaa68e81">inspect_right</a>&lt;F&gt;(self: Self, f: F) -&gt; Self where F: FnOnce(&amp;R)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3e129067-d4b0-4fee-bbec-bb9591bc8789?report_revision=7">Claim #39</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_left" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/142b5e1317102f0a0850e6205e8ce4697d25db7734552e06678ec8c1a2ac7f83">is_left</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/bc32a7b4-912b-4e5f-a60c-d3c7eed42963?report_revision=7">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_left_and" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/2d54581a7f55c7aebc0a5f3dae7a17ee821412e50b7f570bbcda6a492d196cac">is_left_and</a>&lt;F&gt;(self: Self, f: F) -&gt; bool where F: FnOnce(L) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/5ead4e3a-dcb8-496f-b1c2-df25ecfd043d?report_revision=7">Claim #15</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_left_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/d051e3996eb459a53bb73146436c73ddd6378b16d5a41aff677f49e68655a00c">is_left_or</a>&lt;F&gt;(self: Self, f: F) -&gt; bool where F: FnOnce(R) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a9cc9789-2fc5-4ca9-b6ef-06c3efcb77db?report_revision=7">Claim #17</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_right" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/5379a396696d68be44f224cfe1d91108d66dafd4c7759882e3d0a7b768a4acce">is_right</a>(self: &amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9550ce81-e4de-485e-b43d-005baa9a4255?report_revision=7">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_right_and" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/ef4e2a9a6365f8df148c771ea94b18363238f7cde2c33181da69ceed1a193d54">is_right_and</a>&lt;F&gt;(self: Self, f: F) -&gt; bool where F: FnOnce(R) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/d4242cd1-659f-4903-b8d8-16ff733ef89c?report_revision=7">Claim #16</a></span></div></div><div class="catalog-row" data-api-path="either::Either::is_right_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/f646cfb4d3294ff455fd433df45316cad266d7e3da53655bd76bd7b22a35a333">is_right_or</a>&lt;F&gt;(self: Self, f: F) -&gt; bool where F: FnOnce(L) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/af20cb08-1691-4faf-b2e9-0e3a022baf34?report_revision=7">Claim #18</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/38afc026838d2d42ae946a276ef2b3c3c795412706b265080f4e47e74f30af83">left</a>(self: Self) -&gt; Option&lt;L&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/350ab33c-953f-4c38-9ce7-19eb5b6d84d1?report_revision=7">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_and" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/60233705d2b0bee08c0ad6ac63d67101af819051e2164ec00a5037e1a2c268a3">left_and</a>&lt;S&gt;(self: Self, other: Either&lt;S, R&gt;) -&gt; Either&lt;S, R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/453c0ea5-5b29-472d-8688-8283bc915dbf?report_revision=7">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_and_then" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9781c1b032b4a90c45da88b537e75acb0cfab91f1dc85c05944e6e4d690fa5db">left_and_then</a>&lt;F, S&gt;(self: Self, f: F) -&gt; Either&lt;S, R&gt; where F: FnOnce(L) -&gt; Either&lt;S, R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e7f58fe8-7bf6-4fed-9678-3b191c6d298b?report_revision=7">Claim #25</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/abf93889afb90228f6cd10b8d84409b75740d27db8b0de0ab1597a7148518ce9">left_or</a>(self: Self, other: L) -&gt; L</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8cc7eb7f-83e5-479e-b62c-c28fe74f2be3?report_revision=7">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_or_default" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/c32fb17c5ae2bf7bb669c90675e8b2ee11d314ee9a6863e2cb39e010b10074cc">left_or_default</a>(self: Self) -&gt; L where L: Default</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6b33f733-1d62-4f07-9eb5-da93c24595ca?report_revision=7">Claim #31</a></span></div></div><div class="catalog-row" data-api-path="either::Either::left_or_else" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/e342f7e4dabeece4c612b5e569f4c7d9fa29b2dca9f6ee288ace9f793f8e6871">left_or_else</a>&lt;F&gt;(self: Self, f: F) -&gt; L where F: FnOnce(R) -&gt; L</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c089b1c3-e948-478c-8df7-ce83df7397a9?report_revision=7">Claim #23</a></span></div></div><div class="catalog-row" data-api-path="either::Either::map_either" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/6134c3f408e9402758277ede819226dee8eba28016f40f5c1c2c57e3044fb60c">map_either</a>&lt;F, G, M, S&gt;(self: Self, f: F, g: G) -&gt; Either&lt;M, S&gt; where F: FnOnce(L) -&gt; M, G: FnOnce(R) -&gt; S</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/48d40ef0-287f-4070-a0e3-626332aa2737?report_revision=7">Claim #36</a></span></div></div><div class="catalog-row" data-api-path="either::Either::map_either_with" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/af44bb27aafcdb8e0efde3ab656258fa8c250c37028a54486bfb1d0815941fec">map_either_with</a>&lt;Ctx, F, G, M, S&gt;(self: Self, ctx: Ctx, f: F, g: G) -&gt; Either&lt;M, S&gt; where F: FnOnce(Ctx, L) -&gt; M, G: FnOnce(Ctx, R) -&gt; S</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8e476662-7c1f-4c89-b0f3-8c3ff01d15ed?report_revision=7">Claim #37</a></span></div></div><div class="catalog-row" data-api-path="either::Either::map_left" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/fa5df871f67fd9f768726dbe7a73ca00f8a85b2d9c6ebb18142ffa56f973b013">map_left</a>&lt;F, M&gt;(self: Self, f: F) -&gt; Either&lt;M, R&gt; where F: FnOnce(L) -&gt; M</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f17ebf56-c50a-4493-8d76-8bae735e46c2?report_revision=7">Claim #19</a></span></div></div><div class="catalog-row" data-api-path="either::Either::map_left_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/e961bf17ee5bc2afbda59a85962657d8673f09547773c907fa223b016fa81afa">map_left_or</a>&lt;F, S&gt;(self: Self, default: S, f: F) -&gt; S where F: FnOnce(L) -&gt; S</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/cc629891-2038-4065-a18b-d66f6f01396e?report_revision=7">Claim #21</a></span></div></div><div class="catalog-row" data-api-path="either::Either::map_right" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/f991b7e41cf7eef788906c14f521106f66b21df3b080d663ab50206a7c16fbaa">map_right</a>&lt;F, S&gt;(self: Self, f: F) -&gt; Either&lt;L, S&gt; where F: FnOnce(R) -&gt; S</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/39c00b0a-0868-40b2-8aec-6750596f83cb?report_revision=7">Claim #20</a></span></div></div><div class="catalog-row" data-api-path="either::Either::map_right_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9627430927e38d58f3c234f1be9887d7d6861877477d4d44439124d2eacfdcfa">map_right_or</a>&lt;F, S&gt;(self: Self, default: S, f: F) -&gt; S where F: FnOnce(R) -&gt; S</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ae7cf601-2414-4b6f-87f2-791635f0010c?report_revision=7">Claim #22</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/9e57aa2fa054d07d02d9e3e23f854c1fc90351fa1c774fb5ffab315cde969681">right</a>(self: Self) -&gt; Option&lt;R&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/2e8d8552-9b5d-40d8-8430-5d8e46af8269?report_revision=7">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_and" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/07b720a0c384fb465c3f734bf4cd79e900de68b41e11079a6af28238c1f8f659">right_and</a>&lt;S&gt;(self: Self, other: Either&lt;L, S&gt;) -&gt; Either&lt;L, S&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/88ceebc3-2185-480a-af70-6c8a228975ae?report_revision=7">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_and_then" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/4bf3b078c297fd028134e5752dbbe4e4e1c43f9e2e03fd71cc39f0d181d4bae8">right_and_then</a>&lt;F, S&gt;(self: Self, f: F) -&gt; Either&lt;L, S&gt; where F: FnOnce(R) -&gt; Either&lt;L, S&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/65e04084-682d-4748-b70a-66b9dd1aa82d?report_revision=7">Claim #26</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_or" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/766ddd387fbb107f18747d7fcf8b7b387fdb26ceb4d006e63114646a5861cee9">right_or</a>(self: Self, other: R) -&gt; R</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e96f1db9-2d55-44fb-a40b-dc3cc0e2fae2?report_revision=7">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_or_default" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/80311675d11d020e2fa17ee1a947ab99bfd67b400de7a42d2bf361c83946b1b7">right_or_default</a>(self: Self) -&gt; R where R: Default</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/89c1de65-bef5-41df-898a-d53c0d03c0c7?report_revision=7">Claim #32</a></span></div></div><div class="catalog-row" data-api-path="either::Either::right_or_else" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/a0c3f6d74eef5b56a1860000d5119d8fd8efd6c5b7d322a11809c33528d2a2a4">right_or_else</a>&lt;F&gt;(self: Self, f: F) -&gt; R where F: FnOnce(L) -&gt; R</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/acc3cd57-cda7-477c-8c4d-5f178ec325d1?report_revision=7">Claim #24</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-type">Either&lt;core::option::Option&lt;L&gt;, core::option::Option&lt;R&gt;&gt;</span></code></h4><div class="catalog-row" data-api-path="either::Either::factor_none" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/0ecb0a971b37f9b9d49721aeafb358f35f19f31e6b77326ea91b177c9dd62b0c">factor_none</a>(self: Self) -&gt; Option&lt;Either&lt;L, R&gt;&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/13394920-52f2-42d9-a479-b4fc793cc290?report_revision=7">Claim #10</a></span></div></div></section></section><section class="api-category"><h3>Trait implementations</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">core::iter::traits::iterator::Iterator</span><span class="api-keyword"> for </span><span class="kind-type">Either&lt;L, R&gt;</span></code></h4><div class="catalog-row" data-api-path="&lt;either::Either as Iterator&gt;::next" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/92e7e452d77e3c7a331d70a1aec16ff43b9fd3681f9006d086ade4643ae382b9">next</a>(self: &amp;mut Self) -&gt; Option&lt;&lt;Self as core::iter::traits::iterator::Iterator&gt;::Item&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/fae94129-c9f1-4052-be76-68279e819f2c?report_revision=7">Claim #40</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">either::IntoEither</span><span class="api-keyword"> for </span><span class="kind-type">T</span></code></h4><div class="catalog-row" data-api-path="&lt;T as either::IntoEither&gt;::into_either" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/bc54230463b9d9cf314e4c7e6e8c39ae256cae90b743661779384000788ba74c">into_either</a>(self: Self, into_left: bool) -&gt; Either&lt;Self, Self&gt;</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4000d960-855a-4f22-a3c5-352ba4e9278d?report_revision=7">Claim #27</a></span></div></div><div class="catalog-row" data-api-path="&lt;T as either::IntoEither&gt;::into_either_with" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/6558ff66d3e6c05cb21d3eab8bf3b52825156492e8698db4206a18a4829015fe">into_either_with</a>&lt;F&gt;(self: Self, into_left: F) -&gt; Either&lt;Self, Self&gt; where F: FnOnce(&amp;Self) -&gt; bool</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c615d208-81a1-4fa4-ae68-9f0ce556d922?report_revision=7">Claim #28</a></span></div></div></section></section><section class="api-category"><h3>Recorded callables</h3><div class="catalog-row" data-api-path="&lt;core::result::Result&lt;R, L&gt; as From&lt;either::Either&lt;L, R&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/d29a0f59e1f91a6f40bfed74bf1e7dbf771127e7754b9b9c4c3f77f0b64d1cb1">&lt;core::result::Result&lt;R, L&gt; as From&lt;either::Either&lt;L, R&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c547ec22-1cc0-448a-9544-56c049d901b2?report_revision=7">Claim #30</a></span></div></div><div class="catalog-row" data-api-path="&lt;either::Either as From&lt;core::result::Result&lt;R, L&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/0058d2798f90d5bef27b96ce76576297af8311ccd78f4de36c355291eef4277e">&lt;either::Either as From&lt;core::result::Result&lt;R, L&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3378365d-a491-46b3-b316-609f8ef8460d?report_revision=7">Claim #29</a></span></div></div></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/992939940f91c0daf72fefef43cccbf8cec2c600" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/992939940f91c0daf72fefef43cccbf8cec2c600</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-27-source-1
+git -C report-27-source-1 checkout --detach 992939940f91c0daf72fefef43cccbf8cec2c600
+git -C report-27-source-1 submodule update --init --recursive --checkout
+cd report-27-source-1/either/1.19.0/aeneas/2026-11-05/proofs
+
+lake build +BothProofs +CallbackProofs +DefaultProofs +IntoEitherProofs +IteratorProofs +MapInspectProofs +Proofs +ResultProofs
+
+printf &#39;%s&#39; &#39;import Lean
+import BothProofs
+import CallbackProofs
+import DefaultProofs
+import IntoEitherProofs
+import IteratorProofs
+import MapInspectProofs
+import Proofs
+import ResultProofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.is_left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_left_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_left_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_left_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.is_right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.is_right_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.is_right_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.is_right_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.left_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.left_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.left_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.right_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.right_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.right_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.flip_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.flip_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.flip_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.flip_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.left_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.left_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.left_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.left_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.right_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.right_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.right_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.right_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.left_and_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.left_and_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.left_and_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.left_and_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.right_and_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.right_and_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.right_and_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.right_and_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.factor_none_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.factor_none_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.factor_none_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.factor_none_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.factor_first_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.factor_first_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.factor_first_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.factor_first_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.factor_second_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.factor_second_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.factor_second_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.factor_second_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.as_ref_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.as_ref_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.as_ref_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.as_ref_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.as_mut_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.as_mut_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.as_mut_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.as_mut_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.is_left_and_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.is_left_and_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.is_left_and_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.is_left_and_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.is_right_and_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.is_right_and_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.is_right_and_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.is_right_and_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.is_left_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.is_left_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.is_left_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.is_left_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.is_right_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.is_right_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.is_right_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.is_right_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.map_left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.map_left_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.map_left_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.map_left_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.map_right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.map_right_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.map_right_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.map_right_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.map_left_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.map_left_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.map_left_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.map_left_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.map_right_or_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.map_right_or_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.map_right_or_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.map_right_or_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.left_or_else_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.left_or_else_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.left_or_else_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.left_or_else_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.right_or_else_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.right_or_else_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.right_or_else_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.right_or_else_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.left_and_then_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.left_and_then_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.left_and_then_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.left_and_then_spec&quot;
+
+run_cmd do
+  let theorem_name := `CallbackProofs.right_and_then_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: CallbackProofs.right_and_then_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in CallbackProofs.right_and_then_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:CallbackProofs.right_and_then_spec&quot;
+
+run_cmd do
+  let theorem_name := `IntoEitherProofs.into_either_blanket_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: IntoEitherProofs.into_either_blanket_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in IntoEitherProofs.into_either_blanket_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:IntoEitherProofs.into_either_blanket_spec&quot;
+
+run_cmd do
+  let theorem_name := `IntoEitherProofs.into_either_with_blanket_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: IntoEitherProofs.into_either_with_blanket_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in IntoEitherProofs.into_either_with_blanket_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:IntoEitherProofs.into_either_with_blanket_spec&quot;
+
+run_cmd do
+  let theorem_name := `ResultProofs.from_result_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: ResultProofs.from_result_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in ResultProofs.from_result_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:ResultProofs.from_result_spec&quot;
+
+run_cmd do
+  let theorem_name := `ResultProofs.from_either_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: ResultProofs.from_either_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in ResultProofs.from_either_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:ResultProofs.from_either_spec&quot;
+
+run_cmd do
+  let theorem_name := `DefaultProofs.left_or_default_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: DefaultProofs.left_or_default_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in DefaultProofs.left_or_default_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:DefaultProofs.left_or_default_spec&quot;
+
+run_cmd do
+  let theorem_name := `DefaultProofs.right_or_default_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: DefaultProofs.right_or_default_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in DefaultProofs.right_or_default_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:DefaultProofs.right_or_default_spec&quot;
+
+run_cmd do
+  let theorem_name := `BothProofs.either_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: BothProofs.either_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in BothProofs.either_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:BothProofs.either_spec&quot;
+
+run_cmd do
+  let theorem_name := `BothProofs.either_with_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: BothProofs.either_with_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in BothProofs.either_with_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:BothProofs.either_with_spec&quot;
+
+run_cmd do
+  let theorem_name := `BothProofs.either_into_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: BothProofs.either_into_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in BothProofs.either_into_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:BothProofs.either_into_spec&quot;
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.map_either_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: MapInspectProofs.map_either_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in MapInspectProofs.map_either_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:MapInspectProofs.map_either_spec&quot;
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.map_either_with_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: MapInspectProofs.map_either_with_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in MapInspectProofs.map_either_with_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:MapInspectProofs.map_either_with_spec&quot;
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.inspect_left_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: MapInspectProofs.inspect_left_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in MapInspectProofs.inspect_left_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:MapInspectProofs.inspect_left_spec&quot;
+
+run_cmd do
+  let theorem_name := `MapInspectProofs.inspect_right_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: MapInspectProofs.inspect_right_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in MapInspectProofs.inspect_right_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:MapInspectProofs.inspect_right_spec&quot;
+
+run_cmd do
+  let theorem_name := `IteratorProofs.next_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: IteratorProofs.next_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in IteratorProofs.next_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:IteratorProofs.next_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/992939940f91c0daf72fefef43cccbf8cec2c600">Source on GitHub</a> · <a href="/api/v1/runs/9b9a6ee5-86c1-4fbe-856b-c795d57ce9a8/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 40 checks passed · 0 failed</p><p class="meta">2026-11-05T09:00:00.970821799+00:00 · 92.9 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e69735f6c6566745f73706563"><td>Lean checked theorem Proofs.is_left_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_left_spec</code></div></td><td>Passed</td><td><a href="/claim/bc32a7b4-912b-4e5f-a60c-d3c7eed42963?report_revision=7">Claim #1</a></td></tr><tr id="check-50726f6f66732e69735f72696768745f73706563"><td>Lean checked theorem Proofs.is_right_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.is_right_spec</code></div></td><td>Passed</td><td><a href="/claim/9550ce81-e4de-485e-b43d-005baa9a4255?report_revision=7">Claim #2</a></td></tr><tr id="check-50726f6f66732e6c6566745f73706563"><td>Lean checked theorem Proofs.left_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.left_spec</code></div></td><td>Passed</td><td><a href="/claim/350ab33c-953f-4c38-9ce7-19eb5b6d84d1?report_revision=7">Claim #3</a></td></tr><tr id="check-50726f6f66732e72696768745f73706563"><td>Lean checked theorem Proofs.right_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.right_spec</code></div></td><td>Passed</td><td><a href="/claim/2e8d8552-9b5d-40d8-8430-5d8e46af8269?report_revision=7">Claim #4</a></td></tr><tr id="check-50726f6f66732e666c69705f73706563"><td>Lean checked theorem Proofs.flip_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.flip_spec</code></div></td><td>Passed</td><td><a href="/claim/2f7de010-8d6c-4ff4-839b-5201cfd9695f?report_revision=7">Claim #5</a></td></tr><tr id="check-50726f6f66732e6c6566745f6f725f73706563"><td>Lean checked theorem Proofs.left_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.left_or_spec</code></div></td><td>Passed</td><td><a href="/claim/8cc7eb7f-83e5-479e-b62c-c28fe74f2be3?report_revision=7">Claim #6</a></td></tr><tr id="check-50726f6f66732e72696768745f6f725f73706563"><td>Lean checked theorem Proofs.right_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.right_or_spec</code></div></td><td>Passed</td><td><a href="/claim/e96f1db9-2d55-44fb-a40b-dc3cc0e2fae2?report_revision=7">Claim #7</a></td></tr><tr id="check-50726f6f66732e6c6566745f616e645f73706563"><td>Lean checked theorem Proofs.left_and_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.left_and_spec</code></div></td><td>Passed</td><td><a href="/claim/453c0ea5-5b29-472d-8688-8283bc915dbf?report_revision=7">Claim #8</a></td></tr><tr id="check-50726f6f66732e72696768745f616e645f73706563"><td>Lean checked theorem Proofs.right_and_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.right_and_spec</code></div></td><td>Passed</td><td><a href="/claim/88ceebc3-2185-480a-af70-6c8a228975ae?report_revision=7">Claim #9</a></td></tr><tr id="check-50726f6f66732e666163746f725f6e6f6e655f73706563"><td>Lean checked theorem Proofs.factor_none_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.factor_none_spec</code></div></td><td>Passed</td><td><a href="/claim/13394920-52f2-42d9-a479-b4fc793cc290?report_revision=7">Claim #10</a></td></tr><tr id="check-50726f6f66732e666163746f725f66697273745f73706563"><td>Lean checked theorem Proofs.factor_first_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.factor_first_spec</code></div></td><td>Passed</td><td><a href="/claim/df823c22-b18f-4890-a2b0-348416426bb4?report_revision=7">Claim #11</a></td></tr><tr id="check-50726f6f66732e666163746f725f7365636f6e645f73706563"><td>Lean checked theorem Proofs.factor_second_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.factor_second_spec</code></div></td><td>Passed</td><td><a href="/claim/edb21584-505e-4ed1-81cd-b314d086555a?report_revision=7">Claim #12</a></td></tr><tr id="check-50726f6f66732e61735f7265665f73706563"><td>Lean checked theorem Proofs.as_ref_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.as_ref_spec</code></div></td><td>Passed</td><td><a href="/claim/7c327ea5-6f33-46a5-9633-30f934442911?report_revision=7">Claim #13</a></td></tr><tr id="check-50726f6f66732e61735f6d75745f73706563"><td>Lean checked theorem Proofs.as_mut_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.as_mut_spec</code></div></td><td>Passed</td><td><a href="/claim/fe8a46c6-af6d-4552-a4db-4cc6a657d9e8?report_revision=7">Claim #14</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e69735f6c6566745f616e645f73706563"><td>Lean checked theorem CallbackProofs.is_left_and_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.is_left_and_spec</code></div></td><td>Passed</td><td><a href="/claim/5ead4e3a-dcb8-496f-b1c2-df25ecfd043d?report_revision=7">Claim #15</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e69735f72696768745f616e645f73706563"><td>Lean checked theorem CallbackProofs.is_right_and_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.is_right_and_spec</code></div></td><td>Passed</td><td><a href="/claim/d4242cd1-659f-4903-b8d8-16ff733ef89c?report_revision=7">Claim #16</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e69735f6c6566745f6f725f73706563"><td>Lean checked theorem CallbackProofs.is_left_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.is_left_or_spec</code></div></td><td>Passed</td><td><a href="/claim/a9cc9789-2fc5-4ca9-b6ef-06c3efcb77db?report_revision=7">Claim #17</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e69735f72696768745f6f725f73706563"><td>Lean checked theorem CallbackProofs.is_right_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.is_right_or_spec</code></div></td><td>Passed</td><td><a href="/claim/af20cb08-1691-4faf-b2e9-0e3a022baf34?report_revision=7">Claim #18</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e6d61705f6c6566745f73706563"><td>Lean checked theorem CallbackProofs.map_left_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.map_left_spec</code></div></td><td>Passed</td><td><a href="/claim/f17ebf56-c50a-4493-8d76-8bae735e46c2?report_revision=7">Claim #19</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e6d61705f72696768745f73706563"><td>Lean checked theorem CallbackProofs.map_right_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.map_right_spec</code></div></td><td>Passed</td><td><a href="/claim/39c00b0a-0868-40b2-8aec-6750596f83cb?report_revision=7">Claim #20</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e6d61705f6c6566745f6f725f73706563"><td>Lean checked theorem CallbackProofs.map_left_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.map_left_or_spec</code></div></td><td>Passed</td><td><a href="/claim/cc629891-2038-4065-a18b-d66f6f01396e?report_revision=7">Claim #21</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e6d61705f72696768745f6f725f73706563"><td>Lean checked theorem CallbackProofs.map_right_or_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.map_right_or_spec</code></div></td><td>Passed</td><td><a href="/claim/ae7cf601-2414-4b6f-87f2-791635f0010c?report_revision=7">Claim #22</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e6c6566745f6f725f656c73655f73706563"><td>Lean checked theorem CallbackProofs.left_or_else_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.left_or_else_spec</code></div></td><td>Passed</td><td><a href="/claim/c089b1c3-e948-478c-8df7-ce83df7397a9?report_revision=7">Claim #23</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e72696768745f6f725f656c73655f73706563"><td>Lean checked theorem CallbackProofs.right_or_else_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.right_or_else_spec</code></div></td><td>Passed</td><td><a href="/claim/acc3cd57-cda7-477c-8c4d-5f178ec325d1?report_revision=7">Claim #24</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e6c6566745f616e645f7468656e5f73706563"><td>Lean checked theorem CallbackProofs.left_and_then_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.left_and_then_spec</code></div></td><td>Passed</td><td><a href="/claim/e7f58fe8-7bf6-4fed-9678-3b191c6d298b?report_revision=7">Claim #25</a></td></tr><tr id="check-43616c6c6261636b50726f6f66732e72696768745f616e645f7468656e5f73706563"><td>Lean checked theorem CallbackProofs.right_and_then_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>CallbackProofs.right_and_then_spec</code></div></td><td>Passed</td><td><a href="/claim/65e04084-682d-4748-b70a-66b9dd1aa82d?report_revision=7">Claim #26</a></td></tr><tr id="check-496e746f45697468657250726f6f66732e696e746f5f6569746865725f626c616e6b65745f73706563"><td>Lean checked theorem IntoEitherProofs.into_either_blanket_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>IntoEitherProofs.into_either_blanket_spec</code></div></td><td>Passed</td><td><a href="/claim/4000d960-855a-4f22-a3c5-352ba4e9278d?report_revision=7">Claim #27</a></td></tr><tr id="check-496e746f45697468657250726f6f66732e696e746f5f6569746865725f776974685f626c616e6b65745f73706563"><td>Lean checked theorem IntoEitherProofs.into_either_with_blanket_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>IntoEitherProofs.into_either_with_blanket_spec</code></div></td><td>Passed</td><td><a href="/claim/c615d208-81a1-4fa4-ae68-9f0ce556d922?report_revision=7">Claim #28</a></td></tr><tr id="check-526573756c7450726f6f66732e66726f6d5f726573756c745f73706563"><td>Lean checked theorem ResultProofs.from_result_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>ResultProofs.from_result_spec</code></div></td><td>Passed</td><td><a href="/claim/3378365d-a491-46b3-b316-609f8ef8460d?report_revision=7">Claim #29</a></td></tr><tr id="check-526573756c7450726f6f66732e66726f6d5f6569746865725f73706563"><td>Lean checked theorem ResultProofs.from_either_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>ResultProofs.from_either_spec</code></div></td><td>Passed</td><td><a href="/claim/c547ec22-1cc0-448a-9544-56c049d901b2?report_revision=7">Claim #30</a></td></tr><tr id="check-44656661756c7450726f6f66732e6c6566745f6f725f64656661756c745f73706563"><td>Lean checked theorem DefaultProofs.left_or_default_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>DefaultProofs.left_or_default_spec</code></div></td><td>Passed</td><td><a href="/claim/6b33f733-1d62-4f07-9eb5-da93c24595ca?report_revision=7">Claim #31</a></td></tr><tr id="check-44656661756c7450726f6f66732e72696768745f6f725f64656661756c745f73706563"><td>Lean checked theorem DefaultProofs.right_or_default_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>DefaultProofs.right_or_default_spec</code></div></td><td>Passed</td><td><a href="/claim/89c1de65-bef5-41df-898a-d53c0d03c0c7?report_revision=7">Claim #32</a></td></tr><tr id="check-426f746850726f6f66732e6569746865725f73706563"><td>Lean checked theorem BothProofs.either_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>BothProofs.either_spec</code></div></td><td>Passed</td><td><a href="/claim/f3ff66d5-9ae5-47de-8b44-7db7353f5a19?report_revision=7">Claim #33</a></td></tr><tr id="check-426f746850726f6f66732e6569746865725f776974685f73706563"><td>Lean checked theorem BothProofs.either_with_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>BothProofs.either_with_spec</code></div></td><td>Passed</td><td><a href="/claim/9a68b7f0-27aa-4fad-a2a3-a8ad619fbb78?report_revision=7">Claim #34</a></td></tr><tr id="check-426f746850726f6f66732e6569746865725f696e746f5f73706563"><td>Lean checked theorem BothProofs.either_into_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>BothProofs.either_into_spec</code></div></td><td>Passed</td><td><a href="/claim/ed471fde-319c-4b07-883e-0923a3285d51?report_revision=7">Claim #35</a></td></tr><tr id="check-4d6170496e737065637450726f6f66732e6d61705f6569746865725f73706563"><td>Lean checked theorem MapInspectProofs.map_either_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>MapInspectProofs.map_either_spec</code></div></td><td>Passed</td><td><a href="/claim/48d40ef0-287f-4070-a0e3-626332aa2737?report_revision=7">Claim #36</a></td></tr><tr id="check-4d6170496e737065637450726f6f66732e6d61705f6569746865725f776974685f73706563"><td>Lean checked theorem MapInspectProofs.map_either_with_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>MapInspectProofs.map_either_with_spec</code></div></td><td>Passed</td><td><a href="/claim/8e476662-7c1f-4c89-b0f3-8c3ff01d15ed?report_revision=7">Claim #37</a></td></tr><tr id="check-4d6170496e737065637450726f6f66732e696e73706563745f6c6566745f73706563"><td>Lean checked theorem MapInspectProofs.inspect_left_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>MapInspectProofs.inspect_left_spec</code></div></td><td>Passed</td><td><a href="/claim/418a4803-1098-48dc-b1cd-d5b602107fa1?report_revision=7">Claim #38</a></td></tr><tr id="check-4d6170496e737065637450726f6f66732e696e73706563745f72696768745f73706563"><td>Lean checked theorem MapInspectProofs.inspect_right_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>MapInspectProofs.inspect_right_spec</code></div></td><td>Passed</td><td><a href="/claim/3e129067-d4b0-4fee-bbec-bb9591bc8789?report_revision=7">Claim #39</a></td></tr><tr id="check-4974657261746f7250726f6f66732e6e6578745f73706563"><td>Lean checked theorem IteratorProofs.next_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>IteratorProofs.next_spec</code></div></td><td>Passed</td><td><a href="/claim/fae94129-c9f1-4052-be76-68279e819f2c?report_revision=7">Claim #40</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T09:00:00.970821799+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T09:01:33.916461599+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">either/1.19.0/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">992939940f91c0daf72fefef43cccbf8cec2c600</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/186] Built Aeneas.Std.Global (38s)
+✔ [4/186] Built AeneasMeta.Simp.RegisterCommand (38s)
+✔ [132/483] Built AeneasMeta.UtilsCore (39s)
+✔ [159/483] Built AeneasMeta.BvEnumToBitVec (39s)
+✔ [1575/1805] Built AeneasMeta.OptionConfig (39s)
+✔ [1797/1805] Built Generated.Either (1.9s)
+⚠ [1798/1805] Built DefaultProofs (2.9s)
+warning: DefaultProofs.lean:5:75: Variable name `r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: DefaultProofs.lean:13:75: Variable name `r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: DefaultProofs.lean:27:56: Variable name `l` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _l
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: DefaultProofs.lean:35:60: Variable name `l` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _l
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+info: DefaultProofs.lean:49:0: &#39;DefaultProofs.left_or_default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:50:0: &#39;DefaultProofs.left_or_default_selected&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:51:0: &#39;DefaultProofs.left_or_default_normal&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:52:0: &#39;DefaultProofs.left_or_default_failure&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:53:0: &#39;DefaultProofs.left_or_default_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:54:0: &#39;DefaultProofs.right_or_default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:55:0: &#39;DefaultProofs.right_or_default_selected&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:56:0: &#39;DefaultProofs.right_or_default_normal&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:57:0: &#39;DefaultProofs.right_or_default_failure&#39; depends on axioms: [propext, Quot.sound]
+info: DefaultProofs.lean:58:0: &#39;DefaultProofs.right_or_default_divergence&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1799/1805] Built ResultProofs (2.0s)
+info: ResultProofs.lean:23:0: &#39;ResultProofs.from_result_spec&#39; depends on axioms: [propext, Quot.sound]
+info: ResultProofs.lean:24:0: &#39;ResultProofs.from_either_spec&#39; depends on axioms: [propext, Quot.sound]
+info: ResultProofs.lean:25:0: &#39;ResultProofs.result_roundtrip&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ResultProofs.lean:26:0: &#39;ResultProofs.either_roundtrip&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1800/1805] Built MapInspectProofs (3.0s)
+info: MapInspectProofs.lean:149:0: &#39;MapInspectProofs.map_either_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:151:0: &#39;MapInspectProofs.map_either_normal&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:153:0: &#39;MapInspectProofs.map_either_left_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:155:0: &#39;MapInspectProofs.map_either_left_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:157:0: &#39;MapInspectProofs.map_either_right_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:159:0: &#39;MapInspectProofs.map_either_right_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:161:0: &#39;MapInspectProofs.map_either_with_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:163:0: &#39;MapInspectProofs.map_either_with_normal&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:165:0: &#39;MapInspectProofs.map_either_with_left_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:167:0: &#39;MapInspectProofs.map_either_with_left_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:169:0: &#39;MapInspectProofs.map_either_with_right_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:171:0: &#39;MapInspectProofs.map_either_with_right_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:173:0: &#39;MapInspectProofs.inspect_left_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:175:0: &#39;MapInspectProofs.inspect_left_normal&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:177:0: &#39;MapInspectProofs.inspect_left_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:179:0: &#39;MapInspectProofs.inspect_left_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:181:0: &#39;MapInspectProofs.inspect_left_short_circuit&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:183:0: &#39;MapInspectProofs.inspect_right_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:185:0: &#39;MapInspectProofs.inspect_right_normal&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:187:0: &#39;MapInspectProofs.inspect_right_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:189:0: &#39;MapInspectProofs.inspect_right_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: MapInspectProofs.lean:191:0: &#39;MapInspectProofs.inspect_right_short_circuit&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1801/1805] Built IntoEitherProofs (3.2s)
+info: IntoEitherProofs.lean:55:0: &#39;IntoEitherProofs.into_either_default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: IntoEitherProofs.lean:56:0: &#39;IntoEitherProofs.into_either_with_default_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:57:0: &#39;IntoEitherProofs.callback_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:58:0: &#39;IntoEitherProofs.selected_dispatch&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:59:0: &#39;IntoEitherProofs.dispatch_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:61:0: &#39;IntoEitherProofs.blanket_dispatch_is_original_default&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:62:0: &#39;IntoEitherProofs.into_either_blanket_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:63:0: &#39;IntoEitherProofs.into_either_with_blanket_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IntoEitherProofs.lean:64:0: &#39;IntoEitherProofs.blanket_callback_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1802/1805] Built CallbackProofs (3.3s)
+warning: CallbackProofs.lean:8:75: Variable name `r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:23:58: Variable name `l` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _l
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:38:56: Variable name `l` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _l
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:53:75: Variable name `r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:98:77: Variable name `r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:113:60: Variable name `l` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _l
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:125:33: Variable name `S` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _S
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:131:36: Variable name `S` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _S
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:136:42: Variable name `S` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _S
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:140:34: Variable name `S` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _S
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:146:37: Variable name `S` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _S
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: CallbackProofs.lean:151:43: Variable name `S` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _S
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+info: CallbackProofs.lean:186:0: &#39;CallbackProofs.is_left_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:187:0: &#39;CallbackProofs.is_left_and_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:188:0: &#39;CallbackProofs.is_left_and_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:189:0: &#39;CallbackProofs.is_right_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:190:0: &#39;CallbackProofs.is_right_and_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:191:0: &#39;CallbackProofs.is_right_and_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:192:0: &#39;CallbackProofs.is_left_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:193:0: &#39;CallbackProofs.is_left_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:194:0: &#39;CallbackProofs.is_left_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:195:0: &#39;CallbackProofs.is_right_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:196:0: &#39;CallbackProofs.is_right_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:197:0: &#39;CallbackProofs.is_right_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:198:0: &#39;CallbackProofs.map_left_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CallbackProofs.lean:199:0: &#39;CallbackProofs.map_left_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CallbackProofs.lean:200:0: &#39;CallbackProofs.map_left_short_circuit&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CallbackProofs.lean:201:0: &#39;CallbackProofs.map_right_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CallbackProofs.lean:202:0: &#39;CallbackProofs.map_right_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CallbackProofs.lean:203:0: &#39;CallbackProofs.map_right_short_circuit&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: CallbackProofs.lean:205:0: &#39;CallbackProofs.map_left_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:206:0: &#39;CallbackProofs.map_left_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:207:0: &#39;CallbackProofs.map_left_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:208:0: &#39;CallbackProofs.map_right_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:209:0: &#39;CallbackProofs.map_right_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:210:0: &#39;CallbackProofs.map_right_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:211:0: &#39;CallbackProofs.left_or_else_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:212:0: &#39;CallbackProofs.left_or_else_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:213:0: &#39;CallbackProofs.left_or_else_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:214:0: &#39;CallbackProofs.right_or_else_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:215:0: &#39;CallbackProofs.right_or_else_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:216:0: &#39;CallbackProofs.right_or_else_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:217:0: &#39;CallbackProofs.left_and_then_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:218:0: &#39;CallbackProofs.left_and_then_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:219:0: &#39;CallbackProofs.left_and_then_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:220:0: &#39;CallbackProofs.right_and_then_spec&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:221:0: &#39;CallbackProofs.right_and_then_failure&#39; depends on axioms: [propext, Quot.sound]
+info: CallbackProofs.lean:222:0: &#39;CallbackProofs.right_and_then_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1803/1805] Built IteratorProofs (2.1s)
+info: IteratorProofs.lean:63:0: &#39;IteratorProofs.next_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:64:0: &#39;IteratorProofs.next_left_step&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:65:0: &#39;IteratorProofs.next_right_step&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:66:0: &#39;IteratorProofs.next_left_none_writeback&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:67:0: &#39;IteratorProofs.next_right_none_writeback&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:68:0: &#39;IteratorProofs.next_left_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:69:0: &#39;IteratorProofs.next_right_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:70:0: &#39;IteratorProofs.next_left_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: IteratorProofs.lean:71:0: &#39;IteratorProofs.next_right_divergence&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1804/1805] Built BothProofs (2.3s)
+info: BothProofs.lean:108:0: &#39;BothProofs.either_spec&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:109:0: &#39;BothProofs.either_normal&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:110:0: &#39;BothProofs.either_left_failure&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:111:0: &#39;BothProofs.either_right_failure&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:112:0: &#39;BothProofs.either_left_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:113:0: &#39;BothProofs.either_right_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:114:0: &#39;BothProofs.either_with_spec&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:115:0: &#39;BothProofs.either_with_normal&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:116:0: &#39;BothProofs.either_with_left_failure&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:117:0: &#39;BothProofs.either_with_right_failure&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:118:0: &#39;BothProofs.either_with_left_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:119:0: &#39;BothProofs.either_with_right_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:121:0: &#39;BothProofs.either_into_spec&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:122:0: &#39;BothProofs.either_into_normal&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:123:0: &#39;BothProofs.either_into_left_failure&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:124:0: &#39;BothProofs.either_into_right_failure&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:125:0: &#39;BothProofs.either_into_left_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: BothProofs.lean:126:0: &#39;BothProofs.either_into_right_divergence&#39; depends on axioms: [propext, Quot.sound]
+⚠ [1805/1805] Built Proofs (2.4s)
+warning: Proofs.lean:10:149: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:166: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:179: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:193: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:206: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:10:222: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:168: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:181: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:195: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:208: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:11:224: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:128: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:144: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:174: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:188: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:201: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:12:217: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:130: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:146: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:163: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:190: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:203: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:13:219: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:14:133: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:14:149: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:14:166: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:14:179: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:14:206: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:14:222: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:15:100: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:15:116: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:15:133: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:15:146: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:15:173: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:15:189: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:16:148: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:16:164: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:16:181: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:16:194: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:16:208: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:16:237: This simp argument is unused:
+  Either.right_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.left_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:17:150: This simp argument is unused:
+  Either.is_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_right, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:17:166: This simp argument is unused:
+  Either.is_right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.left, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:17:183: This simp argument is unused:
+  Either.left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.right, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:17:196: This simp argument is unused:
+  Either.right
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.flip, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:17:210: This simp argument is unused:
+  Either.flip
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.left_or, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:17:223: This simp argument is unused:
+  Either.left_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Either.is_left, Either.is_right, Either.left, Either.right, Either.flip, Either.right_or]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:33:87: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleLEither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleREither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:33:130: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleREither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:33:226: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:33:304: This simp argument is unused:
+  Either.Right.constructor
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once, Either.Left.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:34:88: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleLEither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleREither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:34:131: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleREither
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:34:174: This simp argument is unused:
+  P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once,
+    Either.Left.constructor, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Proofs.lean:34:280: This simp argument is unused:
+  Either.Left.constructor
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [EitherOptionOption.factor_none, core.option.Option.map, P.Insts.CoreOpsFunctionFnOnceTupleLEither,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither, P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once,
+    P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once, Either.Right.constructor]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: Proofs.lean:36:0: &#39;Proofs.as_ref_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:37:0: &#39;Proofs.as_mut_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:38:0: &#39;Proofs.left_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:39:0: &#39;Proofs.right_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:40:0: &#39;Proofs.factor_first_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:41:0: &#39;Proofs.factor_second_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:42:0: &#39;Proofs.factor_none_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:44:0: &#39;Proofs.is_left_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:45:0: &#39;Proofs.is_right_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:46:0: &#39;Proofs.left_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:47:0: &#39;Proofs.right_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:48:0: &#39;Proofs.flip_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:49:0: &#39;Proofs.flip_twice&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:50:0: &#39;Proofs.left_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:51:0: &#39;Proofs.right_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:53:0: &#39;CallbackProofs.is_left_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:54:0: &#39;CallbackProofs.is_left_and_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:55:0: &#39;CallbackProofs.is_left_and_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:56:0: &#39;CallbackProofs.is_right_and_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:57:0: &#39;CallbackProofs.is_right_and_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:58:0: &#39;CallbackProofs.is_right_and_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:59:0: &#39;CallbackProofs.is_left_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:60:0: &#39;CallbackProofs.is_left_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:61:0: &#39;CallbackProofs.is_left_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:62:0: &#39;CallbackProofs.is_right_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:63:0: &#39;CallbackProofs.is_right_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:64:0: &#39;CallbackProofs.is_right_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:65:0: &#39;CallbackProofs.map_left_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:66:0: &#39;CallbackProofs.map_left_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:67:0: &#39;CallbackProofs.map_left_short_circuit&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:68:0: &#39;CallbackProofs.map_right_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:69:0: &#39;CallbackProofs.map_right_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:70:0: &#39;CallbackProofs.map_right_short_circuit&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:72:0: &#39;CallbackProofs.map_left_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:73:0: &#39;CallbackProofs.map_left_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:74:0: &#39;CallbackProofs.map_left_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:75:0: &#39;CallbackProofs.map_right_or_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:76:0: &#39;CallbackProofs.map_right_or_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:77:0: &#39;CallbackProofs.map_right_or_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:78:0: &#39;CallbackProofs.left_or_else_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:79:0: &#39;CallbackProofs.left_or_else_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:80:0: &#39;CallbackProofs.left_or_else_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:81:0: &#39;CallbackProofs.right_or_else_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:82:0: &#39;CallbackProofs.right_or_else_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:83:0: &#39;CallbackProofs.right_or_else_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:84:0: &#39;CallbackProofs.left_and_then_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:85:0: &#39;CallbackProofs.left_and_then_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:86:0: &#39;CallbackProofs.left_and_then_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:87:0: &#39;CallbackProofs.right_and_then_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:88:0: &#39;CallbackProofs.right_and_then_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:89:0: &#39;CallbackProofs.right_and_then_short_circuit&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:91:0: &#39;IntoEitherProofs.into_either_default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:92:0: &#39;IntoEitherProofs.into_either_with_default_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:93:0: &#39;IntoEitherProofs.callback_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:94:0: &#39;IntoEitherProofs.selected_dispatch&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:95:0: &#39;IntoEitherProofs.dispatch_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:96:0: &#39;IntoEitherProofs.blanket_dispatch_is_original_default&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:97:0: &#39;IntoEitherProofs.into_either_blanket_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:98:0: &#39;IntoEitherProofs.into_either_with_blanket_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:99:0: &#39;IntoEitherProofs.blanket_callback_failure&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:101:0: &#39;ResultProofs.from_result_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:102:0: &#39;ResultProofs.from_either_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:103:0: &#39;ResultProofs.result_roundtrip&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:104:0: &#39;ResultProofs.either_roundtrip&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:106:0: &#39;DefaultProofs.left_or_default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:107:0: &#39;DefaultProofs.left_or_default_selected&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:108:0: &#39;DefaultProofs.left_or_default_normal&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:109:0: &#39;DefaultProofs.left_or_default_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:110:0: &#39;DefaultProofs.left_or_default_divergence&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:111:0: &#39;DefaultProofs.right_or_default_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:112:0: &#39;DefaultProofs.right_or_default_selected&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:113:0: &#39;DefaultProofs.right_or_default_normal&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:114:0: &#39;DefaultProofs.right_or_default_failure&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:115:0: &#39;DefaultProofs.right_or_default_divergence&#39; depends on axioms: [propext, Quot.sound]
+Build completed successfully (1805 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.is_left_spec
+proofs.rs:checked:Proofs.is_right_spec
+proofs.rs:checked:Proofs.left_spec
+proofs.rs:checked:Proofs.right_spec
+proofs.rs:checked:Proofs.flip_spec
+proofs.rs:checked:Proofs.left_or_spec
+proofs.rs:checked:Proofs.right_or_spec
+proofs.rs:checked:Proofs.left_and_spec
+proofs.rs:checked:Proofs.right_and_spec
+proofs.rs:checked:Proofs.factor_none_spec
+proofs.rs:checked:Proofs.factor_first_spec
+proofs.rs:checked:Proofs.factor_second_spec
+proofs.rs:checked:Proofs.as_ref_spec
+proofs.rs:checked:Proofs.as_mut_spec
+proofs.rs:checked:CallbackProofs.is_left_and_spec
+proofs.rs:checked:CallbackProofs.is_right_and_spec
+proofs.rs:checked:CallbackProofs.is_left_or_spec
+proofs.rs:checked:CallbackProofs.is_right_or_spec
+proofs.rs:checked:CallbackProofs.map_left_spec
+proofs.rs:checked:CallbackProofs.map_right_spec
+proofs.rs:checked:CallbackProofs.map_left_or_spec
+proofs.rs:checked:CallbackProofs.map_right_or_spec
+proofs.rs:checked:CallbackProofs.left_or_else_spec
+proofs.rs:checked:CallbackProofs.right_or_else_spec
+proofs.rs:checked:CallbackProofs.left_and_then_spec
+proofs.rs:checked:CallbackProofs.right_and_then_spec
+proofs.rs:checked:IntoEitherProofs.into_either_blanket_spec
+proofs.rs:checked:IntoEitherProofs.into_either_with_blanket_spec
+proofs.rs:checked:ResultProofs.from_result_spec
+proofs.rs:checked:ResultProofs.from_either_spec
+proofs.rs:checked:DefaultProofs.left_or_default_spec
+proofs.rs:checked:DefaultProofs.right_or_default_spec
+proofs.rs:checked:BothProofs.either_spec
+proofs.rs:checked:BothProofs.either_with_spec
+proofs.rs:checked:BothProofs.either_into_spec
+proofs.rs:checked:MapInspectProofs.map_either_spec
+proofs.rs:checked:MapInspectProofs.map_either_with_spec
+proofs.rs:checked:MapInspectProofs.inspect_left_spec
+proofs.rs:checked:MapInspectProofs.inspect_right_spec
+proofs.rs:checked:IteratorProofs.next_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Original crates.io either 1.19.0 Rust and Cargo.toml, archive-compared; default features on x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. Forty callable roots plus one actual blanket-implementation metadata root are extracted together into a single unchanged Generated.Either module; eight proof modules and all forty machine claims are jointly imported and audited. Official Charon exclusions omit twelve uncalled core Iterator defaults and official Aeneas trait filtering omits unsupported sibling methods; the original next body is byte-identical before/after filtering. No new standard model is introduced.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, official Charon/Aeneas translation, standard-library value models and Lean kernel are trusted. Transitive theorem axioms are restricted to propext, Classical.choice and Quot.sound. No additional axioms or custom models are used. Generic FnOnce, Into and Default computations are explicit dictionary parameters; their concrete implementations and effects are not independently verified here. Reference contracts use Aeneas's value/backward-function semantics and do not independently prove the Rust borrow checker or aliasing model.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Iterator::next writeback is a value/backward-state model guarantee under the supplied inner next dictionary, not verification of that concrete iterator or all Rust memory/external effects. No size_hint/len/count, finite-length or fused-iterator guarantee is added. For inspect_left/right, returning self in the extracted model must not be read as proving that callbacks cannot mutate interior/global state or that physical Rust payloads stay observationally unchanged. Only the forty mapped callables and their stated composition helpers are verified, not every public API. The new dispatch contracts establish branch/payload/context forwarding and modeled Result delegation, not arbitrary callback or Into correctness, success, termination, panic freedom or captured-state effects. Their normal-value theorems assume the selected call succeeds at that argument. No arbitrary mutable-context writeback or eager argument-construction claim is added. Rust Drop for discarded callbacks/payloads can panic, diverge or affect global state; destructor execution, unwind/return ordering, resource consumption and external effects are outside the value model. Modeled fail/div propagation is not a specification of every Rust panic payload or unwinding behavior. Default implementation values/termination/effects remain unverified. IntoEither uses the actual blanket dispatch, but its predicate/reference semantics retain the stated model boundary. Other inherent methods, iterator and pinning APIs, most trait/blanket implementations and serde remain unproved. into_inner still fails the untouched generated Lean do-match elaborator for the repeated T parameter; factor_ok/factor_err remain blocked by their current extraction/model limitations. All-feature/no-default configurations and other targets are not proved.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (2)</h2><div class="catalog-columns"><span>Crate</span><span>Reports</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde" target="_blank" rel="noopener noreferrer"><code>serde</code></a> <code>^1.0.95</code> · optional</span><span class="api-claim-count muted">—</span></div><div class="catalog-row"><span><a href="https://crates.io/crates/serde_json" target="_blank" rel="noopener noreferrer"><code>serde_json</code></a> <code>^1.0.0</code> · dev</span><span class="api-claim-count muted">—</span></div></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F27">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>
