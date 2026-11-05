@@ -4,6 +4,26 @@ The requested scope is all public APIs of thirteen exact crate versions, excludi
 
 The previous reports contain **56 actual mapped body-contract proofs in their stated configurations and input/model domains**. Those guarantees are retained verbatim in `current-coverage-audit.json` and the original `proofs.toml` files. Their existence is distinct from whether they cover every success/error/panic case of an API, every feature/target configuration, external trait dependencies, and the entire crate. Configuration applicability is not inferred merely from matching a method name. The normalize-line-endings guarantee is explicitly for adapted source with the documented Kani bridge.
 
+## Latest integrated results
+
+The counts below are explicitly mapped contracts, not a claim that the crate or all configurations are complete. Immutable source/run/SARIF hashes are in `proof-updates.json`. Independent Kani and Lean supplemental checks retain their separate tool/domain status.
+
+| Crate | Mapped contracts | Latest state |
+|---|---:|---|
+| either | 14 | report 27 revision 2, read back |
+| oorandom | 12 | report 25 revision 2, read back |
+| nohash-hasher | 14 | report 23 revision 2, four configurations, read back |
+| rand_xorshift | 1 | report 24 revision 2; separate Kani seed/nonzero and independent Lean nonzero evidence, read back |
+| bit_field | 25 | fresh record passed; catalogue quota hold; signed range counterexample retained separately |
+| rand_pcg | 21 | fresh record passed; catalogue quota hold |
+| byteorder | 18 | fresh record passed; catalogue quota hold |
+| byteorder-lite | 22 | fresh record passed; catalogue quota hold |
+| rand_xoshiro | 29 | fresh record passed; catalogue quota hold |
+| ascii | 21 | candidate integrated; publisher fresh record in progress |
+| base16ct | 3 | candidate integrated; publisher fresh record pending |
+
+endian-type remains publicly at six mapped generic bitwise contracts while the 66-contract candidate awaits exact typed source registration. normalize-line-endings retains its prior one adapted-source contract and documented Kani bridge. Neither row is a full-API completion claim. The signed bit_field range diagnostic is not generalized to its already-proved single-bit contracts.
+
 ## Counting axes
 
 A row below counts compiler-observed **tracking records per configuration**, not distinct executable function bodies. Callable declarations, concrete/specialized bodies, inherited methods, blanket implementations, implementation records, aliases and noncallable symbols remain distinguishable in the data. Repeated configurations are intentionally not added up as additional proved APIs. `rust_identity_groups` offers a separate grouping retaining owner/trait/signature/source identity; server IDs are never its primary key.
