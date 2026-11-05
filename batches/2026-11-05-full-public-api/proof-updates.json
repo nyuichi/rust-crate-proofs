@@ -716,7 +716,7 @@
       ],
       "report": {
         "title": "Exact endian integer writes and deliberate Default panics",
-        "explanation": "For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
+        "explanation": "For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The eight write-method proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
         "limitations": "This report covers eight integer-write methods and the two handwritten Default methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.",
         "trusted_assumptions": "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound.",
         "environment": "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
@@ -827,7 +827,7 @@
       ],
       "report": {
         "title": "Exact endian integer writes and deliberate Default panics",
-        "explanation": "For byteorder-lite 0.1.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
+        "explanation": "For byteorder-lite 0.1.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The handwritten BigEndian::default and LittleEndian::default implementations always trigger an explicit panic; their empty enum types cannot be constructed by these methods. The eight write-method proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.",
         "limitations": "This report covers eight integer-write methods and the two handwritten Default methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.",
         "trusted_assumptions": "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound.",
         "environment": "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
@@ -1014,6 +1014,211 @@
         "debug extraction"
       ],
       "full_crate_completion": false
+    },
+    {
+      "id": "base16ct-expanded-default-x86_64",
+      "crate": "base16ct",
+      "version": "1.0.0",
+      "artifact_path": "base16ct/1.0.0/aeneas/2026-11-05",
+      "prior_mapping_count": 2,
+      "new_mapping_count": 3,
+      "added_mappings": [
+        "<core::fmt::Error as From<base16ct::Error>>::from"
+      ],
+      "retained_mappings": [
+        "decoded_len",
+        "encoded_len"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/mixed.rs": "2d13475dc62ff8431daa6792f3240e11d22f0f93c221529645f5080fbedb73c8",
+        "src/error.rs": "56b2c8893aec1331796a4c951476e2e20b45b55848d14e1116dbf4a1f195e589",
+        "src/upper.rs": "e527d6a26c14698e988317b7e8a5d15e65e50fdee67b5e11da512f51349982ab",
+        "src/lib.rs": "178db5fdbf52816e139a958b2739494d4b17f8e54905ab9155ef1c84410fedb8",
+        "src/lower.rs": "21b523f53f17b14051d60d2792b9186ad7ce744f4ee8fb3584cd3ecad7c032d9",
+        "src/display.rs": "9e45093df7c2a3c758e499d3fec1d60e400df554f158f0d26bc6e93f98ff43e0",
+        "Cargo.toml": "71f43fd6a618c6914ea149f9adb39d11a39876071ea01556b8bee0e93d9d632e"
+      },
+      "proof_mappings": [
+        {
+          "api": "encoded_len",
+          "module": "Proofs",
+          "theorem": "Proofs.encoded_len_spec",
+          "precondition": "Input length at most usize::MAX / 2; default features, x86_64, debug assertions enabled."
+        },
+        {
+          "api": "decoded_len",
+          "module": "Proofs",
+          "theorem": "Proofs.decoded_len_spec",
+          "precondition": "Every well-typed input slice, regardless of byte contents; default features, x86_64, debug assertions enabled."
+        },
+        {
+          "api": "<core::fmt::Error as From<base16ct::Error>>::from",
+          "module": "Proofs",
+          "theorem": "Proofs.error_to_fmt_spec",
+          "precondition": "Both Error variants; default features on x86_64."
+        }
+      ],
+      "report": {
+        "title": "Base16 length calculations and formatting-error conversion",
+        "explanation": "For base16ct 1.0.0, decoded_len terminates normally for every input slice. It returns Ok of exactly half the input length when that length is even, and Err(InvalidLength) exactly when it is odd. It examines length only, so this result does not validate hexadecimal characters. encoded_len returns exactly twice the input length without a panic when the length is at most usize::MAX / 2. The handwritten From<Error> conversion into core::fmt::Error always returns the formatting error value normally for either source error, intentionally discarding which error occurred. These are body proofs of the unchanged published APIs; the length proofs quantify arbitrary slice lengths representable in the model.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, standard-library slice/scalar models and Lean kernel are trusted. The proofs add no local axioms or custom standard-library models. Transitive theorem dependencies use only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only decoded_len, encoded_len and From<Error> for core::fmt::Error are covered; Display formatting is not proved. Hexadecimal encoding, decoding, character validation, destination writes, allocation and encode_str's unchecked UTF-8 conversion are not verified. encoded_len behavior above usize::MAX / 2 is outside the proved precondition. Other targets, feature configurations and release overflow behavior were not checked.",
+        "environment": "Original crates.io base16ct 1.0.0 source files and Cargo.toml, byte-compared against the archived release; default features, debug assertions enabled, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. Official targeted extraction; no Rust or generated Lean changes."
+      },
+      "existing_report_to_update": null,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "new_catalogue_quota_hold",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
+    },
+    {
+      "id": "nohash-hasher-expanded-default-x86_64",
+      "crate": "nohash-hasher",
+      "version": "0.2.0",
+      "artifact_path": "nohash-hasher/0.2.0/aeneas/2026-11-05",
+      "prior_mapping_count": 14,
+      "new_mapping_count": 14,
+      "added_mappings": [],
+      "retained_mappings": [
+        "<nohash_hasher::NoHashHasher as Clone>::clone",
+        "<nohash_hasher::NoHashHasher as Default>::default",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8",
+        "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/lib.rs": "9dc267d4c90c83b86b47da5e58961e7ea6d4c2b659448a383293bfbc08961fa9",
+        "Cargo.toml": "cc6743a78a5e9dca05dc2db923c8d1b3f1dfb81510d9731e4357d88f024db790"
+      },
+      "proof_mappings": [
+        {
+          "api": "<nohash_hasher::NoHashHasher as Default>::default",
+          "module": "Proofs",
+          "theorem": "Proofs.default_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as Clone>::clone",
+          "module": "Proofs",
+          "theorem": "Proofs.clone_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write",
+          "module": "Proofs",
+          "theorem": "Proofs.write_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::finish",
+          "module": "Proofs",
+          "theorem": "Proofs.finish_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u8",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u8_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u16",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u16_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u32_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.write_u64_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_usize",
+          "module": "Proofs",
+          "theorem": "Proofs.write_usize_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i8",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i8_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i16",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i16_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i32",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i32_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_i64",
+          "module": "Proofs",
+          "theorem": "Proofs.write_i64_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        },
+        {
+          "api": "<nohash_hasher::NoHashHasher as core::hash::Hasher>::write_isize",
+          "module": "Proofs",
+          "theorem": "Proofs.write_isize_spec",
+          "precondition": "All well-typed inputs and states on x86_64 with std enabled or disabled; both debug_assertions settings and their specified success or failure are covered."
+        }
+      ],
+      "report": {
+        "title": "Exact integer writes and misuse checks in NoHashHasher",
+        "explanation": "For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stored integer. Each of the ten integer write methods stores the Rust conversion of its input to u64: unsigned values are widened and signed values are converted modulo 2^64. With debug assertions enabled, the first integer write succeeds and a later write fails its assertion. With debug assertions disabled, each integer write replaces the stored value. The generic byte-slice write always panics in both configurations. These are exact per-method state and result contracts over all inputs, proved from unchanged published Rust bodies.",
+        "trusted_assumptions": "The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted. The checked theorems use no extra local axioms; their transitive dependencies are limited to Lean's propext, Classical.choice, and Quot.sound.",
+        "limitations": "Coverage consists of Default, Clone, ten integer writers, write, and finish in the stated debug/release configurations. The handwritten Debug formatter, inherited Hasher default methods, full trait-instance integration, custom Hash implementations, BuildHasherDefault, and HashMap/HashSet behavior are not verified. In particular, this does not establish that a custom IsEnabled type obeys the required single-integer-write Hash protocol. Other targets were not checked. The upstream no-std IsEnabled doctest refers to the std-only IntMap alias and does not compile; the no-std unit tests and proved method bodies pass. A supplementary clone_from theorem composes the actual clone body with the official standard-library default model and proves exact replacement by source; it is not an independent std-body proof or a separate published API claim.",
+        "environment": "Unmodified crates.io nohash-hasher 0.2.0; x86_64-unknown-linux-gnu, std enabled and disabled; debug_assertions true and false. Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Rust nightly-2026-09-17, Lean 4.35.0. Official start-from roots select the actual method bodies; the official namespace option separates debug/release translations. Fourteen public theorems each conjoin all four std/no-std and debug/release configurations. The supplementary clone_from composition is included in the fresh Lean build without adding an API mapping. cargo-proofs 0.4.1 has the documented TLS-CA and upstream audit-variable compatibility fixes; the allowed-axiom policy is unchanged."
+      },
+      "existing_report_to_update": 23,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "not_yet_updated",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "std/default debug",
+        "std/default release",
+        "no-default-features debug",
+        "no-default-features release"
+      ],
+      "full_crate_completion": false,
+      "supplementary_model_composition": "clone_from destination update in all four configurations, conditional on official std Clone::clone_from model; no original std-body proof and no additional mapped API claim."
     }
   ]
 }

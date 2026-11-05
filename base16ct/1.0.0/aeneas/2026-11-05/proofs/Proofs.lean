@@ -21,6 +21,9 @@ theorem decoded_len_spec (s : Slice U8) :
    simp_all
  · rename_i h
    simp_all
+theorem error_to_fmt_spec (e : base16ct.error.Error) : base16ct.core.fmt.Error.Insts.CoreConvertFromError.from e = .ok () := by rfl
 end Proofs
 #print axioms Proofs.encoded_len_spec
 #print axioms Proofs.decoded_len_spec
+
+#print axioms Proofs.error_to_fmt_spec

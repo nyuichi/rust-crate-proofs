@@ -1,0 +1,44 @@
+   Compiling nohash-hasher v0.2.0 (/workspace/rust-crate-proofs/nohash-hasher/0.2.0/aeneas/2026-11-05)
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Running unittests src/lib.rs (/workspace/full-api/endian/probes/nohash-no-std/target/release/build/nohash-hasher/b31f82d16612cd1e/out/nohash_hasher-b31f82d16612cd1e)
+
+running 1 test
+test tests::ok ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nohash_hasher
+
+running 3 tests
+test src/lib.rs - IsEnabled (line 165) ... FAILED
+test src/lib.rs - NoHashHasher (line 93) ... ok
+test src/lib.rs - BuildNoHashHasher (line 61) ... ok
+
+failures:
+
+---- src/lib.rs - IsEnabled (line 165) stdout ----
+error[E0433]: cannot find `IntMap` in `nohash_hasher`
+   --> src/lib.rs:178:28
+    |
+178 | let mut m = nohash_hasher::IntMap::default();
+    |                            ^^^^^^ could not find `IntMap` in `nohash_hasher`
+    |
+note: found an item that was configured out
+   --> src/lib.rs:33:10
+    |
+ 32 | #[cfg(feature = "std")]
+    |       --------------- the item is gated behind the `std` feature
+ 33 | pub type IntMap<K, V> = std::collections::HashMap<K, V, BuildNoHashHasher<K>>;
+    |          ^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0433`.
+Couldn't compile the test.
+
+failures:
+    src/lib.rs - IsEnabled (line 165)
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: doctest failed, to rerun pass `--doc`

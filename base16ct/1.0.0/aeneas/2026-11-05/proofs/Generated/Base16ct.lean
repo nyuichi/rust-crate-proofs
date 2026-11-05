@@ -28,6 +28,13 @@ inductive error.Error where
 | InvalidEncoding : error.Error
 | InvalidLength : error.Error
 
+/-- [base16ct::error::{impl core::convert::From<base16ct::error::Error> for core::fmt::Error}::from]:
+    Source: 'src/error.rs', lines 28:4-30:5
+    Visibility: public -/
+def core.fmt.Error.Insts.CoreConvertFromError.from
+  (e : error.Error) : Result core.fmt.Error := do
+  ok ()
+
 /-- [base16ct::decoded_len]:
     Source: 'src/lib.rs', lines 88:0-94:1
     Visibility: public -/

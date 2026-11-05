@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess,json
 r=Path(__file__).resolve().parents[1]
-roots=['base16ct::decoded_len', 'base16ct::encoded_len']
+roots = ['{impl core::convert::From for core::fmt::Error}::from','base16ct::decoded_len','base16ct::encoded_len']
 cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence']
 for root in roots:cmd+=['--start-from',root]
 (r/'evidence/extraction-command.json').write_text(json.dumps(cmd,indent=2)+'\n')
