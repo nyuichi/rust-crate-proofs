@@ -1,0 +1,37 @@
+{
+  "status": "original source observations; normal scanner plus fixed whole source/proof closure, no new bespoke AST unit",
+  "rows": [
+    {
+      "file": "src/ascii_char.rs",
+      "sha256": "8c4bdedd3bc07387baddbea23cff6a5abd469884f2fe274c6f6a03c00110b549",
+      "first": 292,
+      "last": 295,
+      "method_source": "    #[inline]\n    pub fn from_ascii<C: ToAsciiChar>(ch: C) -> Result<Self, ToAsciiCharError> {\n        ch.to_ascii_char()\n    }",
+      "impl_header": "impl AsciiChar",
+      "bounds": "C: ToAsciiChar (implicit Sized); supplied callback contract"
+    },
+    {
+      "file": "src/ascii_string.rs",
+      "sha256": "0cc46f26623721221c0635f17951cd2c40ae1aed4a2e08c333802117ebd94640",
+      "first": 786,
+      "last": 790,
+      "method_source": "    #[inline]\n    #[allow(deprecated)] // TODO: Remove deprecation once the earliest version we support deprecates this method.\n    fn description(&self) -> &str {\n        self.error.description()\n    }",
+      "impl_header": "impl<O: Any> Error for FromAsciiError<O>",
+      "bounds": "O: Any only; Debug/Display manual impl<O> are distinct, no O:Debug restriction"
+    }
+  ],
+  "new_proofs": [
+    {
+      "api": "AsciiChar::from_ascii",
+      "module": "CharForwardProofs",
+      "theorem": "CharForwardProofs.from_ascii_exact",
+      "precondition": "Default std, generic Rust C:ToAsciiChar and modeled supplied callback dictionary. Exactly forwards callback normal Ok/Err and modeled failure/divergence outcomes; useful ASCII-validity or termination claims require the corresponding callback contract. Does not prove arbitrary implementation correctness, Rust Drop/destructors, captured/external effects or allocation behavior."
+    },
+    {
+      "api": "<ascii::FromAsciiError<O> as std::error::Error>::description",
+      "module": "GenericErrorProofs",
+      "theorem": "GenericErrorProofs.description_exact",
+      "precondition": "Default std, original Rust O:Any bound. Every owner and stored error index returns normally with exactly one or more bytes are not ASCII. The owner is not inspected or converted; this does not validate bytes/index, prove Any/TypeId semantics or specify formatting/other Error methods."
+    }
+  ]
+}

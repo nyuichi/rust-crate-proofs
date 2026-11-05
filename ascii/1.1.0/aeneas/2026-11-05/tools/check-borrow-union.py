@@ -4,7 +4,7 @@ r=Path(__file__).resolve().parents[1];o=r.parent/'candidate-typed-vectors'
 def h(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 for p in (o/'proofs').glob('*.lean'):
  if p.name!='lakefile.lean':assert h(p)==h(r/'proofs'/p.name),p
-old=tomllib.loads((o/'proofs.toml').read_text())['tool']['proofs'];cur=tomllib.loads((r/'proofs.toml').read_text())['tool']['proofs'];assert cur[:41]==old and len(cur)==49
+old=tomllib.loads((o/'proofs.toml').read_text())['tool']['proofs'];cur=tomllib.loads((r/'proofs.toml').read_text())['tool']['proofs'];assert cur[:41]==old and len(cur)==51
 # Every complete old generated declaration block must remain byte-identical.
 a=(o/'proofs/Generated/Ascii.lean').read_text();b=(r/'proofs/Generated/Ascii.lean').read_text()
 blocks=re.split(r'(?=\n/--)',a)

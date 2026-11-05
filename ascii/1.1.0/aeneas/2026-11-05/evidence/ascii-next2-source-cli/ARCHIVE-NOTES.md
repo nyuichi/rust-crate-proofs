@@ -1,0 +1,1 @@
+Known51 snapshot adds two normal source scanner contracts only. Original41/46/49 DATA and prior groups/source proofs preserved. No new source group or alias fallback; source patch/data/independent reviews retained. Binaries and duplicate fixtures omitted, hashes preserved in original freeze.

@@ -1,7 +1,9 @@
 import Lean
 import BorrowViewProofs
+import CharForwardProofs
 import ErrorDescriptionProofs
 import ErrorProjectionProofs
+import GenericErrorProofs
 import Proofs
 import SelfBorrowProofs
 import SliceProofs
@@ -548,3 +550,25 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in ErrorDescriptionProofs.str_description_exact: {ax}"
   liftIO <| IO.println "proofs.rs:checked:ErrorDescriptionProofs.str_description_exact"
+
+run_cmd do
+  let theorem_name := `CharForwardProofs.from_ascii_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: CharForwardProofs.from_ascii_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in CharForwardProofs.from_ascii_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:CharForwardProofs.from_ascii_exact"
+
+run_cmd do
+  let theorem_name := `GenericErrorProofs.description_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: GenericErrorProofs.description_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in GenericErrorProofs.description_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:GenericErrorProofs.description_exact"

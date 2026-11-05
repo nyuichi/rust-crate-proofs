@@ -1,0 +1,21 @@
+{
+  "kind": "read-only source discovery only; original source, no proof or publication",
+  "binary": "installed49-compatible scanner target/release",
+  "requested": [
+    {
+      "api": "AsciiChar::from_ascii",
+      "module": "CharForwardProofs",
+      "theorem": "CharForwardProofs.from_ascii_exact",
+      "precondition": "Default std, generic Rust C:ToAsciiChar and modeled supplied callback dictionary. Exactly forwards callback normal Ok/Err and modeled failure/divergence outcomes; useful ASCII-validity or termination claims require the corresponding callback contract. Does not prove arbitrary implementation correctness, Rust Drop/destructors, captured/external effects or allocation behavior."
+    },
+    {
+      "api": "<ascii::FromAsciiError<O> as std::error::Error>::description",
+      "module": "GenericErrorProofs",
+      "theorem": "GenericErrorProofs.description_exact",
+      "precondition": "Default std, original Rust O:Any bound. Every owner and stored error index returns normally with exactly one or more bytes are not ASCII. The owner is not inspected or converted; this does not validate bytes/index, prove Any/TypeId semantics or specify formatting/other Error methods."
+    }
+  ],
+  "exit": 0,
+  "stdout": "[\"AsciiChar::from_ascii\"]\n[\"<ascii::FromAsciiError as std::error::Error>::description\",\"<ascii::FromAsciiError<O> as std::error::Error>::description\"]\n",
+  "stderr": ""
+}

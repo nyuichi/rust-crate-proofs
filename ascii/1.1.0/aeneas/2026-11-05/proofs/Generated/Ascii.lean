@@ -154,6 +154,29 @@ inductive ascii_char.AsciiChar where
 | Tilde : ascii_char.AsciiChar
 | DEL : ascii_char.AsciiChar
 
+/-- [ascii::ascii_char::ToAsciiCharError]
+    Source: 'src/ascii_char.rs', lines 794:0-794:32
+    Visibility: public -/
+@[reducible]
+def ascii_char.ToAsciiCharError := Unit
+
+/-- Trait declaration: [ascii::ascii_char::ToAsciiChar]
+    Source: 'src/ascii_char.rs', lines 830:0-847:1
+    Visibility: public -/
+structure ascii_char.ToAsciiChar (Self : Type _) where
+  to_ascii_char : Self → Result (core.result.Result ascii_char.AsciiChar
+    ascii_char.ToAsciiCharError)
+  to_ascii_char_unchecked : Self → Result ascii_char.AsciiChar
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::from_ascii]:
+    Source: 'src/ascii_char.rs', lines 293:4-295:5
+    Visibility: public -/
+def ascii_char.AsciiChar.from_ascii
+  {C : Type _} (ToAsciiCharInst : ascii_char.ToAsciiChar C) (ch : C) :
+  Result (core.result.Result ascii_char.AsciiChar ascii_char.ToAsciiCharError)
+  := do
+  ToAsciiCharInst.to_ascii_char ch
+
 /-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::as_byte]:
     Source: 'src/ascii_char.rs', lines 386:4-388:5
     Visibility: public -/
@@ -542,12 +565,6 @@ def ascii_char.AsciiChar.Insts.CoreDefaultDefault.default
   : Result ascii_char.AsciiChar := do
   ok ascii_char.AsciiChar.Null
 
-/-- [ascii::ascii_char::ToAsciiCharError]
-    Source: 'src/ascii_char.rs', lines 794:0-794:32
-    Visibility: public -/
-@[reducible]
-def ascii_char.ToAsciiCharError := Unit
-
 /-- [ascii::ascii_char::ERRORMSG_CHAR]
     Source: 'src/ascii_char.rs', lines 796:0-796:53 -/
 @[global_simps, irreducible]
@@ -799,6 +816,13 @@ def ascii_string.FromAsciiError.ascii_error
 def ascii_string.FromAsciiError.into_source
   {O : Type _} (self : ascii_string.FromAsciiError O) : Result O := do
   ok self.owner
+
+/-- [ascii::ascii_string::{impl core::error::Error for ascii::ascii_string::FromAsciiError<O>}::description]:
+    Source: 'src/ascii_string.rs', lines 788:4-790:5
+    Visibility: public -/
+def ascii_string.FromAsciiError.Insts.CoreErrorError.description
+  {O : Type _} (self : ascii_string.FromAsciiError O) : Result Str := do
+  ascii_str.AsAsciiStrError.Insts.CoreErrorError.description self.error
 
 /-- [ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string_unchecked]:
     Source: 'src/ascii_string.rs', lines 815:4-817:5

@@ -20,3 +20,6 @@ lean_lib StringBorrowViewProofs
 
 lean_lib SelfBorrowProofs
 lean_lib ErrorDescriptionProofs
+
+lean_lib CharForwardProofs
+lean_lib GenericErrorProofs
