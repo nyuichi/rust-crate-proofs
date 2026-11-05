@@ -10,3 +10,5 @@ lean_lib Generated
 lean_lib StringProofs
 
 lean_lib SliceProofs
+
+lean_lib ErrorProjectionProofs

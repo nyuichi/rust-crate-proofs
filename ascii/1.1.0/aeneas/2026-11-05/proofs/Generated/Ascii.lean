@@ -679,4 +679,27 @@ def ascii_string.AsciiString.is_empty
   let i ← ascii_string.AsciiString.len self
   ok (i = 0#usize)
 
+/-- [ascii::ascii_string::FromAsciiError]
+    Source: 'src/ascii_string.rs', lines 754:0-757:1
+    Visibility: public -/
+structure ascii_string.FromAsciiError (O : Type _) where
+  error : ascii_str.AsAsciiStrError
+  owner : O
+
+/-- [ascii::ascii_string::{ascii::ascii_string::FromAsciiError<O>}::ascii_error]:
+    Source: 'src/ascii_string.rs', lines 762:4-764:5
+    Visibility: public -/
+def ascii_string.FromAsciiError.ascii_error
+  {O : Type _} (self : ascii_string.FromAsciiError O) :
+  Result ascii_str.AsAsciiStrError
+  := do
+  ok self.error
+
+/-- [ascii::ascii_string::{ascii::ascii_string::FromAsciiError<O>}::into_source]:
+    Source: 'src/ascii_string.rs', lines 768:4-770:5
+    Visibility: public -/
+def ascii_string.FromAsciiError.into_source
+  {O : Type _} (self : ascii_string.FromAsciiError O) : Result O := do
+  ok self.owner
+
 end ascii

@@ -1,4 +1,5 @@
 import Lean
+import ErrorProjectionProofs
 import Proofs
 import SliceProofs
 import StringProofs
@@ -388,3 +389,25 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in SliceProofs.as_mut_ascii_str_unchecked_identity_spec: {ax}"
   liftIO <| IO.println "proofs.rs:checked:SliceProofs.as_mut_ascii_str_unchecked_identity_spec"
+
+run_cmd do
+  let theorem_name := `ErrorProjectionProofs.ascii_error_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: ErrorProjectionProofs.ascii_error_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in ErrorProjectionProofs.ascii_error_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:ErrorProjectionProofs.ascii_error_exact"
+
+run_cmd do
+  let theorem_name := `ErrorProjectionProofs.into_source_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: ErrorProjectionProofs.into_source_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in ErrorProjectionProofs.into_source_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:ErrorProjectionProofs.into_source_exact"
