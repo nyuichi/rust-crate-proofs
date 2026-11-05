@@ -13,3 +13,5 @@ See PUBLICATION-QUEUE.json for exact frozen producer paths and manifest hashes. 
 ASCII package scope is runtime src9 plus Cargo archive matching, not original root tests.rs execution/full-package restoration. The unchecked5 packet covers only documented safety values0..127.
 
 ASCII scalar30 and documented-safe unchecked5 are now published as supplemental Kani evidence in report28 revision8, run `9f261af8-bee6-4142-b934-997995b3027e`, source `6142b4105f93bed130c921550ad814c0c039b461`. Primary51 and the global423 remain unchanged. Earlier queue statuses above describe the producer handoff checkpoint.
+
+PCG four supplemental packets (MCGserde592, PCG32composition81, external PCG32 Rng158 and wide Rng393) are published in report29 revision6, source `3b2722d98fcb09ef58d010abf5a42361a4d094c5`, run `b9ea1201-210e-45eb-9f69-219799a517da`. Machine25/global423 stay unchanged. Earlier producer-only statuses are historical.
