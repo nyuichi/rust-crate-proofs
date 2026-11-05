@@ -1,0 +1,7 @@
+# base16ct Error external defaults: complete Error domain
+
+Three Kani harnesses directly invoke actual core::error::Error::source, cause and description on both base16ct1.0.0 Error variants. The original local impl Error for Error is empty, so these are external provided defaults, not local method bodies. source and cause return None; description returns exactly "description() is deprecated; use Display". Nondeterministic boolean enumerates the complete valid Error enum domain, with no invalid discriminants or private injection. Description uses unwind80 with checks enabled; all3 jobs pass58 checks with0fail.
+
+No formatting, new model, observer or source change. This is a concrete typed external-default supplement, not a generic-all-Error proof, Aeneas claim or new registered method card. Default x86_64 only, pinned Kani0.68/CBMC6.11/Z3 and nightly2026-08-21 packaged std trusted. Compiled Kani core/std hashes are retained; raw source for that packaged std was not available locally and is not claimed independently reconstructed. The September Rust source is not substituted for the actual August solver standard library.
+
+Original base16 runtime/Cargo files match the retained crate archive. Existing encoded_len/decoded_len/From<Error> proofs are unchanged and not counted again. Depracated methods are intentionally tested as still-public original operations. Arbitrary other Error implementations, configurations/targets and backend semantics are outside this result.

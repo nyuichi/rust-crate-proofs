@@ -1,0 +1,3 @@
+PASS: all three actual external Error defaults on both valid base16ct::Error variants. Frozen hashes, runtime archive sources and compiled compiler/core/std pins match. Raw 40+9+9 checks pass; literal comparison uses unwind80, no safety-check suppression. Empty local Error implementation supplies no overriding bodies. Existing From<Error> → fmt::Error claim is separate.
+
+August packaged standard-library source was not reconstructed; raw log source paths do not establish source-byte identity, and September source is not a substitute. No formatter/general Error/configuration claims, machine count delta0. Read-only review; no build or solver rerun.
