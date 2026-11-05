@@ -13,3 +13,5 @@ lean_lib IntoEitherProofs
 lean_lib ResultProofs
 
 lean_lib DefaultProofs
+
+lean_lib BothProofs

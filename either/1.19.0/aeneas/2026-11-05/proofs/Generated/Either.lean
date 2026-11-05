@@ -304,6 +304,34 @@ def Either.map_right_or
   | Either.Left _ => ok default
   | Either.Right right => coreopsfunctionFnOnceFTupleRSInst.call_once f right
 
+/-- [either::{either::Either<L, R>}::either]:
+    Source: 'src/lib.rs', lines 637:4-646:5
+    Visibility: public -/
+def Either.either
+  {L : Type _} {R : Type _} {F : Type _} {G : Type _} {T : Type _}
+  (coreopsfunctionFnOnceFTupleLTInst : core.ops.function.FnOnce F L T)
+  (coreopsfunctionFnOnceGTupleRTInst : core.ops.function.FnOnce G R T)
+  (self : Either L R) (f : F) (g : G) :
+  Result T
+  := do
+  match self with
+  | Either.Left l => coreopsfunctionFnOnceFTupleLTInst.call_once f l
+  | Either.Right r => coreopsfunctionFnOnceGTupleRTInst.call_once g r
+
+/-- [either::{either::Either<L, R>}::either_with]:
+    Source: 'src/lib.rs', lines 667:4-676:5
+    Visibility: public -/
+def Either.either_with
+  {L : Type _} {R : Type _} {Ctx : Type _} {F : Type _} {G : Type _} {T :
+  Type _} (coreopsfunctionFnOnceFPairTInst : core.ops.function.FnOnce F (Ctx ×
+  L) T) (coreopsfunctionFnOnceGPairTInst : core.ops.function.FnOnce G (Ctx ×
+  R) T) (self : Either L R) (ctx : Ctx) (f : F) (g : G) :
+  Result T
+  := do
+  match self with
+  | Either.Left l => coreopsfunctionFnOnceFPairTInst.call_once f (ctx, l)
+  | Either.Right r => coreopsfunctionFnOnceGPairTInst.call_once g (ctx, r)
+
 /-- [either::{either::Either<L, R>}::left_and]:
     Source: 'src/lib.rs', lines 699:4-704:5
     Visibility: public -/
@@ -419,6 +447,19 @@ def Either.right_or_else
   match self with
   | Either.Left l => coreopsfunctionFnOnceFTupleLRInst.call_once f l
   | Either.Right r => ok r
+
+/-- [either::{either::Either<L, R>}::either_into]:
+    Source: 'src/lib.rs', lines 1242:4-1248:5
+    Visibility: public -/
+def Either.either_into
+  {L : Type _} {R : Type _} {T : Type _} (coreconvertIntoInst :
+  core.convert.Into L T) (coreconvertIntoInst1 : core.convert.Into R T)
+  (self : Either L R) :
+  Result T
+  := do
+  match self with
+  | Either.Left inner => coreconvertIntoInst.into inner
+  | Either.Right inner => coreconvertIntoInst1.into inner
 
 /-- [either::{either::Either<core::option::Option<L>, core::option::Option<R>>}::factor_none]:
     Source: 'src/lib.rs', lines 1263:4-1268:5

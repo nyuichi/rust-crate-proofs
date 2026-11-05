@@ -1,4 +1,5 @@
 import Lean
+import BothProofs
 import CallbackProofs
 import DefaultProofs
 import IntoEitherProofs
@@ -357,3 +358,36 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in DefaultProofs.right_or_default_spec: {ax}"
   liftIO <| IO.println "proofs.rs:checked:DefaultProofs.right_or_default_spec"
+
+run_cmd do
+  let theorem_name := `BothProofs.either_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: BothProofs.either_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in BothProofs.either_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:BothProofs.either_spec"
+
+run_cmd do
+  let theorem_name := `BothProofs.either_with_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: BothProofs.either_with_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in BothProofs.either_with_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:BothProofs.either_with_spec"
+
+run_cmd do
+  let theorem_name := `BothProofs.either_into_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: BothProofs.either_into_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in BothProofs.either_into_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:BothProofs.either_into_spec"
