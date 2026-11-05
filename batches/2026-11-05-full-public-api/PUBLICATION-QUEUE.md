@@ -6,10 +6,12 @@ Thirteen public reports contain427 scoped model contracts. This is not full API 
 |---|---:|---|
 | ASCII report28 rev9 |51|Original scalar35 plus Error2/staticDefault1 Kani evidence; earlier evidence retained|
 | PCG report29 rev6 |25|MCGserde592, PCG32composition81, externalRng158+393; constructor-image domains distinct from arbitrary serde wire states|
-| Either report27 rev9 |43|next_back and two conversions add3 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
-| BitField report34 rev6 |27|RangeFull24 closed specializations,1284checks; arbitrary RangeBounds completion remains unproved and signed small-range counterexample remains|
+| Either report27 rev10 |44|next_back, two conversions and shared iter add4 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
+| BitField report34 rev7 |27|RangeFull24 plus four unsigned Range get/set pairs and platform64 usize getter;145 independent audits; usize setter/generic RangeBounds remain unproved|
 | Xoshiro report30 rev4 |69|Seed512 public tuple construction/all64 input bytes and full64-byte replacement through actual AsMut;84Kani checks; existing views are not recounted|
 | NoHash report23 rev5 |14|Four compiler-inlined caller API families across four configurations: prior13 declarations plus newwrite_str4 equals17 unique audits; Kani900 remains separate/narrower|
+| Xorshift report24 rev8 |1|584 seed-image and656 concrete serde-wire scalar delegation checks; primary transition unchanged|
+| Base16 report31 rev5 |3|HexDisplay dataoperations2/theorems3 with prior Error58/Display1910/codec1484 conditions retained|
 
 NoHash actual recorded run a2c0ecdb/source9db263d0 succeeded in1827jobs and contains all17 unique supplemental axiom markers. Newwrite_str4 does not add the prior13 again. The source103 manifest is immutable; its inaccurate zero-sidecar flag has an exact16-file erratum and the public subset contains87 source/evidence files. The earlier122 manifest has its own20-file erratum. No generated bodies or original Rust were edited. Inline/DCE trust, non-direct-default-card scope and unrun consolidated portable regeneration remain explicit.
 
