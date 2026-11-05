@@ -1,0 +1,1 @@
+Large JSON files are deterministic gzip copies; ARCHIVE-INDEX.json records the original names, lengths and SHA256. Decompress them before running archived check/reconciliation scripts. No proof run, report revision or API-key change is asserted by this packet. Historical raw ledger entries remain preserved and are not all unconditionally applicable Rust functions.

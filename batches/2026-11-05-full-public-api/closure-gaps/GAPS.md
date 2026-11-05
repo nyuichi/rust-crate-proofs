@@ -1,3 +1,5 @@
+> Historical ledger snapshot. Its applicability/count interpretation is superseded by [strict three-crate reconciliation](../diagnostics/strict-three-crate-reconciliation/README.md). Original rows and proof boundaries are preserved below.
+
 # Closure gaps after the endian and nohash supplements
 
 These are **local evidence statuses, not a declaration that all public APIs are

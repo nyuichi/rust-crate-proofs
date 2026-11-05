@@ -1,0 +1,160 @@
+    Checking nohash-alias-applicability v0.1.0 (/workspace/full-api/endian/strict-api-reconciliation/alias-applicability)
+error[E0599]: no associated function or constant named `new` found for struct `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>` in the current scope
+   --> src/lib.rs:12:51
+    |
+ 12 |  fn map_new()->IntMap<u64,u64>{IntMap::<u64,u64>::new()}
+    |                                                   ^^^ associated function or constant not found in `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>`
+    |
+note: if you're trying to build a new `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>` consider using one of the following associated functions:
+      HashMap::<K, V, S>::with_hasher
+      HashMap::<K, V, S>::with_capacity_and_hasher
+      HashMap::<K, V, S, A>::with_hasher_in
+      HashMap::<K, V, S, A>::with_capacity_and_hasher_in
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/map.rs:367:5
+    |
+367 |     pub const fn with_hasher(hash_builder: S) -> HashMap<K, V, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+399 |     pub fn with_capacity_and_hasher(capacity: usize, hasher: S) -> HashMap<K, V, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+432 |     pub fn with_hasher_in(hash_builder: S, alloc: A) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+465 |     pub fn with_capacity_and_hasher_in(capacity: usize, hash_builder: S, alloc: A) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the associated function or constant was found for `HashMap<K, V>`
+help: there is a method `ne` with a similar name, but with different arguments
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:278:5
+    |
+278 |     fn ne(&self, other: &Rhs) -> bool {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `with_capacity` found for struct `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>` in the current scope
+   --> src/lib.rs:13:56
+    |
+ 13 |  fn map_capacity()->IntMap<u64,u64>{IntMap::<u64,u64>::with_capacity(1)}
+    |                                                        ^^^^^^^^^^^^^ associated function or constant not found in `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>`
+    |
+note: if you're trying to build a new `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>` consider using one of the following associated functions:
+      HashMap::<K, V, S>::with_hasher
+      HashMap::<K, V, S>::with_capacity_and_hasher
+      HashMap::<K, V, S, A>::with_hasher_in
+      HashMap::<K, V, S, A>::with_capacity_and_hasher_in
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/map.rs:367:5
+    |
+367 |     pub const fn with_hasher(hash_builder: S) -> HashMap<K, V, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+399 |     pub fn with_capacity_and_hasher(capacity: usize, hasher: S) -> HashMap<K, V, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+432 |     pub fn with_hasher_in(hash_builder: S, alloc: A) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+465 |     pub fn with_capacity_and_hasher_in(capacity: usize, hash_builder: S, alloc: A) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the associated function or constant was found for `HashMap<K, V>`
+help: there is a method `capacity` with a similar name, but with different arguments
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/map.rs:483:5
+    |
+483 |     pub fn capacity(&self) -> usize {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>: From<[(u64, u64); 1]>` is not satisfied
+    --> src/lib.rs:14:34
+     |
+  14 |  fn map_from()->IntMap<u64,u64>{<IntMap<u64,u64> as From<[(u64,u64);1]>>::from([(0,0)])}
+     |                                  ^^^^^^^^^^^^^^^ the trait `From<[(u64, u64); 1]>` is not implemented for `HashMap<u64, u64, BuildHasherDefault<NoHashHasher<u64>>>`
+     |
+help: the trait `From<[(u64, u64); 1]>` is not implemented for `HashMap<_, _, BuildHasherDefault<NoHashHasher<u64>>>`
+      but it is implemented for `HashMap<_, _, RandomState>`
+    --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/map.rs:1533:1
+     |
+1533 | / impl<K, V, const N: usize> From<[(K, V); N]> for HashMap<K, V, RandomState>
+1534 | | where
+1535 | |     K: Eq + Hash,
+     | |_________________^
+     = help: for that trait implementation, expected `RandomState`, found `BuildHasherDefault<NoHashHasher<u64>>`
+
+error[E0599]: no associated function or constant named `new` found for struct `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>` in the current scope
+   --> src/lib.rs:15:43
+    |
+ 15 |  fn set_new()->IntSet<u64>{IntSet::<u64>::new()}
+    |                                           ^^^ associated function or constant not found in `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>`
+    |
+note: if you're trying to build a new `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>` consider using one of the following associated functions:
+      HashSet::<T, S>::with_hasher
+      HashSet::<T, S>::with_capacity_and_hasher
+      HashSet::<T, S, A>::with_hasher_in
+      HashSet::<T, S, A>::with_capacity_and_hasher_in
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/set.rs:246:5
+    |
+246 |     pub const fn with_hasher(hasher: S) -> HashSet<T, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+278 |     pub fn with_capacity_and_hasher(capacity: usize, hasher: S) -> HashSet<T, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+311 |     pub fn with_hasher_in(hasher: S, alloc: A) -> HashSet<T, S, A> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+344 |     pub fn with_capacity_and_hasher_in(capacity: usize, hasher: S, alloc: A) -> HashSet<T, S, A> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the associated function or constant was found for `HashSet<T>`
+help: there is a method `ne` with a similar name, but with different arguments
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/cmp.rs:278:5
+    |
+278 |     fn ne(&self, other: &Rhs) -> bool {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `with_capacity` found for struct `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>` in the current scope
+   --> src/lib.rs:16:48
+    |
+ 16 |  fn set_capacity()->IntSet<u64>{IntSet::<u64>::with_capacity(1)}
+    |                                                ^^^^^^^^^^^^^ associated function or constant not found in `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>`
+    |
+note: if you're trying to build a new `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>` consider using one of the following associated functions:
+      HashSet::<T, S>::with_hasher
+      HashSet::<T, S>::with_capacity_and_hasher
+      HashSet::<T, S, A>::with_hasher_in
+      HashSet::<T, S, A>::with_capacity_and_hasher_in
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/set.rs:246:5
+    |
+246 |     pub const fn with_hasher(hasher: S) -> HashSet<T, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+278 |     pub fn with_capacity_and_hasher(capacity: usize, hasher: S) -> HashSet<T, S> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+311 |     pub fn with_hasher_in(hasher: S, alloc: A) -> HashSet<T, S, A> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+344 |     pub fn with_capacity_and_hasher_in(capacity: usize, hasher: S, alloc: A) -> HashSet<T, S, A> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: the associated function or constant was found for `HashSet<T>`
+help: there is a method `capacity` with a similar name, but with different arguments
+   --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/set.rs:359:5
+    |
+359 |     pub fn capacity(&self) -> usize {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>: From<[u64; 1]>` is not satisfied
+    --> src/lib.rs:17:30
+     |
+  17 |  fn set_from()->IntSet<u64>{<IntSet<u64> as From<[u64;1]>>::from([0])}
+     |                              ^^^^^^^^^^^ the trait `From<[u64; 1]>` is not implemented for `HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>`
+     |
+help: the trait `From<[u64; 1]>` is not implemented for `HashSet<_, BuildHasherDefault<NoHashHasher<u64>>>`
+      but it is implemented for `HashSet<_, RandomState>`
+    --> /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/set.rs:1208:1
+     |
+1208 | / impl<T, const N: usize> From<[T; N]> for HashSet<T, RandomState>
+1209 | | where
+1210 | |     T: Eq + Hash,
+     | |_________________^
+     = help: for that trait implementation, expected `RandomState`, found `BuildHasherDefault<NoHashHasher<u64>>`
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `nohash-alias-applicability` (lib) due to 6 previous errors
