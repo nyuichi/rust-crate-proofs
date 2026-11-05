@@ -81,6 +81,56 @@ def Either.is_left
   | Either.Left _ => ok true
   | Either.Right _ => ok false
 
+/-- [either::{either::Either<L, R>}::is_left_and]:
+    Source: 'src/lib.rs', lines 262:4-270:5
+    Visibility: public -/
+def Either.is_left_and
+  {L : Type _} {R : Type _} {F : Type _} (coreopsfunctionFnOnceFTupleLBoolInst
+  : core.ops.function.FnOnce F L Bool) (self : Either L R) (f : F) :
+  Result Bool
+  := do
+  match self with
+  | Either.Left left => coreopsfunctionFnOnceFTupleLBoolInst.call_once f left
+  | Either.Right _ => ok false
+
+/-- [either::{either::Either<L, R>}::is_right_and]:
+    Source: 'src/lib.rs', lines 287:4-295:5
+    Visibility: public -/
+def Either.is_right_and
+  {L : Type _} {R : Type _} {F : Type _} (coreopsfunctionFnOnceFTupleRBoolInst
+  : core.ops.function.FnOnce F R Bool) (self : Either L R) (f : F) :
+  Result Bool
+  := do
+  match self with
+  | Either.Left _ => ok false
+  | Either.Right right =>
+    coreopsfunctionFnOnceFTupleRBoolInst.call_once f right
+
+/-- [either::{either::Either<L, R>}::is_left_or]:
+    Source: 'src/lib.rs', lines 312:4-320:5
+    Visibility: public -/
+def Either.is_left_or
+  {L : Type _} {R : Type _} {F : Type _} (coreopsfunctionFnOnceFTupleRBoolInst
+  : core.ops.function.FnOnce F R Bool) (self : Either L R) (f : F) :
+  Result Bool
+  := do
+  match self with
+  | Either.Left _ => ok true
+  | Either.Right right =>
+    coreopsfunctionFnOnceFTupleRBoolInst.call_once f right
+
+/-- [either::{either::Either<L, R>}::is_right_or]:
+    Source: 'src/lib.rs', lines 337:4-345:5
+    Visibility: public -/
+def Either.is_right_or
+  {L : Type _} {R : Type _} {F : Type _} (coreopsfunctionFnOnceFTupleLBoolInst
+  : core.ops.function.FnOnce F L Bool) (self : Either L R) (f : F) :
+  Result Bool
+  := do
+  match self with
+  | Either.Left left => coreopsfunctionFnOnceFTupleLBoolInst.call_once f left
+  | Either.Right _ => ok true
+
 /-- [either::{either::Either<L, R>}::is_right]:
     Source: 'src/lib.rs', lines 356:4-358:5
     Visibility: public -/
@@ -150,6 +200,62 @@ def Either.flip
   | Either.Left l => ok (Either.Right l)
   | Either.Right r => ok (Either.Left r)
 
+/-- [either::{either::Either<L, R>}::map_left]:
+    Source: 'src/lib.rs', lines 482:4-490:5
+    Visibility: public -/
+def Either.map_left
+  {L : Type _} {R : Type _} {F : Type _} {M : Type _}
+  (coreopsfunctionFnOnceFTupleLMInst : core.ops.function.FnOnce F L M)
+  (self : Either L R) (f : F) :
+  Result (Either M R)
+  := do
+  match self with
+  | Either.Left l =>
+    let t ← coreopsfunctionFnOnceFTupleLMInst.call_once f l
+    ok (Either.Left t)
+  | Either.Right r => ok (Either.Right r)
+
+/-- [either::{either::Either<L, R>}::map_right]:
+    Source: 'src/lib.rs', lines 504:4-512:5
+    Visibility: public -/
+def Either.map_right
+  {L : Type _} {R : Type _} {F : Type _} {S : Type _}
+  (coreopsfunctionFnOnceFTupleRSInst : core.ops.function.FnOnce F R S)
+  (self : Either L R) (f : F) :
+  Result (Either L S)
+  := do
+  match self with
+  | Either.Left l => ok (Either.Left l)
+  | Either.Right r =>
+    let t ← coreopsfunctionFnOnceFTupleRSInst.call_once f r
+    ok (Either.Right t)
+
+/-- [either::{either::Either<L, R>}::map_left_or]:
+    Source: 'src/lib.rs', lines 528:4-536:5
+    Visibility: public -/
+def Either.map_left_or
+  {L : Type _} {R : Type _} {F : Type _} {S : Type _}
+  (coreopsfunctionFnOnceFTupleLSInst : core.ops.function.FnOnce F L S)
+  (self : Either L R) (default : S) (f : F) :
+  Result S
+  := do
+  match self with
+  | Either.Left left => coreopsfunctionFnOnceFTupleLSInst.call_once f left
+  | Either.Right _ => ok default
+
+/-- [either::{either::Either<L, R>}::map_right_or]:
+    Source: 'src/lib.rs', lines 552:4-560:5
+    Visibility: public -/
+def Either.map_right_or
+  {L : Type _} {R : Type _} {F : Type _} {S : Type _}
+  (coreopsfunctionFnOnceFTupleRSInst : core.ops.function.FnOnce F R S)
+  (self : Either L R) (default : S) (f : F) :
+  Result S
+  := do
+  match self with
+  | Either.Left _ => ok default
+  | Either.Right right => coreopsfunctionFnOnceFTupleRSInst.call_once f right
+
 /-- [either::{either::Either<L, R>}::left_and]:
     Source: 'src/lib.rs', lines 699:4-704:5
     Visibility: public -/
@@ -174,6 +280,32 @@ def Either.right_and
   | Either.Left l => ok (Either.Left l)
   | Either.Right _ => ok other
 
+/-- [either::{either::Either<L, R>}::left_and_then]:
+    Source: 'src/lib.rs', lines 745:4-753:5
+    Visibility: public -/
+def Either.left_and_then
+  {L : Type _} {R : Type _} {F : Type _} {S : Type _}
+  (coreopsfunctionFnOnceFTupleLEitherInst : core.ops.function.FnOnce F L
+  (Either S R)) (self : Either L R) (f : F) :
+  Result (Either S R)
+  := do
+  match self with
+  | Either.Left l => coreopsfunctionFnOnceFTupleLEitherInst.call_once f l
+  | Either.Right r => ok (Either.Right r)
+
+/-- [either::{either::Either<L, R>}::right_and_then]:
+    Source: 'src/lib.rs', lines 766:4-774:5
+    Visibility: public -/
+def Either.right_and_then
+  {L : Type _} {R : Type _} {F : Type _} {S : Type _}
+  (coreopsfunctionFnOnceFTupleREitherInst : core.ops.function.FnOnce F R
+  (Either L S)) (self : Either L R) (f : F) :
+  Result (Either L S)
+  := do
+  match self with
+  | Either.Left l => ok (Either.Left l)
+  | Either.Right r => coreopsfunctionFnOnceFTupleREitherInst.call_once f r
+
 /-- [either::{either::Either<L, R>}::left_or]:
     Source: 'src/lib.rs', lines 940:4-945:5
     Visibility: public -/
@@ -183,6 +315,18 @@ def Either.left_or
   | Either.Left l => ok l
   | Either.Right _ => ok other
 
+/-- [either::{either::Either<L, R>}::left_or_else]:
+    Source: 'src/lib.rs', lines 981:4-989:5
+    Visibility: public -/
+def Either.left_or_else
+  {L : Type _} {R : Type _} {F : Type _} (coreopsfunctionFnOnceFTupleRLInst :
+  core.ops.function.FnOnce F R L) (self : Either L R) (f : F) :
+  Result L
+  := do
+  match self with
+  | Either.Left l => ok l
+  | Either.Right r => coreopsfunctionFnOnceFTupleRLInst.call_once f r
+
 /-- [either::{either::Either<L, R>}::right_or]:
     Source: 'src/lib.rs', lines 1007:4-1012:5
     Visibility: public -/
@@ -190,6 +334,18 @@ def Either.right_or
   {L : Type _} {R : Type _} (self : Either L R) (other : R) : Result R := do
   match self with
   | Either.Left _ => ok other
+  | Either.Right r => ok r
+
+/-- [either::{either::Either<L, R>}::right_or_else]:
+    Source: 'src/lib.rs', lines 1048:4-1056:5
+    Visibility: public -/
+def Either.right_or_else
+  {L : Type _} {R : Type _} {F : Type _} (coreopsfunctionFnOnceFTupleLRInst :
+  core.ops.function.FnOnce F L R) (self : Either L R) (f : F) :
+  Result R
+  := do
+  match self with
+  | Either.Left l => coreopsfunctionFnOnceFTupleLRInst.call_once f l
   | Either.Right r => ok r
 
 /-- [either::{either::Either<core::option::Option<L>, core::option::Option<R>>}::factor_none]:

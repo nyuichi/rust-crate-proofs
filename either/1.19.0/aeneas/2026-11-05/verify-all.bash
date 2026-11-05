@@ -13,8 +13,8 @@ if rg -n '\bsorry\b|\baxiom\b' proofs --glob '*.lean' --glob '!**/.lake/**'; the
 python3 - <<'INNER'
 from pathlib import Path
 import re
-rows=re.findall(r"'Proofs\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
-assert len(rows)>=15,rows
+rows=re.findall(r"'(?:Proofs|CallbackProofs)\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
+assert len(rows)>=51,rows
 for n,a in rows:assert set(a.split(', '))<={'propext','Classical.choice','Quot.sound'},(n,a)
-print('All fifteen theorem transitive axiom audits passed')
+print('All fifty-one theorem transitive axiom audits passed')
 INNER

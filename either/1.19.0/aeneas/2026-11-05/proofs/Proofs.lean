@@ -1,3 +1,4 @@
+import CallbackProofs
 import Generated.Either
 open Aeneas Aeneas.Std
 namespace Proofs
@@ -45,3 +46,41 @@ end Proofs
 #print axioms Proofs.flip_twice
 #print axioms Proofs.left_or_spec
 #print axioms Proofs.right_or_spec
+
+#print axioms CallbackProofs.is_left_and_spec
+#print axioms CallbackProofs.is_left_and_failure
+#print axioms CallbackProofs.is_left_and_short_circuit
+#print axioms CallbackProofs.is_right_and_spec
+#print axioms CallbackProofs.is_right_and_failure
+#print axioms CallbackProofs.is_right_and_short_circuit
+#print axioms CallbackProofs.is_left_or_spec
+#print axioms CallbackProofs.is_left_or_failure
+#print axioms CallbackProofs.is_left_or_short_circuit
+#print axioms CallbackProofs.is_right_or_spec
+#print axioms CallbackProofs.is_right_or_failure
+#print axioms CallbackProofs.is_right_or_short_circuit
+#print axioms CallbackProofs.map_left_spec
+#print axioms CallbackProofs.map_left_failure
+#print axioms CallbackProofs.map_left_short_circuit
+#print axioms CallbackProofs.map_right_spec
+#print axioms CallbackProofs.map_right_failure
+#print axioms CallbackProofs.map_right_short_circuit
+
+#print axioms CallbackProofs.map_left_or_spec
+#print axioms CallbackProofs.map_left_or_failure
+#print axioms CallbackProofs.map_left_or_short_circuit
+#print axioms CallbackProofs.map_right_or_spec
+#print axioms CallbackProofs.map_right_or_failure
+#print axioms CallbackProofs.map_right_or_short_circuit
+#print axioms CallbackProofs.left_or_else_spec
+#print axioms CallbackProofs.left_or_else_failure
+#print axioms CallbackProofs.left_or_else_short_circuit
+#print axioms CallbackProofs.right_or_else_spec
+#print axioms CallbackProofs.right_or_else_failure
+#print axioms CallbackProofs.right_or_else_short_circuit
+#print axioms CallbackProofs.left_and_then_spec
+#print axioms CallbackProofs.left_and_then_failure
+#print axioms CallbackProofs.left_and_then_short_circuit
+#print axioms CallbackProofs.right_and_then_spec
+#print axioms CallbackProofs.right_and_then_failure
+#print axioms CallbackProofs.right_and_then_short_circuit
