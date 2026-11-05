@@ -1,4 +1,4 @@
-"""Mandatory, uncached audits in five isolated Lean workspaces.
+"""Mandatory, uncached audits in six isolated Lean workspaces.
 Only the official dependency directory is shared; generated modules remain isolated.
 """
 from pathlib import Path
@@ -37,5 +37,5 @@ for row in config['workspaces']:
   if key in seen:raise RuntimeError(f'duplicate {key}')
   seen.add(key)
  print(f'proofs.rs:range-workspace:END:{width}:{len(names)}',flush=True)
-if len(seen)!=145:raise RuntimeError(f'expected145 audit markers, got {len(seen)}')
-print('proofs.rs:range-workspaces:SUCCESS:145',flush=True)
+if len(seen)!=178:raise RuntimeError(f'expected178 audit markers, got {len(seen)}')
+print('proofs.rs:range-workspaces:SUCCESS:178',flush=True)

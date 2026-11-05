@@ -1,0 +1,5 @@
+PASS — u128 checked standard-range supplement
+
+All92frozenhashes/treef9081bea… andall14originalarchivemembers match. ExistingTypes/layoutprovider bytes match the reviewedu16provider, using suppliedU128=16bytes. ActualCompleteSpec exhaustively coversallword/replacement/endpoints withcheckedfailuresemantics and arbitraryabstractwriteback. Normalpostselects exactlythebitwindowandpreservesoutsidebits. Emptyzero setter preserves; emptynonzero overflow isexplicit.
+
+Retainedportable14module result recordsall exit0;33audits standard3/no sorryAx. Recordedregeneration permits onlyexactdocumentedoriginalsourceprefixrelocation; not rawFuns/translationidentity. OriginalRust/Cargo/selector/generated/modelbytesarepreserved. No newKani/native evidence ortransferredu16Kani guarantee. Old27coimportwasnotrunforu128; separateenvironment/trustboundaryaccurate. Primaryaddition0. Noindependentbuild/solverandnomustfix.

@@ -1,0 +1,5 @@
+PASS — u128 sixth isolated workspace integration
+
+All577frozenmemberhashes match, including92newu128members. Mandatoryroot3targetgraph/isolation/directaudit mechanism unchanged except sixthrow and aggregate145→178. Actualfirst andcachehit each show6BEGIN/ENDgroups,178SUCCESS and1803rootjobs. Old5providers/proofs/rootprimary27/RangeFull24evidence preserved.
+
+Reportaccuratelycounts11scopedmethodspecializations/178helpernames, includingu128all-inputcheckedcontracts, usizegetter64premise/setterblocked; no transferredKani/generalRangeBounds/release/physicalmemory/coimportbridgeclaim. Noindependentbuild/solver. Mustfix0.

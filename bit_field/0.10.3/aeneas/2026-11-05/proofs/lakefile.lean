@@ -3,7 +3,7 @@ open Lake DSL
 require aeneas from git "https://github.com/AeneasVerif/aeneas" @ "be86ab0f1989d04944292b345b24c435be3ad10a" / "backends/lean"
 package endianproofs
 
--- Always execute all five isolated audits; no build-file cache skips this job.
+-- Always execute all six isolated audits; no build-file cache skips this job.
 target rangeSupplementAudits pkg : System.FilePath := do
   Job.async do
     let runnerPath := pkg.dir / ".." / "tools" / "run-range-workspaces.py"
