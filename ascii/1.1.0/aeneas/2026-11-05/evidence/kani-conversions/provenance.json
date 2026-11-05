@@ -1,0 +1,24 @@
+{
+  "tool": "Kani 0.68.0 / CBMC 6.11.0",
+  "rustc": "1.100.0-nightly (8925ea358 2026-08-20), nightly-2026-08-21",
+  "target": "x86_64-unknown-linux-gnu",
+  "crate": "ascii 1.1.0, default features",
+  "original_path_dependency": "../.. (the artifact package root)",
+  "source_relation": "All root original Rust files and Cargo.toml are byte-compared to evidence/upstream.crate by tools/check-source.py before the run. Original implementation and manifest are not changed; harnesses are a separate dependent package.",
+  "observation": "Actual checked public ToAsciiChar method calls; inspect Result Ok/Err and call original public AsciiChar::as_byte to observe returned code. No copied implementation, private-field observer or raw-memory read is used.",
+  "checked_body_harnesses": {
+    "checked_u8_full_domain": "All 256 u8 values",
+    "checked_i8_full_domain": "All 256 i8 values",
+    "checked_u16_full_domain": "All 2^16 u16 values",
+    "checked_u32_full_domain": "All 2^32 u32 values",
+    "checked_char_full_domain": "Every Unicode scalar value: arbitrary u32 constrained to <=0x10ffff and not 0xd800..0xdfff, converted with char::from_u32; roundtrip codepoint asserted"
+  },
+  "separate_dependency_check": {
+    "transmute_model_on_valid_discriminants": "All u8 values 0..127 are transmuted to the original repr(u8) AsciiChar and observed through as_byte. Values >=128 are not constructed as enum states."
+  },
+  "guarantee": "Ok iff ASCII-range input; Ok code exactly preserves the input codepoint. Otherwise Err(ToAsciiCharError). i8 succeeds iff nonnegative. The sixth harness checks an intrinsic representation fact and is not an additional checked API claim.",
+  "bounds": "No input-size/sample bound or unwind override. These scalar conversion paths contain no loops; input bit widths and Unicode validity give exactly the stated type domains.",
+  "unsafe_scope": "The five API harnesses call only the checked methods, with original range checks intact. The separate intrinsic harness assumes valid discriminants before transmute. No invalid AsciiChar state is intentionally created or declared verified.",
+  "trusted_boundary": "Rust/Kani/CBMC pipeline and Kani standard/intrinsic semantics are trusted. This is not a mechanized cross-tool equivalence proof with the Lean model or a compiler correctness proof.",
+  "publication_separation": "The Aeneas proofs.toml retains exactly twenty-one mappings; these five Kani body-check results are separate evidence/status records."
+}

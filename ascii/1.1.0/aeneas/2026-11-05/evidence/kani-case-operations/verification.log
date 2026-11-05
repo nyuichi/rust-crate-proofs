@@ -1,0 +1,117 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: /workspace/full-api/enum/ascii/round3-integrated/ascii/1.1.0/aeneas/2026-11-05/Cargo.toml: `package.edition` is unspecified, defaulting to `2015` while the latest is `2024`
+warning: `ascii` (manifest) generated 1 warning
+   Compiling ascii v1.1.0 (/workspace/full-api/enum/ascii/round3-integrated/ascii/1.1.0/aeneas/2026-11-05)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> /workspace/full-api/enum/ascii/round3-integrated/ascii/1.1.0/aeneas/2026-11-05/src/ascii_str.rs:165:18
+    |
+165 |     pub fn chars(&self) -> Chars {
+    |                  ^^^^^     ^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+    = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+    |
+165 |     pub fn chars(&self) -> Chars<'_> {
+    |                                 ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> /workspace/full-api/enum/ascii/round3-integrated/ascii/1.1.0/aeneas/2026-11-05/src/ascii_str.rs:173:22
+    |
+173 |     pub fn chars_mut(&mut self) -> CharsMut {
+    |                      ^^^^^^^^^     ^^^^^^^^ the same lifetime is hidden here
+    |                      |
+    |                      the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+173 |     pub fn chars_mut(&mut self) -> CharsMut<'_> {
+    |                                            ++++
+
+   Compiling ascii-original-case-body-checks v0.1.0 (/workspace/full-api/enum/ascii/round3-integrated/ascii/1.1.0/aeneas/2026-11-05/evidence/kani-case-operations)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.42s
+Checking harness printable_picture_full_ascii_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 18 failed (2 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.052411426s
+
+Checking harness case_insensitive_equality_full_pair_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 35 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.05734166s
+
+Checking harness as_char_full_ascii_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 4 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.03384172s
+
+Checking harness make_lowercase_full_ascii_writeback...
+
+VERIFICATION RESULT:
+ ** 0 of 25 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.09603833s
+
+Checking harness make_uppercase_full_ascii_writeback...
+
+VERIFICATION RESULT:
+ ** 0 of 25 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.044996943s
+
+Checking harness lowercase_full_ascii_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 19 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.06090491s
+
+Checking harness uppercase_full_ascii_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 19 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.048359353s
+
+Manual Harness Summary:
+Complete - 7 successfully verified harnesses, 0 failures, 7 total.

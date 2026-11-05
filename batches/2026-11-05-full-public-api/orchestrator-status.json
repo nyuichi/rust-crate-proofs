@@ -1,0 +1,111 @@
+{
+  "updated_at_utc": "2026-11-05",
+  "objective": "Verify all public APIs of thirteen exact crate versions, excluding only derived standard-trait implementations; unfinished.",
+  "integration_worktree": "/workspace/publish-full-api",
+  "branch": "proofs/full-public-api-aeneas-2026-11-05",
+  "public_updates": [
+    {
+      "crate": "either",
+      "version": "1.19.0",
+      "report": 27,
+      "revision": 2,
+      "mapped_apis": 14,
+      "run": "1f8874a4-834a-4220-9e19-263f87b1ebc5",
+      "source": "bfd99993002c959e3581f36a16497af7a25606fb",
+      "sheet_row": 43,
+      "readback": true,
+      "sheet_readback": true
+    },
+    {
+      "crate": "oorandom",
+      "version": "11.1.5",
+      "report": 25,
+      "revision": 2,
+      "mapped_apis": 12,
+      "run": "1a8a39c6-536f-47b0-8ae3-6451e63b7fbf",
+      "source": "a533a3edfd8327d552e2b072773161dc4408e27e",
+      "sheet_row": 68,
+      "readback": true,
+      "sheet_readback": true
+    },
+    {
+      "crate": "nohash-hasher",
+      "version": "0.2.0",
+      "report": 23,
+      "revision": 2,
+      "mapped_apis": 14,
+      "configurations": "std/no_std x debug/release",
+      "run": "6be71b78-ef9c-4fb6-8970-f2fe2198586f",
+      "source": "061639c5f9b4627263cf1d4da1f5022e5bb9ff08",
+      "sheet_row": 32,
+      "readback": true,
+      "sheet_readback": true
+    },
+    {
+      "crate": "rand_xorshift",
+      "version": "0.5.0",
+      "report": 24,
+      "revision": 2,
+      "mapped_apis": 1,
+      "supplement": "Kani seed/nonzero 327 checks; independent Lean nonzero preservation helper, not part of fresh single claim",
+      "run": "7aa6641f-4641-4c57-8682-7ec533a1964f",
+      "source": "57c4d16e1184f84353db90589bc3cb601f89cb85",
+      "sheet_row": 19,
+      "readback": true,
+      "sheet_readback": true
+    }
+  ],
+  "additional_fresh_records": [
+    {
+      "crate": "bit_field",
+      "mapped_apis": 25,
+      "run": "43515a09-080e-4992-a04b-7e85d3f15f03",
+      "source": "57c4d16e1184f84353db90589bc3cb601f89cb85",
+      "published": false
+    },
+    {
+      "crate": "rand_pcg",
+      "mapped_apis": 21,
+      "run": "702c172f-820b-47b7-9b00-ecff7d926779",
+      "source": "57c4d16e1184f84353db90589bc3cb601f89cb85",
+      "published": false,
+      "sheet_row": 15,
+      "sheet_readback": true
+    }
+  ],
+  "diagnosis": {
+    "crate": "bit_field",
+    "version": "0.10.3",
+    "api": "<i8 as BitField>::set_bits",
+    "input": "112_i8, 0..4, 1",
+    "observed": 1,
+    "outside_range_preservation_expected": 113,
+    "positive_observation_checks": 103,
+    "candidate_contract_failed_checks": "1/57",
+    "sheet_row": 34,
+    "sheet_readback": true,
+    "public_evidence": "https://github.com/nyuichi/rust-crate-proofs/tree/57c4d16e1184f84353db90589bc3cb601f89cb85/batches/2026-11-05-full-public-api/diagnostics/bit-field-signed-range",
+    "note": "Do not classify signed get_bits sign extension itself as a confirmed defect; single-bit proofs unaffected."
+  },
+  "quota": {
+    "new_crates_waiting": [
+      "rand_pcg",
+      "rand_xoshiro",
+      "base16ct",
+      "ascii",
+      "byteorder",
+      "byteorder-lite",
+      "bit_field"
+    ],
+    "observed": "HTTP429 daily_limit",
+    "public_source_policy": "5 new imports/user/UTC day; 50/IP/day",
+    "production_revision_and_reset_unconfirmed": true,
+    "no_bypass": true
+  },
+  "restrictions": {
+    "miri": "Stopped platform-review-flagged additional Miri investigation; no confirmed finding from it; not resumed.",
+    "proofs": "No full-crate closure claimed; exact Rust implementation identity separate from server-erased identity; only pinned official dependency caches reused in fresh records.",
+    "range_helper": "/workspace/full-api/oorandom-range/STATUS.md is helper-only, not a whole rand_range guarantee."
+  }
+}
+

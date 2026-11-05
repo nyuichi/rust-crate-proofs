@@ -1,0 +1,160 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling ascii v1.1.0 (/workspace/publish-batch-ten/ascii/1.1.0/aeneas/2026-11-05)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> /workspace/publish-batch-ten/ascii/1.1.0/aeneas/2026-11-05/src/ascii_str.rs:165:18
+    |
+165 |     pub fn chars(&self) -> Chars {
+    |                  ^^^^^     ^^^^^ the same lifetime is hidden here
+    |                  |
+    |                  the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+    = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+    |
+165 |     pub fn chars(&self) -> Chars<'_> {
+    |                                 ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+   --> /workspace/publish-batch-ten/ascii/1.1.0/aeneas/2026-11-05/src/ascii_str.rs:173:22
+    |
+173 |     pub fn chars_mut(&mut self) -> CharsMut {
+    |                      ^^^^^^^^^     ^^^^^^^^ the same lifetime is hidden here
+    |                      |
+    |                      the lifetime is elided here
+    |
+    = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+help: use `'_` for type paths
+    |
+173 |     pub fn chars_mut(&mut self) -> CharsMut<'_> {
+    |                                            ++++
+
+   Compiling ascii-original-conversion-checks v0.1.0 (/workspace/full-api/enum/ascii/conversion-kani)
+warning: trailing semicolon in macro used in expression position
+  --> src/lib.rs:16:19
+   |
+16 |         Err(_) => assert!(value >= 128),
+   |                   ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: `#[warn(semicolon_in_expressions_from_non_local_macros)]` (part of `#[warn(future_incompatible)]`) on by default
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> src/lib.rs:25:19
+   |
+25 |         Err(_) => assert!(value >= 128),
+   |                   ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> src/lib.rs:34:19
+   |
+34 |         Err(_) => assert!(value < 0),
+   |                   ^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> src/lib.rs:43:19
+   |
+43 |         Err(_) => assert!(value >= 128),
+   |                   ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: trailing semicolon in macro used in expression position
+  --> src/lib.rs:52:19
+   |
+52 |         Err(_) => assert!((value as u32) >= 128),
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #79813 <https://github.com/rust-lang/rust/issues/79813>
+   = note: this warning originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s
+warning: the following packages contain code that will be rejected by a future version of Rust: ascii-original-conversion-checks v0.1.0 (/workspace/full-api/enum/ascii/conversion-kani)
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+Checking harness checked_char_full_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 74 failed (3 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.09434704s
+
+Checking harness checked_u16_full_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 7 failed (1 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.06841113s
+
+Checking harness checked_i8_full_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 7 failed (1 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.06765251s
+
+Checking harness checked_u32_full_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 7 failed (1 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.0715984s
+
+Checking harness checked_u8_full_domain...
+
+VERIFICATION RESULT:
+ ** 0 of 7 failed (1 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.06826605s
+
+Checking harness transmute_model_on_valid_discriminants...
+
+VERIFICATION RESULT:
+ ** 0 of 2 failed (1 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.052904174s
+
+Manual Harness Summary:
+Complete - 6 successfully verified harnesses, 0 failures, 6 total.

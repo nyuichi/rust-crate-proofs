@@ -30,7 +30,7 @@ python3 - <<'INNER'
 from pathlib import Path
 import re
 rows=re.findall(r"'Proofs\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
-assert len(rows)>=12,rows
+assert len(rows)>=22,rows
 for n,a in rows:assert set(a.split(', '))<={'propext','Classical.choice','Quot.sound'},(n,a)
-print('All twelve theorem transitive axiom audits passed')
+print('All twenty-one API theorem and casefold helper transitive axiom audits passed')
 INNER

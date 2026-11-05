@@ -185,6 +185,197 @@ def ascii_char.AsciiChar.is_ascii_alphabetic
   (self : ascii_char.AsciiChar) : Result Bool := do
   ascii_char.AsciiChar.is_alphabetic self
 
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_digit]:
+    Source: 'src/ascii_char.rs', lines 436:4-444:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_digit
+  (self : ascii_char.AsciiChar) (radix : Std.U32) : Result Bool := do
+  let self1 := read_discriminant self
+  let i ← lift (UScalar.cast .U8 self1)
+  massert ((¬ (48#u8 <= i)) || ((¬ (i <= 57#u8)) || ((¬ (0#u32 <= radix)) ||
+    ((radix <= 36#u32) || (0#u32 <= radix)))))
+  massert ((¬ (48#u8 <= i)) || ((¬ (i <= 57#u8)) || ((¬ (0#u32 <= radix)) ||
+    ((radix <= 36#u32) || (radix <= 36#u32)))))
+  if 48#u8 <= i
+  then
+    if i <= 57#u8
+    then
+      if 0#u32 <= radix
+      then
+        if radix <= 36#u32
+        then
+          let self2 := read_discriminant self
+          let i1 ← lift (UScalar.cast .U8 self2)
+          let i2 ← i1 - 48#u8
+          let i3 ← lift (core.convert.num.FromU32U8.from i2)
+          ok (i3 < radix)
+        else ok false
+      else massert (0#u32 <= radix)
+           massert (radix <= 36#u32)
+           ok false
+    else
+      massert ((¬ (97#u8 <= i)) || ((¬ (i <= 122#u8)) || ((¬ (11#u32 <=
+        radix)) || ((radix <= 36#u32) || (0#u32 <= radix)))))
+      massert ((¬ (97#u8 <= i)) || ((¬ (i <= 122#u8)) || ((¬ (11#u32 <=
+        radix)) || ((radix <= 36#u32) || (radix <= 36#u32)))))
+      if 97#u8 <= i
+      then
+        if i <= 122#u8
+        then
+          if 11#u32 <= radix
+          then
+            if radix <= 36#u32
+            then
+              let self2 := read_discriminant self
+              let i1 ← lift (UScalar.cast .U8 self2)
+              let i2 ← i1 - 97#u8
+              let i3 ← lift (core.convert.num.FromU32U8.from i2)
+              let i4 ← radix - 10#u32
+              ok (i3 < i4)
+            else ok false
+          else massert (0#u32 <= radix)
+               massert (radix <= 36#u32)
+               ok false
+        else
+          massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+            radix)) || ((radix <= 36#u32) || (0#u32 <= radix)))))
+          massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+            radix)) || ((radix <= 36#u32) || (radix <= 36#u32)))))
+          if 65#u8 <= i
+          then
+            if i <= 90#u8
+            then
+              if 11#u32 <= radix
+              then
+                if radix <= 36#u32
+                then
+                  let self2 := read_discriminant self
+                  let i1 ← lift (UScalar.cast .U8 self2)
+                  let i2 ← i1 - 65#u8
+                  let i3 ← lift (core.convert.num.FromU32U8.from i2)
+                  let i4 ← radix - 10#u32
+                  ok (i3 < i4)
+                else ok false
+              else massert (0#u32 <= radix)
+                   massert (radix <= 36#u32)
+                   ok false
+            else massert (0#u32 <= radix)
+                 massert (radix <= 36#u32)
+                 ok false
+          else massert (0#u32 <= radix)
+               massert (radix <= 36#u32)
+               ok false
+      else
+        massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+          radix)) || ((radix <= 36#u32) || (0#u32 <= radix)))))
+        massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+          radix)) || ((radix <= 36#u32) || (radix <= 36#u32)))))
+        if 65#u8 <= i
+        then
+          if i <= 90#u8
+          then
+            if 11#u32 <= radix
+            then
+              if radix <= 36#u32
+              then
+                let self2 := read_discriminant self
+                let i1 ← lift (UScalar.cast .U8 self2)
+                let i2 ← i1 - 65#u8
+                let i3 ← lift (core.convert.num.FromU32U8.from i2)
+                let i4 ← radix - 10#u32
+                ok (i3 < i4)
+              else ok false
+            else massert (0#u32 <= radix)
+                 massert (radix <= 36#u32)
+                 ok false
+          else massert (0#u32 <= radix)
+               massert (radix <= 36#u32)
+               ok false
+        else massert (0#u32 <= radix)
+             massert (radix <= 36#u32)
+             ok false
+  else
+    massert ((¬ (97#u8 <= i)) || ((¬ (i <= 122#u8)) || ((¬ (11#u32 <=
+      radix)) || ((radix <= 36#u32) || (0#u32 <= radix)))))
+    massert ((¬ (97#u8 <= i)) || ((¬ (i <= 122#u8)) || ((¬ (11#u32 <=
+      radix)) || ((radix <= 36#u32) || (radix <= 36#u32)))))
+    if 97#u8 <= i
+    then
+      if i <= 122#u8
+      then
+        if 11#u32 <= radix
+        then
+          if radix <= 36#u32
+          then
+            let self2 := read_discriminant self
+            let i1 ← lift (UScalar.cast .U8 self2)
+            let i2 ← i1 - 97#u8
+            let i3 ← lift (core.convert.num.FromU32U8.from i2)
+            let i4 ← radix - 10#u32
+            ok (i3 < i4)
+          else ok false
+        else massert (0#u32 <= radix)
+             massert (radix <= 36#u32)
+             ok false
+      else
+        massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+          radix)) || ((radix <= 36#u32) || (0#u32 <= radix)))))
+        massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+          radix)) || ((radix <= 36#u32) || (radix <= 36#u32)))))
+        if 65#u8 <= i
+        then
+          if i <= 90#u8
+          then
+            if 11#u32 <= radix
+            then
+              if radix <= 36#u32
+              then
+                let self2 := read_discriminant self
+                let i1 ← lift (UScalar.cast .U8 self2)
+                let i2 ← i1 - 65#u8
+                let i3 ← lift (core.convert.num.FromU32U8.from i2)
+                let i4 ← radix - 10#u32
+                ok (i3 < i4)
+              else ok false
+            else massert (0#u32 <= radix)
+                 massert (radix <= 36#u32)
+                 ok false
+          else massert (0#u32 <= radix)
+               massert (radix <= 36#u32)
+               ok false
+        else massert (0#u32 <= radix)
+             massert (radix <= 36#u32)
+             ok false
+    else
+      massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+        radix)) || ((radix <= 36#u32) || (0#u32 <= radix)))))
+      massert ((¬ (65#u8 <= i)) || ((¬ (i <= 90#u8)) || ((¬ (11#u32 <=
+        radix)) || ((radix <= 36#u32) || (radix <= 36#u32)))))
+      if 65#u8 <= i
+      then
+        if i <= 90#u8
+        then
+          if 11#u32 <= radix
+          then
+            if radix <= 36#u32
+            then
+              let self2 := read_discriminant self
+              let i1 ← lift (UScalar.cast .U8 self2)
+              let i2 ← i1 - 65#u8
+              let i3 ← lift (core.convert.num.FromU32U8.from i2)
+              let i4 ← radix - 10#u32
+              ok (i3 < i4)
+            else ok false
+          else massert (0#u32 <= radix)
+               massert (radix <= 36#u32)
+               ok false
+        else massert (0#u32 <= radix)
+             massert (radix <= 36#u32)
+             ok false
+      else massert (0#u32 <= radix)
+           massert (radix <= 36#u32)
+           ok false
+
 /-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_digit]:
     Source: 'src/ascii_char.rs', lines 459:4-461:5
     Visibility: public -/
@@ -222,6 +413,16 @@ def ascii_char.AsciiChar.is_ascii_blank
   let self2 := read_discriminant self
   let i1 ← lift (UScalar.cast .U8 self2)
   ok ((i = 32#u8) || (i1 = 9#u8))
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_whitespace]:
+    Source: 'src/ascii_char.rs', lines 501:4-504:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_whitespace
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let self1 := read_discriminant self
+  let b ← lift (UScalar.cast .U8 self1)
+  let b1 ← ascii_char.AsciiChar.is_ascii_blank self
+  ok ((((b1 || (b = 10#u8)) || (b = 13#u8)) || (b = 11#u8)) || (b = 12#u8))
 
 /-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_whitespace]:
     Source: 'src/ascii_char.rs', lines 511:4-516:5
@@ -310,5 +511,42 @@ def ascii_char.AsciiChar.is_ascii_hexdigit
   let i1 ← lift (i ||| 32#u8)
   let i2 ← lift (core.num.U8.wrapping_sub i1 97#u8)
   ok (b || (i2 < 6#u8))
+
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::eq_ignore_ascii_case]:
+    Source: 'src/ascii_char.rs', lines 729:4-732:5
+    Visibility: public -/
+def ascii_char.AsciiChar.eq_ignore_ascii_case
+  (self : ascii_char.AsciiChar) (other : ascii_char.AsciiChar) :
+  Result Bool
+  := do
+  let i ← ascii_char.AsciiChar.as_byte self
+  let i1 ← ascii_char.AsciiChar.as_byte other
+  let b ← ascii_char.AsciiChar.is_alphabetic self
+  let i2 ← ascii_char.AsciiChar.to_not_upper self
+  let i3 ← ascii_char.AsciiChar.to_not_upper other
+  ok ((i = i1) || (b && (i2 = i3)))
+
+/-- [ascii::ascii_char::ToAsciiCharError]
+    Source: 'src/ascii_char.rs', lines 794:0-794:32
+    Visibility: public -/
+@[reducible]
+def ascii_char.ToAsciiCharError := Unit
+
+/-- [ascii::ascii_char::{impl ascii::ascii_char::ToAsciiChar for ascii::ascii_char::AsciiChar}::to_ascii_char]:
+    Source: 'src/ascii_char.rs', lines 851:4-853:5
+    Visibility: public -/
+def ascii_char.AsciiChar.Insts.AsciiAscii_charToAsciiChar.to_ascii_char
+  (self : ascii_char.AsciiChar) :
+  Result (core.result.Result ascii_char.AsciiChar ascii_char.ToAsciiCharError)
+  := do
+  ok (core.result.Result.Ok self)
+
+/-- [ascii::ascii_char::{impl ascii::ascii_char::ToAsciiChar for ascii::ascii_char::AsciiChar}::to_ascii_char_unchecked]:
+    Source: 'src/ascii_char.rs', lines 856:4-858:5
+    Visibility: public -/
+def
+  ascii_char.AsciiChar.Insts.AsciiAscii_charToAsciiChar.to_ascii_char_unchecked
+  (self : ascii_char.AsciiChar) : Result ascii_char.AsciiChar := do
+  ok self
 
 end ascii

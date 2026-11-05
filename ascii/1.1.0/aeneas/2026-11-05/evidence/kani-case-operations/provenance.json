@@ -1,0 +1,23 @@
+{
+  "tool": "Kani 0.68.0 / CBMC 6.11.0",
+  "compiler": "nightly-2026-08-21, rustc 8925ea358 (2026-08-20)",
+  "source": "Unchanged ascii 1.1.0 Rust files and Cargo.toml, archive-compared; separate dependent harness package uses path ../.. to the artifact root",
+  "features": "default",
+  "target": "x86_64-unknown-linux-gnu",
+  "input_domain": "Every valid AsciiChar value (128 values), and every pair (128^2) for equality. The nondeterministic byte <128 condition is exactly this finite type domain, not a sample bound.",
+  "generator": "Call original safe AsciiChar::new(char::from(code)); assert original public as_byte returns exactly that code before testing each API. This confirms complete representation coverage and introduces no invalid enum state.",
+  "observations": "Direct original public calls; immutable results or mutated local value observed with original public as_byte/as_char. No implementation copy, private-field accessor, manual source adaptation or raw-memory observer.",
+  "body_harnesses": {
+    "uppercase_full_ascii_domain": "to_ascii_uppercase maps a-z to A-Z and preserves other codes",
+    "lowercase_full_ascii_domain": "to_ascii_lowercase maps A-Z to a-z and preserves other codes",
+    "make_uppercase_full_ascii_writeback": "make_ascii_uppercase writes that exact uppercase value to the mutable receiver",
+    "make_lowercase_full_ascii_writeback": "make_ascii_lowercase writes that exact lowercase value to the mutable receiver",
+    "as_char_full_ascii_domain": "as_char returns the Unicode scalar with the identical ASCII code",
+    "case_insensitive_equality_full_pair_domain": "eq_ignore_ascii_case equals equality after mathematical A-Z-to-a-z code folding",
+    "printable_picture_full_ascii_domain": "as_printable_char maps controls 0..31 to U+2400..U+241F, DEL to U+2421, and other codes to their identical character"
+  },
+  "bounds": "No sample or unwind override; target paths and reference formulas contain no loops. All integer arithmetic/safety assertions are checked for the entire stated scalar domains.",
+  "unsafe_boundary": "The safe input constructor is checked on valid ASCII inputs. The printable-picture body uses its original unchecked char constructor, whose executions remain within valid Unicode points under the proved domain; invalid AsciiChar states are never created. This is not a guarantee about arbitrary unchecked integer-to-enum calls.",
+  "partial_constructor_result": "The generator also checks new for ASCII char inputs. Non-ASCII constructor panic behavior is outside these harness domains, so new is not marked fully verified.",
+  "tool_separation": "These direct Rust body checks do not remove the observed Aeneas Char-cast emission blocker. They are not additional Aeneas machine claims or a Kani-to-Lean equivalence proof."
+}
