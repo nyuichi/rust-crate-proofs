@@ -17,3 +17,5 @@ lean_lib DefaultProofs
 lean_lib BothProofs
 
 lean_lib MapInspectProofs
+
+lean_lib IteratorProofs

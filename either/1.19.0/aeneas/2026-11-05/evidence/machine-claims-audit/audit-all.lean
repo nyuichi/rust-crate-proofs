@@ -3,6 +3,7 @@ import BothProofs
 import CallbackProofs
 import DefaultProofs
 import IntoEitherProofs
+import IteratorProofs
 import MapInspectProofs
 import Proofs
 import ResultProofs
@@ -436,3 +437,14 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in MapInspectProofs.inspect_right_spec: {ax}"
   liftIO <| IO.println "proofs.rs:checked:MapInspectProofs.inspect_right_spec"
+
+run_cmd do
+  let theorem_name := `IteratorProofs.next_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: IteratorProofs.next_spec"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in IteratorProofs.next_spec: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:IteratorProofs.next_spec"

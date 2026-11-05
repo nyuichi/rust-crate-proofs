@@ -76,6 +76,24 @@ impl_def into_either.IntoEither.Blanket (T : Type _) : into_either.IntoEither T
     coreopsfunctionFnOncePTupleSharedFBoolInst
 }
 
+/-- [either::iterator::{impl core::iter::traits::iterator::Iterator<Clause0_Item> for either::Either<L, R>}::next]:
+    Source: 'src/iterator.rs', lines 92:4-94:5
+    Visibility: public -/
+def Either.Insts.CoreIterTraitsIteratorIterator.next
+  {L : Type _} {R : Type _} {Clause0_Item : Type _}
+  (coreitertraitsiteratorIteratorInst : core.iter.traits.iterator.Iterator L
+  Clause0_Item) (coreitertraitsiteratorIteratorInst1 :
+  core.iter.traits.iterator.Iterator R Clause0_Item) (self : Either L R) :
+  Result ((Option Clause0_Item) × (Either L R))
+  := do
+  match self with
+  | Either.Left inner =>
+    let (o, inner1) ← coreitertraitsiteratorIteratorInst.next inner
+    ok (o, Either.Left inner1)
+  | Either.Right inner =>
+    let (o, inner1) ← coreitertraitsiteratorIteratorInst1.next inner
+    ok (o, Either.Right inner1)
+
 /-- [either::Either::Left]:
     Source: 'src/lib.rs', lines 51:4-51:11 -/
 def Either.Left.constructor
