@@ -1,0 +1,42 @@
+The original rand_xorshift 0.5.0 source bytes are unchanged. The targeted
+Charon/Aeneas extraction starts at TryRng::try_next_u32, and contains that body,
+its state type, and exactly three external std wrapping-operator declarations.
+No crate implementation body is replaced. The official Aeneas frontend and
+library remain pinned to be86ab0f1989d04944292b345b24c435be3ad10a.
+
+Aeneas's documented -split-files mechanism permits supplying executable defs
+for external calls. FunsExternal.lean supplies only the three std Wrapping<u32>
+operators, using the existing Aeneas U32.wrapping_shl, U32.wrapping_shr and xor.
+The usize shift is converted to the low 32 bits, matching Rust's `as u32` cast;
+the existing primitive model then reduces it modulo 32. No new axiom or sorry
+is introduced. The remaining targeted generated files are untouched.
+
+This is an explicit semantic bridge for standard-library operations rather
+than an original std-library-body Lean proof. Kani/CBMC checks the actual Rust
+Wrapping shl/shr/xor against the corresponding primitive formulas for arbitrary
+u32 operands and arbitrary 64-bit usize shift values, without an input bound.
+A second harness compiles the entire original crate source as an unchanged
+byte prefix plus a private-state observer, invokes its actual try_next_u32,
+and compares the returned word and all four updated words with the reference
+bitvector formula for arbitrary 4*u32 internal states. Neither harness manually
+copies the crate implementation body.
+
+These correspondence checks use Kani 0.68.0, CBMC 6.11.0, Rust
+nightly-2026-08-21 and x86_64-unknown-linux-gnu. They do not establish a theorem
+inside Lean connecting Kani's Rust semantics with the Lean scalar definitions;
+that model correspondence and the verification toolchains remain part of the
+verification boundary. The Lean public theorem itself has only the ordinary
+propext, Classical.choice, and Quot.sound axioms in its dependency closure.
+
+The result covers the next_u32 state transition, exact returned bits and normal
+termination under these total standard-operator models. It does not cover
+seed construction, fill_bytes, next_u64, external-RNG initialization, serde,
+formatting, the period or distribution of the generator, or cryptographic
+properties. Arbitrary internal states include the all-zero state; the theorem
+does not prove that public seed constructors establish any state invariant.
+
+Independent review confirmed the low-32-bit cast followed by modulo-32 shift,
+logical right shifts, xor formula, and byte-preserving original source observer.
+Kani uses Rust nightly-2026-08-21 while extraction uses nightly-2026-09-17;
+the Kani checks therefore do not prove the latter toolchain's std bodies.
+This is part of the explicitly reviewed cross-tool model boundary.

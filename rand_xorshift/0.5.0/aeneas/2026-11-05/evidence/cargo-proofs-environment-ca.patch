@@ -1,0 +1,10 @@
+--- /workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cargo-proofs-0.4.1/src/api.rs	2006-07-24 01:21:28.000000000 +0000
++++ /workspace/cargo-proofs-local/src/api.rs	2026-11-04 14:00:30.761439433 +0000
+@@ -47,6 +47,7 @@
+         Ok(Self {
+             server: server.into(),
+             client: Client::builder()
++                .add_root_certificate(reqwest::Certificate::from_pem(&fs::read("/usr/local/share/ca-certificates/environment-proxy-ca.crt")?)?)
+                 .timeout(Duration::from_secs(60))
+                 .redirect(Policy::none())
+                 .user_agent(concat!("cargo-proofs/", env!("CARGO_PKG_VERSION")))
