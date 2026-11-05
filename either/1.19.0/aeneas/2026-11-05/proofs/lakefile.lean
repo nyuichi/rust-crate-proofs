@@ -19,3 +19,8 @@ lean_lib BothProofs
 lean_lib MapInspectProofs
 
 lean_lib IteratorProofs
+
+lean_lib ReferenceSupplement
+@[default_target] lean_lib ReferenceSupplementProofs
+
+@[default_target] lean_lib PrimaryCoimport

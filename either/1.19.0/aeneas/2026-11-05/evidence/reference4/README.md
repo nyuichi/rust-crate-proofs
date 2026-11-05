@@ -1,0 +1,9 @@
+# Either reference copy/clone supplemental proof
+
+Four original public specialized inherent methods are covered by six Lean theorems. Shared copied returns the same branch and payload. Mutable copied also returns both backward-model writeback values unchanged. Shared and mutable cloned call only the selected Clone dictionary and preserve its Result behavior, including model failure/divergence; successful cloning wraps the returned value in the same branch. Mutable cloned additionally preserves the two extracted writeback model values.
+
+This is a supplemental conditional result, not four registered machine API claims. The existing 40 mappings remain unchanged. Source scanner specialized-owner matching is blocked; short nominal aliases are not used to disguise this ambiguity. Rust identity records distinguish shared and mutable owners; source anonymous reference lifetimes are recorded in generated source headers.
+
+The Clone dictionary is arbitrary: no law equating clone output and input, callback correctness or termination is assumed. The extracted writeback model does not establish preservation of interior-mutable/global state, arbitrary Rust Drop effects, panic unwinding or external side effects. Copy contracts cover all well-typed model payloads and branches. No new opaque definition, standard model or axiom was added. Full six theorem audits use only propext/Classical.choice/Quot.sound or subsets.
+
+Original Cargo/src and upstream crate archive are retained. `regenerate.py` uses pinned installed official Charon/Aeneas, re-extracts the original source, compares generated Lean byte-for-byte, builds the exact official-Git-pinned Lake package and audits every theorem. Lake may need the pinned dependency materialized first. The current `.lake/packages` symlink is a local cache only, excluded from the freeze and proof trust claims.
