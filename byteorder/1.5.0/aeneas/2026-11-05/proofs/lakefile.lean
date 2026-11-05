@@ -10,3 +10,15 @@ lean_lib ByteorderApiRoots
 
 lean_lib FloatProofs
 lean_lib ByteorderFloatRoots
+
+lean_lib ReadVariableProofs
+lean_lib ReadVariableGenerated
+
+lean_lib ByteorderU24Roots
+lean_lib U24Bodies
+lean_lib U24WrapperProofs
+lean_lib U24Decode24
+lean_lib U24Exact24
+
+lean_lib Byteorder
+lean_lib NativeIdentityProofs
