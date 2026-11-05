@@ -1,0 +1,69 @@
+{
+  "status": "limited_domain_default_Display_composition_passed; unpublished",
+  "crate": "base16ct",
+  "version": "1.0.0",
+  "api": "<base16ct::Error as core::fmt::Display>::fmt",
+  "tool": "Kani 0.68.0; CBMC 6.11.0; Rust nightly-2026-08-21",
+  "target": "x86_64-unknown-linux-gnu",
+  "domain": {
+    "error_variants": [
+      "InvalidEncoding",
+      "InvalidLength"
+    ],
+    "writer_modes": [
+      "Ok with exact literal output",
+      "Err before output bytes change"
+    ],
+    "symbolic_booleans": 2,
+    "combinations": 4,
+    "format": "{} only; default formatter options",
+    "sink": "Fixed initialized [u8;64] collecting writer with selected failure bool; allocation-free sink",
+    "initial_state": "64 zero bytes, length 0",
+    "literal_lengths": {
+      "InvalidEncoding": 22,
+      "InvalidLength": 20
+    }
+  },
+  "guarantees": [
+    "Successful default formatting returns Ok, has exactly the expected literal length and all 64 bytes equal the literal prefix followed by zero unused bytes",
+    "Selected writer error yields Err, length zero and every output byte remains zero",
+    "The nonempty literal reaches the writer with the variant-specific expected length even in Err mode"
+  ],
+  "harnesses": 1,
+  "checks": 1910,
+  "failed_checks": 0,
+  "unreachable_internal_checks": 125,
+  "harness_properties_successful": 11,
+  "unsupported_reachability_guards_successful": 3,
+  "unwind": {
+    "value": 80,
+    "default_checks_not_disabled": true,
+    "source_attribute": "#[kani::unwind(80)]",
+    "observed_harness_loop_iterations": 64,
+    "observed_format_write_loop_iterations": 1
+  },
+  "source_unchanged": true,
+  "source_sha256": {
+    "Cargo.toml": "71f43fd6a618c6914ea149f9adb39d11a39876071ea01556b8bee0e93d9d632e",
+    "src/display.rs": "9e45093df7c2a3c758e499d3fec1d60e400df554f158f0d26bc6e93f98ff43e0",
+    "src/error.rs": "56b2c8893aec1331796a4c951476e2e20b45b55848d14e1116dbf4a1f195e589",
+    "src/lib.rs": "178db5fdbf52816e139a958b2739494d4b17f8e54905ab9155ef1c84410fedb8",
+    "src/lower.rs": "21b523f53f17b14051d60d2792b9186ad7ce744f4ee8fb3584cd3ecad7c032d9",
+    "src/mixed.rs": "2d13475dc62ff8431daa6792f3240e11d22f0f93c221529645f5080fbedb73c8",
+    "src/upper.rs": "e527d6a26c14698e988317b7e8a5d15e65e50fdee67b5e11da512f51349982ab"
+  },
+  "models_or_stubs_added": null,
+  "aeneas_formatter_model_used": false,
+  "remaining_scope": [
+    "Not arbitrary Formatter settings or arbitrary fmt::Write implementations",
+    "No general Display guarantee outside this concrete sink/default-format composition",
+    "Other features/targets and Error trait default/blanket methods are not covered"
+  ],
+  "initial_attempt": {
+    "status": "stopped checkpoint; no verdict",
+    "reason": "Dynamic slice equality expanded builtin memcmp over 2500 times",
+    "evidence": "evidence/initial-dynamic-slice.log",
+    "source": "evidence/initial-dynamic-slice.rs"
+  },
+  "retry_structure": "Same literal/error contract retained and strengthened to fixed full-capacity comparison; no input assumptions or warning suppression."
+}
