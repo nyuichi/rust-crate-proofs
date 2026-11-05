@@ -1,6 +1,6 @@
 warning: Cargo.toml: `package.edition` is unspecified, defaulting to `2015` while the latest is `2024`
 warning: `ascii` (manifest) generated 1 warning
-   Compiling ascii v1.1.0 (/workspace/full-api/bits/ascii-extra/candidate-error-projections)
+   Compiling ascii v1.1.0 (/workspace/full-api/bits/ascii-extra/candidate-typed-vectors)
 warning: hiding a lifetime that's elided elsewhere is confusing
    --> src/ascii_str.rs:165:18
     |
@@ -32,24 +32,25 @@ help: use `'_` for type paths
 
 warning: `ascii` (lib) generated 2 warnings (run `cargo fix --lib -p ascii` to apply 2 suggestions)
 warning: `ascii` (lib test) generated 2 warnings (2 duplicates)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.92s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.86s
      Running unittests src/lib.rs (target/debug/build/ascii/3ffcad1c654822f3/out/ascii-3ffcad1c654822f3)
 
 running 37 tests
+test ascii_char::tests::cmp_wider ... ok
 test ascii_char::tests::as_byte_and_char ... ok
 test ascii_char::tests::ascii_case ... ok
-test ascii_char::tests::cmp_wider ... ok
-test ascii_char::tests::is_all ... ok
-test ascii_char::tests::new_array_is_correct ... ok
 test ascii_char::tests::fmt_ascii ... ok
+test ascii_char::tests::is_all ... ok
 test ascii_char::tests::is_digit_bad_radix - should panic ... ok
-test ascii_char::tests::to_ascii_char ... ok
+test ascii_char::tests::new_array_is_correct ... ok
 test ascii_char::tests::is_digit_strange_radixes ... FAILED
-test ascii_str::tests::as_ascii_str ... ok
+test ascii_char::tests::to_ascii_char ... ok
 test ascii_str::tests::as_bytes ... ok
+test ascii_str::tests::as_ascii_str ... ok
 test ascii_str::tests::as_mut_ascii_str ... ok
 test ascii_str::tests::as_str ... ok
 test ascii_str::tests::chars_iter ... ok
+test ascii_str::tests::chars_iter_mut ... ok
 test ascii_str::tests::cstr_as_ascii_str ... ok
 test ascii_str::tests::cstring_as_ascii_str ... ok
 test ascii_str::tests::default ... ok
@@ -62,10 +63,9 @@ test ascii_str::tests::lines_iter_empty ... ok
 test ascii_str::tests::lines_iter_rev ... ok
 test ascii_str::tests::make_ascii_case ... ok
 test ascii_str::tests::split_str ... ok
+test ascii_str::tests::split_str_empty ... ok
 test ascii_str::tests::split_str_rev ... ok
 test ascii_str::tests::to_ascii_case ... ok
-test ascii_str::tests::split_str_empty ... ok
-test ascii_str::tests::chars_iter_mut ... ok
 test ascii_string::tests::fmt_ascii_string ... ok
 test ascii_string::tests::from_ascii_vec ... ok
 test ascii_string::tests::from_cstring ... ok
@@ -78,7 +78,7 @@ failures:
 
 ---- ascii_char::tests::is_digit_strange_radixes stdout ----
 
-thread 'ascii_char::tests::is_digit_strange_radixes' (428176) panicked at /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/methods.rs:410:9:
+thread 'ascii_char::tests::is_digit_strange_radixes' (440528) panicked at /workspace/proof-tools/rustup/toolchains/nightly-2026-09-17-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/char/methods.rs:410:9:
 to_digit: invalid radix -- radix must be in the range 2 to 36 inclusive
 
 

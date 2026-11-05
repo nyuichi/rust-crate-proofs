@@ -3,6 +3,7 @@ import ErrorProjectionProofs
 import Proofs
 import SliceProofs
 import StringProofs
+import VectorIdentityProofs
 open Lean Elab Command
 
 run_cmd do
@@ -411,3 +412,47 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in ErrorProjectionProofs.into_source_exact: {ax}"
   liftIO <| IO.println "proofs.rs:checked:ErrorProjectionProofs.into_source_exact"
+
+run_cmd do
+  let theorem_name := `VectorIdentityProofs.from_vector_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: VectorIdentityProofs.from_vector_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in VectorIdentityProofs.from_vector_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:VectorIdentityProofs.from_vector_exact"
+
+run_cmd do
+  let theorem_name := `VectorIdentityProofs.into_vector_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: VectorIdentityProofs.into_vector_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in VectorIdentityProofs.into_vector_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:VectorIdentityProofs.into_vector_exact"
+
+run_cmd do
+  let theorem_name := `VectorIdentityProofs.checked_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: VectorIdentityProofs.checked_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in VectorIdentityProofs.checked_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:VectorIdentityProofs.checked_exact"
+
+run_cmd do
+  let theorem_name := `VectorIdentityProofs.unchecked_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: VectorIdentityProofs.unchecked_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in VectorIdentityProofs.unchecked_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:VectorIdentityProofs.unchecked_exact"

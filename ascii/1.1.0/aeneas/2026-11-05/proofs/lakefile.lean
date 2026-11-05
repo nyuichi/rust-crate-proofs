@@ -12,3 +12,5 @@ lean_lib StringProofs
 lean_lib SliceProofs
 
 lean_lib ErrorProjectionProofs
+
+lean_lib VectorIdentityProofs

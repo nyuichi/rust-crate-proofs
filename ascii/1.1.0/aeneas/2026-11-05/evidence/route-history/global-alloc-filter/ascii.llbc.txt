@@ -1,0 +1,2279 @@
+// Full name: core::any::TypeId
+#[lang_item(TypeId)]
+pub opaque type TypeId
+
+// Full name: core::any::Any
+#[diagnostic_item("Any")]
+pub trait Any<Self>
+where
+    TypeOutlives0: Self: 'static,
+{
+    fn type_id<'_0_1>;
+    vtable: core::any::Any::{vtable}
+}
+
+// Full name: core::any::{impl Any for T}::type_id
+pub fn type_id<'_0, T>(_1: &'_0 T) -> TypeId
+where
+    TypeOutlives0: T: 'static,
+    TypeOutlives1: T: '_0,
+= <opaque>
+
+// Full name: core::any::{impl Any for T}
+impl<T> "impl_Any_for_T" Any for T
+where
+    TypeOutlives0: T: 'static,
+{
+    fn type_id<'_0_1> = type_id<'_0_1, T>
+    vtable: lazy
+}
+
+// Full name: core::convert::num::{impl From<u8> for u32}::from
+pub fn impl_From_u8_for_u32::from(_1: u8) -> u32
+= <opaque>
+
+// Full name: core::marker::Send
+#[diagnostic_item("Send")]
+pub unsafe trait Send<Self>
+
+// Full name: core::marker::Sync
+#[lang_item(Sync)]
+#[diagnostic_item("Sync")]
+pub unsafe trait Sync<Self>
+
+// Full name: core::marker::{impl Send for &'_0 T}
+unsafe impl<'_0, T> Send for &'_0 T
+where
+    TraitClause0: (T: Sync),
+    TypeOutlives0: T: '_0,
+{
+    vtable: lazy
+}
+
+opaque type ()
+
+// Full name: core::marker::Destruct
+#[lang_item(Destruct)]
+pub trait Destruct<Self>
+{
+    fn drop_glue<'_0_1>;
+    non-dyn-compatible
+}
+
+// Full name: core::num::{u8}::wrapping_sub
+pub fn wrapping_sub(_1: u8, _2: u8) -> u8
+= <opaque>
+
+// Full name: core::result::Result
+#[diagnostic_item("Result")]
+pub enum Result<T, E> {
+  Ok { _0: T },
+  Err { _0: E },
+}
+
+#[lang_item(SliceLen)]
+pub fn core::slice::{[T]}::len<'_0, T>(_1: &'_0 [T]) -> usize
+where
+    TypeOutlives0: T: '_0,
+= <opaque>
+
+// Full name: alloc::vec::Vec
+#[diagnostic_item("Vec")]
+pub opaque type Vec<T>
+
+// Full name: alloc::vec::Vec::{impl Destruct for Vec<T>}::drop_glue
+unsafe fn impl_Destruct_for_Vec::drop_glue<'_0, T, A>(_1: &'_0 mut Vec<T>)
+where
+    TypeOutlives0: T: '_0,
+    TypeOutlives1: A: '_0,
+= <opaque>
+
+struct str {
+  _0: [u8],
+}
+
+// Full name: ascii::ascii_char::AsciiChar
+#[allow(non_camel_case_types)]
+pub enum AsciiChar {
+  Null,
+  SOH,
+  SOX,
+  ETX,
+  EOT,
+  ENQ,
+  ACK,
+  Bell,
+  BackSpace,
+  Tab,
+  LineFeed,
+  VT,
+  FF,
+  CarriageReturn,
+  SI,
+  SO,
+  DLE,
+  DC1,
+  DC2,
+  DC3,
+  DC4,
+  NAK,
+  SYN,
+  ETB,
+  CAN,
+  EM,
+  SUB,
+  ESC,
+  FS,
+  GS,
+  RS,
+  US,
+  Space,
+  Exclamation,
+  Quotation,
+  Hash,
+  Dollar,
+  Percent,
+  Ampersand,
+  Apostrophe,
+  ParenOpen,
+  ParenClose,
+  Asterisk,
+  Plus,
+  Comma,
+  Minus,
+  Dot,
+  Slash,
+  _0,
+  _1,
+  _2,
+  _3,
+  _4,
+  _5,
+  _6,
+  _7,
+  _8,
+  _9,
+  Colon,
+  Semicolon,
+  LessThan,
+  Equal,
+  GreaterThan,
+  Question,
+  At,
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W,
+  X,
+  Y,
+  Z,
+  BracketOpen,
+  BackSlash,
+  BracketClose,
+  Caret,
+  UnderScore,
+  Grave,
+  a,
+  b,
+  c,
+  d,
+  e,
+  f,
+  g,
+  h,
+  i,
+  j,
+  k,
+  l,
+  m,
+  n,
+  o,
+  p,
+  q,
+  r,
+  s,
+  t,
+  u,
+  v,
+  w,
+  x,
+  y,
+  z,
+  CurlyBraceOpen,
+  VerticalBar,
+  CurlyBraceClose,
+  Tilde,
+  DEL,
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::as_byte
+#[inline(hint)]
+pub fn as_byte(self: AsciiChar) -> u8
+{
+    let _0: u8; // return
+    let self: AsciiChar; // arg #1
+    let _2: AsciiChar; // anonymous local
+    let _3: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_3)
+    storage_live(_2)
+    _2 = copy self
+    _3 = @discriminant(_2)
+    _0 = cast<u8, u8>(move _3)
+    storage_dead(_2)
+    storage_dead(_3)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::to_not_upper
+fn to_not_upper(self: AsciiChar) -> u8
+{
+    let _0: u8; // return
+    let self: AsciiChar; // arg #1
+    let _2: u8; // anonymous local
+    let _3: AsciiChar; // anonymous local
+    let _4: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_4)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = copy self
+    _4 = @discriminant(_3)
+    _2 = cast<u8, u8>(move _4)
+    storage_dead(_3)
+    _0 = move _2 | const 32u8
+    storage_dead(_2)
+    storage_dead(_4)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_alphabetic
+#[inline(hint)]
+pub fn is_alphabetic(self: AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+    let _5: bool; // anonymous local
+    let _6: u8; // anonymous local
+    let _7: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy self
+    _3 = to_not_upper(move _4)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_4)
+    _2 = move _3 >= const 97u8
+    storage_dead(_3)
+    storage_live(_5)
+    storage_live(_6)
+    storage_live(_7)
+    _7 = copy self
+    _6 = to_not_upper(move _7)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_7)
+    _5 = move _6 <= const 122u8
+    storage_dead(_6)
+    _0 = move _2 & move _5
+    storage_dead(_5)
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_alphabetic
+#[inline(hint)]
+pub fn is_ascii_alphabetic<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = copy (*self)
+    _0 = is_alphabetic(move _2)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_digit
+pub fn is_digit(self: AsciiChar, radix: u32) -> bool
+{
+    let _0: bool; // return
+    let self: AsciiChar; // arg #1
+    let radix: u32; // arg #2
+    let _3: (u8, u32); // anonymous local
+    let _4: u8; // anonymous local
+    let _5: AsciiChar; // anonymous local
+    let _6: u8; // anonymous local
+    let _7: u32; // anonymous local
+    let _8: bool; // anonymous local
+    let _9: bool; // anonymous local
+    let _10: bool; // anonymous local
+    let _11: bool; // anonymous local
+    let _12: bool; // anonymous local
+    let _13: bool; // anonymous local
+    let _14: bool; // anonymous local
+    let _15: bool; // anonymous local
+    let _16: bool; // anonymous local
+    let _17: bool; // anonymous local
+    let _18: bool; // anonymous local
+    let _19: bool; // anonymous local
+    let _20: bool; // anonymous local
+    let _21: bool; // anonymous local
+    let _22: u32; // anonymous local
+    let _23: u8; // anonymous local
+    let _24: u8; // anonymous local
+    let _25: AsciiChar; // anonymous local
+    let _26: u8; // anonymous local
+    let _27: u8; // anonymous local
+    let _28: u32; // anonymous local
+    let _29: u32; // anonymous local
+    let _30: u8; // anonymous local
+    let _31: u8; // anonymous local
+    let _32: AsciiChar; // anonymous local
+    let _33: u8; // anonymous local
+    let _34: u8; // anonymous local
+    let _35: u32; // anonymous local
+    let _36: u32; // anonymous local
+    let _37: u32; // anonymous local
+    let _38: u32; // anonymous local
+    let _39: u8; // anonymous local
+    let _40: u8; // anonymous local
+    let _41: AsciiChar; // anonymous local
+    let _42: u8; // anonymous local
+    let _43: u8; // anonymous local
+    let _44: u32; // anonymous local
+    let _45: u32; // anonymous local
+    let _46: u32; // anonymous local
+    let _47: !; // anonymous local
+
+    storage_live(_0)
+    storage_live(_6)
+    storage_live(_8)
+    storage_live(_9)
+    storage_live(_10)
+    storage_live(_11)
+    storage_live(_12)
+    storage_live(_13)
+    storage_live(_14)
+    storage_live(_15)
+    storage_live(_16)
+    storage_live(_17)
+    storage_live(_18)
+    storage_live(_19)
+    storage_live(_20)
+    storage_live(_21)
+    storage_live(_26)
+    storage_live(_27)
+    storage_live(_33)
+    storage_live(_34)
+    storage_live(_37)
+    storage_live(_42)
+    storage_live(_43)
+    storage_live(_46)
+    storage_live(_3)
+    storage_live(_4)
+    storage_live(_5)
+    _5 = copy self
+    _6 = @discriminant(_5)
+    _4 = cast<u8, u8>(move _6)
+    storage_dead(_5)
+    storage_live(_7)
+    _7 = copy radix
+    _3 = (move _4, move _7)
+    storage_dead(_7)
+    storage_dead(_4)
+    _18 = const 48u8 <= copy _3.0
+    if move _18 {
+        _19 = copy _3.0 <= const 57u8
+        if move _19 {
+            _8 = const 0u32 <= copy _3.1
+            if move _8 {
+                _9 = copy _3.1 <= const 36u32
+                if move _9 {
+                    storage_live(_22)
+                    storage_live(_23)
+                    storage_live(_24)
+                    storage_live(_25)
+                    _25 = copy self
+                    _26 = @discriminant(_25)
+                    _24 = cast<u8, u8>(move _26)
+                    storage_dead(_25)
+                    _27 = copy _24 panic.- const 48u8
+                    _23 = move _27
+                    storage_dead(_24)
+                    _22 = impl_From_u8_for_u32::from(move _23)
+                    ↳⚡ storage_dead(_47)
+                        storage_dead(_46)
+                        storage_dead(_43)
+                        storage_dead(_42)
+                        storage_dead(_37)
+                        storage_dead(_34)
+                        storage_dead(_33)
+                        storage_dead(_27)
+                        storage_dead(_26)
+                        storage_dead(_21)
+                        storage_dead(_20)
+                        storage_dead(_19)
+                        storage_dead(_18)
+                        storage_dead(_17)
+                        storage_dead(_16)
+                        storage_dead(_15)
+                        storage_dead(_14)
+                        storage_dead(_13)
+                        storage_dead(_12)
+                        storage_dead(_11)
+                        storage_dead(_10)
+                        storage_dead(_9)
+                        storage_dead(_8)
+                        storage_dead(_6)
+                        storage_dead(radix)
+                        storage_dead(self)
+                        unwind_continue
+                    storage_dead(_23)
+                    storage_live(_28)
+                    _28 = copy radix
+                    _0 = move _22 < move _28
+                    storage_dead(_28)
+                    storage_dead(_22)
+                    storage_dead(_3)
+                    storage_dead(_47)
+                    storage_dead(_46)
+                    storage_dead(_43)
+                    storage_dead(_42)
+                    storage_dead(_37)
+                    storage_dead(_34)
+                    storage_dead(_33)
+                    storage_dead(_27)
+                    storage_dead(_26)
+                    storage_dead(_21)
+                    storage_dead(_20)
+                    storage_dead(_19)
+                    storage_dead(_18)
+                    storage_dead(_17)
+                    storage_dead(_16)
+                    storage_dead(_15)
+                    storage_dead(_14)
+                    storage_dead(_13)
+                    storage_dead(_12)
+                    storage_dead(_11)
+                    storage_dead(_10)
+                    storage_dead(_9)
+                    storage_dead(_8)
+                    storage_dead(_6)
+                    storage_dead(radix)
+                    storage_dead(self)
+                    return
+                } else {
+                }
+            } else {
+            }
+        } else {
+            _16 = const 97u8 <= copy _3.0
+            if move _16 {
+                _17 = copy _3.0 <= const 122u8
+                if move _17 {
+                    _10 = const 11u32 <= copy _3.1
+                    if move _10 {
+                        _11 = copy _3.1 <= const 36u32
+                        if move _11 {
+                            storage_live(_29)
+                            storage_live(_30)
+                            storage_live(_31)
+                            storage_live(_32)
+                            _32 = copy self
+                            _33 = @discriminant(_32)
+                            _31 = cast<u8, u8>(move _33)
+                            storage_dead(_32)
+                            _34 = copy _31 panic.- const 97u8
+                            _30 = move _34
+                            storage_dead(_31)
+                            _29 = impl_From_u8_for_u32::from(move _30)
+                            ↳⚡ storage_dead(_47)
+                                storage_dead(_46)
+                                storage_dead(_43)
+                                storage_dead(_42)
+                                storage_dead(_37)
+                                storage_dead(_34)
+                                storage_dead(_33)
+                                storage_dead(_27)
+                                storage_dead(_26)
+                                storage_dead(_21)
+                                storage_dead(_20)
+                                storage_dead(_19)
+                                storage_dead(_18)
+                                storage_dead(_17)
+                                storage_dead(_16)
+                                storage_dead(_15)
+                                storage_dead(_14)
+                                storage_dead(_13)
+                                storage_dead(_12)
+                                storage_dead(_11)
+                                storage_dead(_10)
+                                storage_dead(_9)
+                                storage_dead(_8)
+                                storage_dead(_6)
+                                storage_dead(radix)
+                                storage_dead(self)
+                                unwind_continue
+                            storage_dead(_30)
+                            storage_live(_35)
+                            storage_live(_36)
+                            _36 = copy radix
+                            _37 = copy _36 panic.- const 10u32
+                            _35 = move _37
+                            storage_dead(_36)
+                            _0 = move _29 < move _35
+                            storage_dead(_35)
+                            storage_dead(_29)
+                            storage_dead(_3)
+                            storage_dead(_47)
+                            storage_dead(_46)
+                            storage_dead(_43)
+                            storage_dead(_42)
+                            storage_dead(_37)
+                            storage_dead(_34)
+                            storage_dead(_33)
+                            storage_dead(_27)
+                            storage_dead(_26)
+                            storage_dead(_21)
+                            storage_dead(_20)
+                            storage_dead(_19)
+                            storage_dead(_18)
+                            storage_dead(_17)
+                            storage_dead(_16)
+                            storage_dead(_15)
+                            storage_dead(_14)
+                            storage_dead(_13)
+                            storage_dead(_12)
+                            storage_dead(_11)
+                            storage_dead(_10)
+                            storage_dead(_9)
+                            storage_dead(_8)
+                            storage_dead(_6)
+                            storage_dead(radix)
+                            storage_dead(self)
+                            return
+                        } else {
+                        }
+                    } else {
+                    }
+                } else {
+                    _14 = const 65u8 <= copy _3.0
+                    if move _14 {
+                        _15 = copy _3.0 <= const 90u8
+                        if move _15 {
+                            _12 = const 11u32 <= copy _3.1
+                            if move _12 {
+                                _13 = copy _3.1 <= const 36u32
+                                if move _13 {
+                                    storage_live(_38)
+                                    storage_live(_39)
+                                    storage_live(_40)
+                                    storage_live(_41)
+                                    _41 = copy self
+                                    _42 = @discriminant(_41)
+                                    _40 = cast<u8, u8>(move _42)
+                                    storage_dead(_41)
+                                    _43 = copy _40 panic.- const 65u8
+                                    _39 = move _43
+                                    storage_dead(_40)
+                                    _38 = impl_From_u8_for_u32::from(move _39)
+                                    ↳⚡ storage_dead(_47)
+                                        storage_dead(_46)
+                                        storage_dead(_43)
+                                        storage_dead(_42)
+                                        storage_dead(_37)
+                                        storage_dead(_34)
+                                        storage_dead(_33)
+                                        storage_dead(_27)
+                                        storage_dead(_26)
+                                        storage_dead(_21)
+                                        storage_dead(_20)
+                                        storage_dead(_19)
+                                        storage_dead(_18)
+                                        storage_dead(_17)
+                                        storage_dead(_16)
+                                        storage_dead(_15)
+                                        storage_dead(_14)
+                                        storage_dead(_13)
+                                        storage_dead(_12)
+                                        storage_dead(_11)
+                                        storage_dead(_10)
+                                        storage_dead(_9)
+                                        storage_dead(_8)
+                                        storage_dead(_6)
+                                        storage_dead(radix)
+                                        storage_dead(self)
+                                        unwind_continue
+                                    storage_dead(_39)
+                                    storage_live(_44)
+                                    storage_live(_45)
+                                    _45 = copy radix
+                                    _46 = copy _45 panic.- const 10u32
+                                    _44 = move _46
+                                    storage_dead(_45)
+                                    _0 = move _38 < move _44
+                                    storage_dead(_44)
+                                    storage_dead(_38)
+                                    storage_dead(_3)
+                                    storage_dead(_47)
+                                    storage_dead(_46)
+                                    storage_dead(_43)
+                                    storage_dead(_42)
+                                    storage_dead(_37)
+                                    storage_dead(_34)
+                                    storage_dead(_33)
+                                    storage_dead(_27)
+                                    storage_dead(_26)
+                                    storage_dead(_21)
+                                    storage_dead(_20)
+                                    storage_dead(_19)
+                                    storage_dead(_18)
+                                    storage_dead(_17)
+                                    storage_dead(_16)
+                                    storage_dead(_15)
+                                    storage_dead(_14)
+                                    storage_dead(_13)
+                                    storage_dead(_12)
+                                    storage_dead(_11)
+                                    storage_dead(_10)
+                                    storage_dead(_9)
+                                    storage_dead(_8)
+                                    storage_dead(_6)
+                                    storage_dead(radix)
+                                    storage_dead(self)
+                                    return
+                                } else {
+                                }
+                            } else {
+                            }
+                        } else {
+                        }
+                    } else {
+                    }
+                }
+            } else {
+                _14 = const 65u8 <= copy _3.0
+                if move _14 {
+                    _15 = copy _3.0 <= const 90u8
+                    if move _15 {
+                        _12 = const 11u32 <= copy _3.1
+                        if move _12 {
+                            _13 = copy _3.1 <= const 36u32
+                            if move _13 {
+                                storage_live(_38)
+                                storage_live(_39)
+                                storage_live(_40)
+                                storage_live(_41)
+                                _41 = copy self
+                                _42 = @discriminant(_41)
+                                _40 = cast<u8, u8>(move _42)
+                                storage_dead(_41)
+                                _43 = copy _40 panic.- const 65u8
+                                _39 = move _43
+                                storage_dead(_40)
+                                _38 = impl_From_u8_for_u32::from(move _39)
+                                ↳⚡ storage_dead(_47)
+                                    storage_dead(_46)
+                                    storage_dead(_43)
+                                    storage_dead(_42)
+                                    storage_dead(_37)
+                                    storage_dead(_34)
+                                    storage_dead(_33)
+                                    storage_dead(_27)
+                                    storage_dead(_26)
+                                    storage_dead(_21)
+                                    storage_dead(_20)
+                                    storage_dead(_19)
+                                    storage_dead(_18)
+                                    storage_dead(_17)
+                                    storage_dead(_16)
+                                    storage_dead(_15)
+                                    storage_dead(_14)
+                                    storage_dead(_13)
+                                    storage_dead(_12)
+                                    storage_dead(_11)
+                                    storage_dead(_10)
+                                    storage_dead(_9)
+                                    storage_dead(_8)
+                                    storage_dead(_6)
+                                    storage_dead(radix)
+                                    storage_dead(self)
+                                    unwind_continue
+                                storage_dead(_39)
+                                storage_live(_44)
+                                storage_live(_45)
+                                _45 = copy radix
+                                _46 = copy _45 panic.- const 10u32
+                                _44 = move _46
+                                storage_dead(_45)
+                                _0 = move _38 < move _44
+                                storage_dead(_44)
+                                storage_dead(_38)
+                                storage_dead(_3)
+                                storage_dead(_47)
+                                storage_dead(_46)
+                                storage_dead(_43)
+                                storage_dead(_42)
+                                storage_dead(_37)
+                                storage_dead(_34)
+                                storage_dead(_33)
+                                storage_dead(_27)
+                                storage_dead(_26)
+                                storage_dead(_21)
+                                storage_dead(_20)
+                                storage_dead(_19)
+                                storage_dead(_18)
+                                storage_dead(_17)
+                                storage_dead(_16)
+                                storage_dead(_15)
+                                storage_dead(_14)
+                                storage_dead(_13)
+                                storage_dead(_12)
+                                storage_dead(_11)
+                                storage_dead(_10)
+                                storage_dead(_9)
+                                storage_dead(_8)
+                                storage_dead(_6)
+                                storage_dead(radix)
+                                storage_dead(self)
+                                return
+                            } else {
+                            }
+                        } else {
+                        }
+                    } else {
+                    }
+                } else {
+                }
+            }
+        }
+    } else {
+        _16 = const 97u8 <= copy _3.0
+        if move _16 {
+            _17 = copy _3.0 <= const 122u8
+            if move _17 {
+                _10 = const 11u32 <= copy _3.1
+                if move _10 {
+                    _11 = copy _3.1 <= const 36u32
+                    if move _11 {
+                        storage_live(_29)
+                        storage_live(_30)
+                        storage_live(_31)
+                        storage_live(_32)
+                        _32 = copy self
+                        _33 = @discriminant(_32)
+                        _31 = cast<u8, u8>(move _33)
+                        storage_dead(_32)
+                        _34 = copy _31 panic.- const 97u8
+                        _30 = move _34
+                        storage_dead(_31)
+                        _29 = impl_From_u8_for_u32::from(move _30)
+                        ↳⚡ storage_dead(_47)
+                            storage_dead(_46)
+                            storage_dead(_43)
+                            storage_dead(_42)
+                            storage_dead(_37)
+                            storage_dead(_34)
+                            storage_dead(_33)
+                            storage_dead(_27)
+                            storage_dead(_26)
+                            storage_dead(_21)
+                            storage_dead(_20)
+                            storage_dead(_19)
+                            storage_dead(_18)
+                            storage_dead(_17)
+                            storage_dead(_16)
+                            storage_dead(_15)
+                            storage_dead(_14)
+                            storage_dead(_13)
+                            storage_dead(_12)
+                            storage_dead(_11)
+                            storage_dead(_10)
+                            storage_dead(_9)
+                            storage_dead(_8)
+                            storage_dead(_6)
+                            storage_dead(radix)
+                            storage_dead(self)
+                            unwind_continue
+                        storage_dead(_30)
+                        storage_live(_35)
+                        storage_live(_36)
+                        _36 = copy radix
+                        _37 = copy _36 panic.- const 10u32
+                        _35 = move _37
+                        storage_dead(_36)
+                        _0 = move _29 < move _35
+                        storage_dead(_35)
+                        storage_dead(_29)
+                        storage_dead(_3)
+                        storage_dead(_47)
+                        storage_dead(_46)
+                        storage_dead(_43)
+                        storage_dead(_42)
+                        storage_dead(_37)
+                        storage_dead(_34)
+                        storage_dead(_33)
+                        storage_dead(_27)
+                        storage_dead(_26)
+                        storage_dead(_21)
+                        storage_dead(_20)
+                        storage_dead(_19)
+                        storage_dead(_18)
+                        storage_dead(_17)
+                        storage_dead(_16)
+                        storage_dead(_15)
+                        storage_dead(_14)
+                        storage_dead(_13)
+                        storage_dead(_12)
+                        storage_dead(_11)
+                        storage_dead(_10)
+                        storage_dead(_9)
+                        storage_dead(_8)
+                        storage_dead(_6)
+                        storage_dead(radix)
+                        storage_dead(self)
+                        return
+                    } else {
+                    }
+                } else {
+                }
+            } else {
+                _14 = const 65u8 <= copy _3.0
+                if move _14 {
+                    _15 = copy _3.0 <= const 90u8
+                    if move _15 {
+                        _12 = const 11u32 <= copy _3.1
+                        if move _12 {
+                            _13 = copy _3.1 <= const 36u32
+                            if move _13 {
+                                storage_live(_38)
+                                storage_live(_39)
+                                storage_live(_40)
+                                storage_live(_41)
+                                _41 = copy self
+                                _42 = @discriminant(_41)
+                                _40 = cast<u8, u8>(move _42)
+                                storage_dead(_41)
+                                _43 = copy _40 panic.- const 65u8
+                                _39 = move _43
+                                storage_dead(_40)
+                                _38 = impl_From_u8_for_u32::from(move _39)
+                                ↳⚡ storage_dead(_47)
+                                    storage_dead(_46)
+                                    storage_dead(_43)
+                                    storage_dead(_42)
+                                    storage_dead(_37)
+                                    storage_dead(_34)
+                                    storage_dead(_33)
+                                    storage_dead(_27)
+                                    storage_dead(_26)
+                                    storage_dead(_21)
+                                    storage_dead(_20)
+                                    storage_dead(_19)
+                                    storage_dead(_18)
+                                    storage_dead(_17)
+                                    storage_dead(_16)
+                                    storage_dead(_15)
+                                    storage_dead(_14)
+                                    storage_dead(_13)
+                                    storage_dead(_12)
+                                    storage_dead(_11)
+                                    storage_dead(_10)
+                                    storage_dead(_9)
+                                    storage_dead(_8)
+                                    storage_dead(_6)
+                                    storage_dead(radix)
+                                    storage_dead(self)
+                                    unwind_continue
+                                storage_dead(_39)
+                                storage_live(_44)
+                                storage_live(_45)
+                                _45 = copy radix
+                                _46 = copy _45 panic.- const 10u32
+                                _44 = move _46
+                                storage_dead(_45)
+                                _0 = move _38 < move _44
+                                storage_dead(_44)
+                                storage_dead(_38)
+                                storage_dead(_3)
+                                storage_dead(_47)
+                                storage_dead(_46)
+                                storage_dead(_43)
+                                storage_dead(_42)
+                                storage_dead(_37)
+                                storage_dead(_34)
+                                storage_dead(_33)
+                                storage_dead(_27)
+                                storage_dead(_26)
+                                storage_dead(_21)
+                                storage_dead(_20)
+                                storage_dead(_19)
+                                storage_dead(_18)
+                                storage_dead(_17)
+                                storage_dead(_16)
+                                storage_dead(_15)
+                                storage_dead(_14)
+                                storage_dead(_13)
+                                storage_dead(_12)
+                                storage_dead(_11)
+                                storage_dead(_10)
+                                storage_dead(_9)
+                                storage_dead(_8)
+                                storage_dead(_6)
+                                storage_dead(radix)
+                                storage_dead(self)
+                                return
+                            } else {
+                            }
+                        } else {
+                        }
+                    } else {
+                    }
+                } else {
+                }
+            }
+        } else {
+            _14 = const 65u8 <= copy _3.0
+            if move _14 {
+                _15 = copy _3.0 <= const 90u8
+                if move _15 {
+                    _12 = const 11u32 <= copy _3.1
+                    if move _12 {
+                        _13 = copy _3.1 <= const 36u32
+                        if move _13 {
+                            storage_live(_38)
+                            storage_live(_39)
+                            storage_live(_40)
+                            storage_live(_41)
+                            _41 = copy self
+                            _42 = @discriminant(_41)
+                            _40 = cast<u8, u8>(move _42)
+                            storage_dead(_41)
+                            _43 = copy _40 panic.- const 65u8
+                            _39 = move _43
+                            storage_dead(_40)
+                            _38 = impl_From_u8_for_u32::from(move _39)
+                            ↳⚡ storage_dead(_47)
+                                storage_dead(_46)
+                                storage_dead(_43)
+                                storage_dead(_42)
+                                storage_dead(_37)
+                                storage_dead(_34)
+                                storage_dead(_33)
+                                storage_dead(_27)
+                                storage_dead(_26)
+                                storage_dead(_21)
+                                storage_dead(_20)
+                                storage_dead(_19)
+                                storage_dead(_18)
+                                storage_dead(_17)
+                                storage_dead(_16)
+                                storage_dead(_15)
+                                storage_dead(_14)
+                                storage_dead(_13)
+                                storage_dead(_12)
+                                storage_dead(_11)
+                                storage_dead(_10)
+                                storage_dead(_9)
+                                storage_dead(_8)
+                                storage_dead(_6)
+                                storage_dead(radix)
+                                storage_dead(self)
+                                unwind_continue
+                            storage_dead(_39)
+                            storage_live(_44)
+                            storage_live(_45)
+                            _45 = copy radix
+                            _46 = copy _45 panic.- const 10u32
+                            _44 = move _46
+                            storage_dead(_45)
+                            _0 = move _38 < move _44
+                            storage_dead(_44)
+                            storage_dead(_38)
+                            storage_dead(_3)
+                            storage_dead(_47)
+                            storage_dead(_46)
+                            storage_dead(_43)
+                            storage_dead(_42)
+                            storage_dead(_37)
+                            storage_dead(_34)
+                            storage_dead(_33)
+                            storage_dead(_27)
+                            storage_dead(_26)
+                            storage_dead(_21)
+                            storage_dead(_20)
+                            storage_dead(_19)
+                            storage_dead(_18)
+                            storage_dead(_17)
+                            storage_dead(_16)
+                            storage_dead(_15)
+                            storage_dead(_14)
+                            storage_dead(_13)
+                            storage_dead(_12)
+                            storage_dead(_11)
+                            storage_dead(_10)
+                            storage_dead(_9)
+                            storage_dead(_8)
+                            storage_dead(_6)
+                            storage_dead(radix)
+                            storage_dead(self)
+                            return
+                        } else {
+                        }
+                    } else {
+                    }
+                } else {
+                }
+            } else {
+            }
+        }
+    }
+    _20 = const 0u32 <= copy _3.1
+    if move _20 {
+        _21 = copy _3.1 <= const 36u32
+        if move _21 {
+            _0 = const false
+            storage_dead(_3)
+            storage_dead(_47)
+            storage_dead(_46)
+            storage_dead(_43)
+            storage_dead(_42)
+            storage_dead(_37)
+            storage_dead(_34)
+            storage_dead(_33)
+            storage_dead(_27)
+            storage_dead(_26)
+            storage_dead(_21)
+            storage_dead(_20)
+            storage_dead(_19)
+            storage_dead(_18)
+            storage_dead(_17)
+            storage_dead(_16)
+            storage_dead(_15)
+            storage_dead(_14)
+            storage_dead(_13)
+            storage_dead(_12)
+            storage_dead(_11)
+            storage_dead(_10)
+            storage_dead(_9)
+            storage_dead(_8)
+            storage_dead(_6)
+            storage_dead(radix)
+            storage_dead(self)
+            return
+        } else {
+        }
+    } else {
+    }
+    storage_live(_47)
+    _47 = begin_panic<&'1 str>[impl_Any_for_T<&'4 str>, {impl Send for &'_0 T}<'7, str>[{built_in impl Sync for str}]](const "radixes greater than 36 are not supported")
+    ↳⚡ storage_dead(_47)
+        storage_dead(_46)
+        storage_dead(_43)
+        storage_dead(_42)
+        storage_dead(_37)
+        storage_dead(_34)
+        storage_dead(_33)
+        storage_dead(_27)
+        storage_dead(_26)
+        storage_dead(_21)
+        storage_dead(_20)
+        storage_dead(_19)
+        storage_dead(_18)
+        storage_dead(_17)
+        storage_dead(_16)
+        storage_dead(_15)
+        storage_dead(_14)
+        storage_dead(_13)
+        storage_dead(_12)
+        storage_dead(_11)
+        storage_dead(_10)
+        storage_dead(_9)
+        storage_dead(_8)
+        storage_dead(_6)
+        storage_dead(radix)
+        storage_dead(self)
+        unwind_continue
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_digit
+#[inline(hint)]
+pub fn is_ascii_digit<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+    let _5: u8; // anonymous local
+    let _6: bool; // anonymous local
+    let _7: u8; // anonymous local
+    let _8: AsciiChar; // anonymous local
+    let _9: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_5)
+    storage_live(_9)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy (*self)
+    _5 = @discriminant(_4)
+    _3 = cast<u8, u8>(move _5)
+    storage_dead(_4)
+    _2 = move _3 >= const 48u8
+    storage_dead(_3)
+    storage_live(_6)
+    storage_live(_7)
+    storage_live(_8)
+    _8 = copy (*self)
+    _9 = @discriminant(_8)
+    _7 = cast<u8, u8>(move _9)
+    storage_dead(_8)
+    _6 = move _7 <= const 57u8
+    storage_dead(_7)
+    _0 = move _2 & move _6
+    storage_dead(_6)
+    storage_dead(_2)
+    storage_dead(_9)
+    storage_dead(_5)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_alphanumeric
+#[inline(hint)]
+pub fn is_alphanumeric(self: AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: AsciiChar; // anonymous local
+    let _4: bool; // anonymous local
+    let _5: &'1 AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = copy self
+    _2 = is_alphabetic(move _3)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    storage_live(_4)
+    storage_live(_5)
+    _5 = &self
+    _4 = is_ascii_digit<'3>(move _5)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_5)
+    _0 = move _2 | move _4
+    storage_dead(_4)
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_alphanumeric
+#[inline(hint)]
+pub fn is_ascii_alphanumeric<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = copy (*self)
+    _0 = is_alphanumeric(move _2)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_blank
+#[inline(hint)]
+pub fn is_ascii_blank<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+    let _5: u8; // anonymous local
+    let _6: bool; // anonymous local
+    let _7: u8; // anonymous local
+    let _8: AsciiChar; // anonymous local
+    let _9: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_5)
+    storage_live(_9)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy (*self)
+    _5 = @discriminant(_4)
+    _3 = cast<u8, u8>(move _5)
+    storage_dead(_4)
+    _2 = move _3 == const 32u8
+    storage_dead(_3)
+    storage_live(_6)
+    storage_live(_7)
+    storage_live(_8)
+    _8 = copy (*self)
+    _9 = @discriminant(_8)
+    _7 = cast<u8, u8>(move _9)
+    storage_dead(_8)
+    _6 = move _7 == const 9u8
+    storage_dead(_7)
+    _0 = move _2 | move _6
+    storage_dead(_6)
+    storage_dead(_2)
+    storage_dead(_9)
+    storage_dead(_5)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_whitespace
+#[inline(hint)]
+pub fn is_whitespace(self: AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: AsciiChar; // arg #1
+    let b: u8; // local
+    let _3: AsciiChar; // anonymous local
+    let _4: u8; // anonymous local
+    let _5: bool; // anonymous local
+    let _6: bool; // anonymous local
+    let _7: bool; // anonymous local
+    let _8: bool; // anonymous local
+    let _9: &'1 AsciiChar; // anonymous local
+    let _10: bool; // anonymous local
+    let _11: u8; // anonymous local
+    let _12: bool; // anonymous local
+    let _13: u8; // anonymous local
+    let _14: bool; // anonymous local
+    let _15: u8; // anonymous local
+    let _16: bool; // anonymous local
+    let _17: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_4)
+    storage_live(b)
+    storage_live(_3)
+    _3 = copy self
+    _4 = @discriminant(_3)
+    b = cast<u8, u8>(move _4)
+    storage_dead(_3)
+    fake_read(b)
+    storage_live(_5)
+    storage_live(_6)
+    storage_live(_7)
+    storage_live(_8)
+    storage_live(_9)
+    _9 = &self
+    _8 = is_ascii_blank<'3>(move _9)
+    ↳⚡ storage_dead(_4)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_9)
+    storage_live(_10)
+    storage_live(_11)
+    _11 = copy b
+    _10 = move _11 == const 10u8
+    storage_dead(_11)
+    _7 = move _8 | move _10
+    storage_dead(_10)
+    storage_dead(_8)
+    storage_live(_12)
+    storage_live(_13)
+    _13 = copy b
+    _12 = move _13 == const 13u8
+    storage_dead(_13)
+    _6 = move _7 | move _12
+    storage_dead(_12)
+    storage_dead(_7)
+    storage_live(_14)
+    storage_live(_15)
+    _15 = copy b
+    _14 = move _15 == const 11u8
+    storage_dead(_15)
+    _5 = move _6 | move _14
+    storage_dead(_14)
+    storage_dead(_6)
+    storage_live(_16)
+    storage_live(_17)
+    _17 = copy b
+    _16 = move _17 == const 12u8
+    storage_dead(_17)
+    _0 = move _5 | move _16
+    storage_dead(_16)
+    storage_dead(_5)
+    storage_dead(b)
+    storage_dead(_4)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_whitespace
+#[inline(hint)]
+pub fn is_ascii_whitespace<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: bool; // anonymous local
+    let _4: bool; // anonymous local
+    let _5: &'2 AsciiChar; // anonymous local
+    let _6: bool; // anonymous local
+    let _7: u8; // anonymous local
+    let _8: AsciiChar; // anonymous local
+    let _9: u8; // anonymous local
+    let _10: bool; // anonymous local
+    let _11: u8; // anonymous local
+    let _12: AsciiChar; // anonymous local
+    let _13: u8; // anonymous local
+    let _14: bool; // anonymous local
+    let _15: u8; // anonymous local
+    let _16: AsciiChar; // anonymous local
+    let _17: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_9)
+    storage_live(_13)
+    storage_live(_17)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    storage_live(_5)
+    _5 = &(*self)
+    _4 = is_ascii_blank<'4>(move _5)
+    ↳⚡ storage_dead(_17)
+        storage_dead(_13)
+        storage_dead(_9)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_5)
+    storage_live(_6)
+    storage_live(_7)
+    storage_live(_8)
+    _8 = copy (*self)
+    _9 = @discriminant(_8)
+    _7 = cast<u8, u8>(move _9)
+    storage_dead(_8)
+    _6 = move _7 == const 10u8
+    storage_dead(_7)
+    _3 = move _4 | move _6
+    storage_dead(_6)
+    storage_dead(_4)
+    storage_live(_10)
+    storage_live(_11)
+    storage_live(_12)
+    _12 = copy (*self)
+    _13 = @discriminant(_12)
+    _11 = cast<u8, u8>(move _13)
+    storage_dead(_12)
+    _10 = move _11 == const 13u8
+    storage_dead(_11)
+    _2 = move _3 | move _10
+    storage_dead(_10)
+    storage_dead(_3)
+    storage_live(_14)
+    storage_live(_15)
+    storage_live(_16)
+    _16 = copy (*self)
+    _17 = @discriminant(_16)
+    _15 = cast<u8, u8>(move _17)
+    storage_dead(_16)
+    _14 = move _15 == const 12u8
+    storage_dead(_15)
+    _0 = move _2 | move _14
+    storage_dead(_14)
+    storage_dead(_2)
+    storage_dead(_17)
+    storage_dead(_13)
+    storage_dead(_9)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_control
+#[inline(hint)]
+pub fn is_ascii_control<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+    let _5: u8; // anonymous local
+    let _6: bool; // anonymous local
+    let _7: u8; // anonymous local
+    let _8: AsciiChar; // anonymous local
+    let _9: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_5)
+    storage_live(_9)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy (*self)
+    _5 = @discriminant(_4)
+    _3 = cast<u8, u8>(move _5)
+    storage_dead(_4)
+    _2 = move _3 < const 32u8
+    storage_dead(_3)
+    storage_live(_6)
+    storage_live(_7)
+    storage_live(_8)
+    _8 = copy (*self)
+    _9 = @discriminant(_8)
+    _7 = cast<u8, u8>(move _9)
+    storage_dead(_8)
+    _6 = move _7 == const 127u8
+    storage_dead(_7)
+    _0 = move _2 | move _6
+    storage_dead(_6)
+    storage_dead(_2)
+    storage_dead(_9)
+    storage_dead(_5)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_graphic
+#[inline(hint)]
+pub fn is_ascii_graphic<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: u8; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+    let _5: u8; // anonymous local
+    let _6: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_6)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy (*self)
+    _3 = as_byte(move _4)
+    ↳⚡ storage_dead(_6)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_4)
+    storage_live(_5)
+    _6 = const 32u8 panic.+ const 1u8
+    _5 = move _6
+    _2 = wrapping_sub(move _3, move _5)
+    ↳⚡ storage_dead(_6)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_5)
+    storage_dead(_3)
+    _0 = move _2 < const 94u8
+    storage_dead(_2)
+    storage_dead(_6)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_printable
+#[inline(hint)]
+pub fn is_ascii_printable<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: u8; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy (*self)
+    _3 = as_byte(move _4)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_4)
+    _2 = wrapping_sub(move _3, const 32u8)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    _0 = move _2 < const 95u8
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_lowercase
+#[inline(hint)]
+pub fn is_lowercase(self: AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: AsciiChar; // arg #1
+    let _2: u8; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy self
+    _3 = as_byte(move _4)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_4)
+    _2 = wrapping_sub(move _3, const 97u8)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    _0 = move _2 < const 26u8
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_lowercase
+#[inline(hint)]
+pub fn is_ascii_lowercase<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = copy (*self)
+    _0 = is_lowercase(move _2)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_uppercase
+#[inline(hint)]
+pub fn is_uppercase(self: AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: AsciiChar; // arg #1
+    let _2: u8; // anonymous local
+    let _3: u8; // anonymous local
+    let _4: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    storage_live(_4)
+    _4 = copy self
+    _3 = as_byte(move _4)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_4)
+    _2 = wrapping_sub(move _3, const 65u8)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    _0 = move _2 < const 26u8
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_uppercase
+#[inline(hint)]
+pub fn is_ascii_uppercase<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = copy (*self)
+    _0 = is_uppercase(move _2)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_punctuation
+#[inline(hint)]
+pub fn is_ascii_punctuation<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: &'2 AsciiChar; // anonymous local
+    let _4: bool; // anonymous local
+    let _5: bool; // anonymous local
+    let _6: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = &(*self)
+    _2 = is_ascii_graphic<'4>(move _3)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    storage_live(_4)
+    storage_live(_5)
+    storage_live(_6)
+    _6 = copy (*self)
+    _5 = is_alphanumeric(move _6)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_6)
+    _4 = ~(move _5)
+    storage_dead(_5)
+    _0 = move _2 & move _4
+    storage_dead(_4)
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::is_ascii_hexdigit
+#[inline(hint)]
+pub fn is_ascii_hexdigit<'_0>(self: &'_0 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let _2: bool; // anonymous local
+    let _3: &'2 AsciiChar; // anonymous local
+    let _4: bool; // anonymous local
+    let _5: u8; // anonymous local
+    let _6: u8; // anonymous local
+    let _7: u8; // anonymous local
+    let _8: AsciiChar; // anonymous local
+    let _9: u8; // anonymous local
+
+    storage_live(_0)
+    storage_live(_9)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = &(*self)
+    _2 = is_ascii_digit<'4>(move _3)
+    ↳⚡ storage_dead(_9)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    storage_live(_4)
+    storage_live(_5)
+    storage_live(_6)
+    storage_live(_7)
+    storage_live(_8)
+    _8 = copy (*self)
+    _9 = @discriminant(_8)
+    _7 = cast<u8, u8>(move _9)
+    storage_dead(_8)
+    _6 = move _7 | const 32u8
+    storage_dead(_7)
+    _5 = wrapping_sub(move _6, const 97u8)
+    ↳⚡ storage_dead(_9)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_6)
+    _4 = move _5 < const 6u8
+    storage_dead(_5)
+    _0 = move _2 | move _4
+    storage_dead(_4)
+    storage_dead(_2)
+    storage_dead(_9)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{AsciiChar}::eq_ignore_ascii_case
+#[inline(hint)]
+pub fn eq_ignore_ascii_case<'_0, '_1>(self: &'_0 AsciiChar, other: &'_1 AsciiChar) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiChar; // arg #1
+    let other: &'2 AsciiChar; // arg #2
+    let _3: bool; // anonymous local
+    let _4: u8; // anonymous local
+    let _5: AsciiChar; // anonymous local
+    let _6: u8; // anonymous local
+    let _7: AsciiChar; // anonymous local
+    let _8: bool; // anonymous local
+    let _9: bool; // anonymous local
+    let _10: AsciiChar; // anonymous local
+    let _11: bool; // anonymous local
+    let _12: u8; // anonymous local
+    let _13: AsciiChar; // anonymous local
+    let _14: u8; // anonymous local
+    let _15: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_3)
+    storage_live(_4)
+    storage_live(_5)
+    _5 = copy (*self)
+    _4 = as_byte(move _5)
+    ↳⚡ storage_dead(other)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_5)
+    storage_live(_6)
+    storage_live(_7)
+    _7 = copy (*other)
+    _6 = as_byte(move _7)
+    ↳⚡ storage_dead(other)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_7)
+    _3 = move _4 == move _6
+    storage_dead(_6)
+    storage_dead(_4)
+    storage_live(_8)
+    storage_live(_9)
+    storage_live(_10)
+    _10 = copy (*self)
+    _9 = is_alphabetic(move _10)
+    ↳⚡ storage_dead(other)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_10)
+    storage_live(_11)
+    storage_live(_12)
+    storage_live(_13)
+    _13 = copy (*self)
+    _12 = to_not_upper(move _13)
+    ↳⚡ storage_dead(other)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_13)
+    storage_live(_14)
+    storage_live(_15)
+    _15 = copy (*other)
+    _14 = to_not_upper(move _15)
+    ↳⚡ storage_dead(other)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_15)
+    _11 = move _12 == move _14
+    storage_dead(_14)
+    storage_dead(_12)
+    _8 = move _9 & move _11
+    storage_dead(_11)
+    storage_dead(_9)
+    _0 = move _3 | move _8
+    storage_dead(_8)
+    storage_dead(_3)
+    storage_dead(other)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{impl Default for AsciiChar}::default
+pub fn default() -> AsciiChar
+{
+    let _0: AsciiChar; // return
+
+    storage_live(_0)
+    _0 = AsciiChar::Null {  }
+    return
+}
+
+// Full name: ascii::ascii_char::ToAsciiCharError
+pub struct ToAsciiCharError {
+  _0: (),
+}
+
+// Full name: ascii::ascii_char::{impl ToAsciiChar for AsciiChar}::to_ascii_char
+#[inline(hint)]
+pub fn to_ascii_char(self: AsciiChar) -> Result<AsciiChar, ToAsciiCharError>
+{
+    let _0: Result<AsciiChar, ToAsciiCharError>; // return
+    let self: AsciiChar; // arg #1
+    let _2: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = copy self
+    _0 = Result::Ok { _0: move _2 }
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_char::{impl ToAsciiChar for AsciiChar}::to_ascii_char_unchecked
+#[inline(hint)]
+pub unsafe fn to_ascii_char_unchecked(self: AsciiChar) -> AsciiChar
+{
+    let _0: AsciiChar; // return
+    let self: AsciiChar; // arg #1
+
+    storage_live(_0)
+    _0 = copy self
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_str::AsciiStr
+pub struct AsciiStr {
+  slice: [AsciiChar],
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_str::{AsciiStr}::as_slice<'_0>(self: &'_0 AsciiStr) -> &'_0 [AsciiChar]
+{
+    let _0: &'1 [AsciiChar]; // return
+    let self: &'3 AsciiStr; // arg #1
+    let _2: &'4 [AsciiChar]; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = &(*self).slice with_metadata(copy self.metadata)
+    _0 = &(*_2) with_metadata(copy _2.metadata)
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_str::{AsciiStr}::as_mut_slice<'_0>(self: &'_0 mut AsciiStr) -> &'_0 mut [AsciiChar]
+{
+    let _0: &'1 mut [AsciiChar]; // return
+    let self: &'3 mut AsciiStr; // arg #1
+    let _2: &'4 mut [AsciiChar]; // anonymous local
+    let _3: &'5 mut [AsciiChar]; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = &mut (*self).slice with_metadata(copy self.metadata)
+    _2 = &mut (*_3) with_metadata(copy _3.metadata)
+    _0 = &mut (*_2) with_metadata(copy _2.metadata)
+    storage_dead(_3)
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_str::{AsciiStr}::len<'_0>(self: &'_0 AsciiStr) -> usize
+{
+    let _0: usize; // return
+    let self: &'1 AsciiStr; // arg #1
+    let _2: &'3 [AsciiChar]; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = &(*self).slice with_metadata(copy self.metadata)
+    _0 = core::slice::{[T]}::len<'5, AsciiChar>(move _2)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_str::{AsciiStr}::is_empty<'_0>(self: &'_0 AsciiStr) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiStr; // arg #1
+    let _2: usize; // anonymous local
+    let _3: &'2 AsciiStr; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = &(*self)
+    _2 = ascii::ascii_str::{AsciiStr}::len<'4>(move _3)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    _0 = move _2 == const 0usize
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_str::AsAsciiStrError
+pub struct AsAsciiStrError {
+  _0: usize,
+}
+
+// Full name: ascii::ascii_str::{AsAsciiStrError}::valid_up_to
+#[inline(hint)]
+pub fn valid_up_to(self: AsAsciiStrError) -> usize
+{
+    let _0: usize; // return
+    let self: AsAsciiStrError; // arg #1
+
+    storage_live(_0)
+    _0 = copy self._0
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_str::{impl AsAsciiStr<AsciiChar> for AsciiStr}::as_ascii_str
+#[inline(hint)]
+pub fn impl_AsAsciiStr_for_AsciiStr::as_ascii_str<'_0>(self: &'_0 AsciiStr) -> Result<&'_0 AsciiStr, AsAsciiStrError>
+{
+    let _0: Result<&'2 AsciiStr, AsAsciiStrError>; // return
+    let self: &'3 AsciiStr; // arg #1
+    let _2: &'4 AsciiStr; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = &(*self)
+    _0 = Result::Ok { _0: move _2 }
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_str::{impl AsAsciiStr<AsciiChar> for AsciiStr}::as_ascii_str_unchecked
+#[inline(hint)]
+pub unsafe fn impl_AsAsciiStr_for_AsciiStr::as_ascii_str_unchecked<'_0>(self: &'_0 AsciiStr) -> &'_0 AsciiStr
+{
+    let _0: &'1 AsciiStr; // return
+    let self: &'2 AsciiStr; // arg #1
+
+    storage_live(_0)
+    _0 = copy self
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_str::{impl AsMutAsciiStr<AsciiChar> for AsciiStr}::as_mut_ascii_str_unchecked
+#[inline(hint)]
+pub unsafe fn impl_AsMutAsciiStr_for_AsciiStr::as_mut_ascii_str_unchecked<'_0>(self: &'_0 mut AsciiStr) -> &'_0 mut AsciiStr
+{
+    let _0: &'1 mut AsciiStr; // return
+    let self: &'2 mut AsciiStr; // arg #1
+    let _2: &'3 mut AsciiStr; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = &mut (*self)
+    _0 = &mut (*_2)
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_string::AsciiString
+pub struct AsciiString {
+  vec: Vec<AsciiChar>,
+}
+
+// Full name: ascii::ascii_string::AsciiString::{impl Destruct for AsciiString}::drop_glue
+unsafe fn impl_Destruct_for_AsciiString::drop_glue<'_0>(_1: &'_0 mut AsciiString)
+{
+    let _0: (); // return
+    let _1: &'1 mut AsciiString; // arg #1
+
+    storage_live(_0)
+    _0 = ()
+    drop[impl_Destruct_for_Vec::drop_glue<'2, AsciiChar, Global>] (*_1).vec
+    ↳⚡ storage_dead(_1)
+        unwind_continue
+    storage_dead(_1)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_string::{AsciiString}::new() -> AsciiString
+{
+    let _0: AsciiString; // return
+    let _1: Vec<AsciiChar>; // anonymous local
+
+    storage_live(_0)
+    storage_live(_1)
+    _1 = alloc::vec::{Vec<T>}::new<AsciiChar>()
+    ↳⚡ unwind_continue
+    _0 = AsciiString { vec: move _1 }
+    conditional_drop[impl_Destruct_for_Vec::drop_glue<'0, AsciiChar, Global>] _1
+    ↳⚡ unwind_continue
+    storage_dead(_1)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_string::{AsciiString}::push<'_0>(self: &'_0 mut AsciiString, ch: AsciiChar)
+{
+    let _0: (); // return
+    let self: &'1 mut AsciiString; // arg #1
+    let ch: AsciiChar; // arg #2
+    let _3: (); // anonymous local
+    let _4: &'3 mut Vec<AsciiChar>; // anonymous local
+    let _5: AsciiChar; // anonymous local
+
+    storage_live(_0)
+    _0 = ()
+    storage_live(_3)
+    storage_live(_4)
+    _4 = &two-phase-mut (*self).vec
+    storage_live(_5)
+    _5 = copy ch
+    _3 = alloc::vec::{Vec<T>}::push<'5, AsciiChar, Global>[{built_in impl Destruct for Global}](move _4, move _5)
+    ↳⚡ storage_dead(ch)
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_5)
+    storage_dead(_4)
+    storage_dead(_3)
+    _0 = ()
+    storage_dead(ch)
+    storage_dead(self)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_string::{AsciiString}::len<'_0>(self: &'_0 AsciiString) -> usize
+{
+    let _0: usize; // return
+    let self: &'1 AsciiString; // arg #1
+    let _2: &'3 Vec<AsciiChar>; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = &(*self).vec
+    _0 = alloc::vec::{Vec<T>}::len<'5, AsciiChar, Global>(move _2)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+#[inline(hint)]
+pub fn ascii::ascii_string::{AsciiString}::is_empty<'_0>(self: &'_0 AsciiString) -> bool
+{
+    let _0: bool; // return
+    let self: &'1 AsciiString; // arg #1
+    let _2: usize; // anonymous local
+    let _3: &'2 AsciiString; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = &(*self)
+    _2 = ascii::ascii_string::{AsciiString}::len<'4>(move _3)
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    _0 = move _2 == const 0usize
+    storage_dead(_2)
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_string::{impl From<Vec<AsciiChar>> for AsciiString}::from
+#[inline(hint)]
+pub fn impl_From_Vec_for_AsciiString::from(vec: Vec<AsciiChar>) -> AsciiString
+{
+    let _0: AsciiString; // return
+    let vec: Vec<AsciiChar>; // arg #1
+    let _2: Vec<AsciiChar>; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = move vec
+    _0 = AsciiString { vec: move _2 }
+    conditional_drop[impl_Destruct_for_Vec::drop_glue<'0, AsciiChar, Global>] _2
+    ↳⚡ conditional_drop[impl_Destruct_for_Vec::drop_glue<'2, AsciiChar, Global>] vec
+        ↳⚡ storage_dead(vec)
+            unwind_terminate
+        storage_dead(vec)
+        unwind_continue
+    storage_dead(_2)
+    conditional_drop[impl_Destruct_for_Vec::drop_glue<'1, AsciiChar, Global>] vec
+    ↳⚡ storage_dead(vec)
+        unwind_continue
+    storage_dead(vec)
+    return
+}
+
+// Full name: ascii::ascii_string::{impl From<AsciiString> for Vec<AsciiChar>}::from
+pub fn impl_From_AsciiString_for_Vec_AsciiChar_Global::from(s: AsciiString) -> Vec<AsciiChar>
+{
+    let _0: Vec<AsciiChar>; // return
+    let s: AsciiString; // arg #1
+
+    storage_live(_0)
+    _0 = move s.vec
+    conditional_drop[impl_Destruct_for_AsciiString::drop_glue<'0>] s
+    ↳⚡ storage_dead(s)
+        unwind_continue
+    storage_dead(s)
+    return
+}
+
+// Full name: ascii::ascii_string::FromAsciiError
+pub struct FromAsciiError<O> {
+  error: AsAsciiStrError,
+  owner: O,
+}
+
+// Full name: ascii::ascii_string::FromAsciiError::{impl Destruct for FromAsciiError<O>}::drop_glue
+unsafe fn impl_Destruct_for_FromAsciiError::drop_glue<'_0, O>(_1: &'_0 mut FromAsciiError<O>)
+where
+    TypeOutlives0: O: '_0,
+{
+    let _0: (); // return
+    let _1: &'1 mut FromAsciiError<O>; // arg #1
+
+    storage_live(_0)
+    _0 = ()
+    drop[{built_in impl Destruct for O}::drop_glue<'2>] (*_1).owner
+    ↳⚡ storage_dead(_1)
+        unwind_continue
+    storage_dead(_1)
+    return
+}
+
+// Full name: ascii::ascii_string::{FromAsciiError<O>}::ascii_error
+#[inline(hint)]
+pub fn ascii_error<'_0, O>(self: &'_0 FromAsciiError<O>) -> AsAsciiStrError
+where
+    TypeOutlives0: O: '_0,
+{
+    let _0: AsAsciiStrError; // return
+    let self: &'1 FromAsciiError<O>; // arg #1
+
+    storage_live(_0)
+    _0 = copy (*self).error
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_string::{FromAsciiError<O>}::into_source
+#[inline(hint)]
+pub fn into_source<O>(self: FromAsciiError<O>) -> O
+{
+    let _0: O; // return
+    let self: FromAsciiError<O>; // arg #1
+
+    storage_live(_0)
+    _0 = move self.owner
+    conditional_drop[impl_Destruct_for_FromAsciiError::drop_glue<'0, O>] self
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_string::{impl IntoAsciiString for Vec<AsciiChar>}::into_ascii_string_unchecked
+#[inline(hint)]
+pub unsafe fn impl_IntoAsciiString_for_Vec_AsciiChar_Global::into_ascii_string_unchecked(self: Vec<AsciiChar>) -> AsciiString
+{
+    let _0: AsciiString; // return
+    let self: Vec<AsciiChar>; // arg #1
+    let _2: Vec<AsciiChar>; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    _2 = move self
+    _0 = impl_From_Vec_for_AsciiString::from(move _2)
+    ↳⚡ conditional_drop[impl_Destruct_for_Vec::drop_glue<'0, AsciiChar, Global>] _2
+        ↳⚡ storage_dead(self)
+            unwind_terminate
+        conditional_drop[impl_Destruct_for_Vec::drop_glue<'2, AsciiChar, Global>] self
+        ↳⚡ storage_dead(self)
+            unwind_terminate
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    conditional_drop[impl_Destruct_for_Vec::drop_glue<'1, AsciiChar, Global>] self
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(self)
+    return
+}
+
+// Full name: ascii::ascii_string::{impl IntoAsciiString for Vec<AsciiChar>}::into_ascii_string
+#[inline(hint)]
+pub fn impl_IntoAsciiString_for_Vec_AsciiChar_Global::into_ascii_string(self: Vec<AsciiChar>) -> Result<AsciiString, FromAsciiError<Vec<AsciiChar>>>
+{
+    let _0: Result<AsciiString, FromAsciiError<Vec<AsciiChar>>>; // return
+    let self: Vec<AsciiChar>; // arg #1
+    let _2: AsciiString; // anonymous local
+    let _3: Vec<AsciiChar>; // anonymous local
+
+    storage_live(_0)
+    storage_live(_2)
+    storage_live(_3)
+    _3 = move self
+    _2 = impl_From_Vec_for_AsciiString::from(move _3)
+    ↳⚡ conditional_drop[impl_Destruct_for_Vec::drop_glue<'0, AsciiChar, Global>] _3
+        ↳⚡ storage_dead(self)
+            unwind_terminate
+        conditional_drop[impl_Destruct_for_Vec::drop_glue<'2, AsciiChar, Global>] self
+        ↳⚡ storage_dead(self)
+            unwind_terminate
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_3)
+    _0 = Result::Ok { _0: move _2 }
+    conditional_drop[impl_Destruct_for_AsciiString::drop_glue<'1>] _2
+    ↳⚡ conditional_drop[impl_Destruct_for_Vec::drop_glue<'2, AsciiChar, Global>] self
+        ↳⚡ storage_dead(self)
+            unwind_terminate
+        storage_dead(self)
+        unwind_continue
+    storage_dead(_2)
+    conditional_drop[impl_Destruct_for_Vec::drop_glue<'3, AsciiChar, Global>] self
+    ↳⚡ storage_dead(self)
+        unwind_continue
+    storage_dead(self)
+    return
+}
+
+

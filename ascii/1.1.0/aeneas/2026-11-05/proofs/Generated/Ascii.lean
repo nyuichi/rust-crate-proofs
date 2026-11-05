@@ -679,6 +679,24 @@ def ascii_string.AsciiString.is_empty
   let i ← ascii_string.AsciiString.len self
   ok (i = 0#usize)
 
+/-- [ascii::ascii_string::{impl core::convert::From<alloc::vec::Vec<ascii::ascii_char::AsciiChar>> for ascii::ascii_string::AsciiString}::from]:
+    Source: 'src/ascii_string.rs', lines 489:4-491:5
+    Visibility: public -/
+def ascii_string.AsciiString.Insts.CoreConvertFromVecAsciiChar.from
+  (vec : alloc.vec.Vec ascii_char.AsciiChar) :
+  Result ascii_string.AsciiString
+  := do
+  ok { vec }
+
+/-- [ascii::ascii_string::{impl core::convert::From<ascii::ascii_string::AsciiString> for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::from]:
+    Source: 'src/ascii_string.rs', lines 518:4-520:5
+    Visibility: public -/
+def alloc.vec.VecAsciiChar.Insts.CoreConvertFromAsciiString.from
+  (s : ascii_string.AsciiString) :
+  Result (alloc.vec.Vec ascii_char.AsciiChar)
+  := do
+  ok s.vec
+
 /-- [ascii::ascii_string::FromAsciiError]
     Source: 'src/ascii_string.rs', lines 754:0-757:1
     Visibility: public -/
@@ -701,5 +719,28 @@ def ascii_string.FromAsciiError.ascii_error
 def ascii_string.FromAsciiError.into_source
   {O : Type _} (self : ascii_string.FromAsciiError O) : Result O := do
   ok self.owner
+
+/-- [ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string_unchecked]:
+    Source: 'src/ascii_string.rs', lines 815:4-817:5
+    Visibility: public -/
+def
+  alloc.vec.VecAsciiChar.Insts.AsciiAscii_stringIntoAsciiString.into_ascii_string_unchecked
+  (self : alloc.vec.Vec ascii_char.AsciiChar) :
+  Result ascii_string.AsciiString
+  := do
+  ascii_string.AsciiString.Insts.CoreConvertFromVecAsciiChar.from self
+
+/-- [ascii::ascii_string::{impl ascii::ascii_string::IntoAsciiString for alloc::vec::Vec<ascii::ascii_char::AsciiChar>}::into_ascii_string]:
+    Source: 'src/ascii_string.rs', lines 819:4-821:5
+    Visibility: public -/
+def
+  alloc.vec.VecAsciiChar.Insts.AsciiAscii_stringIntoAsciiString.into_ascii_string
+  (self : alloc.vec.Vec ascii_char.AsciiChar) :
+  Result (core.result.Result ascii_string.AsciiString
+    (ascii_string.FromAsciiError (alloc.vec.Vec ascii_char.AsciiChar)))
+  := do
+  let «as» ←
+    ascii_string.AsciiString.Insts.CoreConvertFromVecAsciiChar.from self
+  ok (core.result.Result.Ok «as»)
 
 end ascii
