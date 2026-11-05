@@ -17,3 +17,6 @@ lean_lib VectorIdentityProofs
 
 lean_lib BorrowViewProofs
 lean_lib StringBorrowViewProofs
+
+lean_lib SelfBorrowProofs
+lean_lib ErrorDescriptionProofs

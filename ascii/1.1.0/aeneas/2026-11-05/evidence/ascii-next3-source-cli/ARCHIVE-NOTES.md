@@ -1,0 +1,1 @@
+Known49 finite snapshot extension; original41/46 DATA and old46 source/mappings/proofs retained. New SelfMut source group and normal legacy std Error descriptions are fixed. Binary/duplicate fixtures omitted; full hashes, source patch, snapshots and independent reviews retained. No unknown-snapshot or erased alias fallback.

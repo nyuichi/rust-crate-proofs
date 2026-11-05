@@ -548,6 +548,18 @@ def ascii_char.AsciiChar.Insts.CoreDefaultDefault.default
 @[reducible]
 def ascii_char.ToAsciiCharError := Unit
 
+/-- [ascii::ascii_char::ERRORMSG_CHAR]
+    Source: 'src/ascii_char.rs', lines 796:0-796:53 -/
+@[global_simps, irreducible]
+def ascii_char.ERRORMSG_CHAR : Str := toStr "not an ASCII character"
+
+/-- [ascii::ascii_char::{impl core::error::Error for ascii::ascii_char::ToAsciiCharError}::description]:
+    Source: 'src/ascii_char.rs', lines 824:4-826:5
+    Visibility: public -/
+def ascii_char.ToAsciiCharError.Insts.CoreErrorError.description
+  (self : ascii_char.ToAsciiCharError) : Result Str := do
+  ok ascii_char.ERRORMSG_CHAR
+
 /-- [ascii::ascii_char::{impl ascii::ascii_char::ToAsciiChar for ascii::ascii_char::AsciiChar}::to_ascii_char]:
     Source: 'src/ascii_char.rs', lines 851:4-853:5
     Visibility: public -/
@@ -627,11 +639,25 @@ def ascii_str.AsciiStr.Insts.CoreConvertAsRefAsciiStr.as_ref
   (self : ascii_str.AsciiStr) : Result ascii_str.AsciiStr := do
   ok self
 
+/-- [ascii::ascii_str::{impl core::convert::AsMut<ascii::ascii_str::AsciiStr> for ascii::ascii_str::AsciiStr}::as_mut]:
+    Source: 'src/ascii_str.rs', lines 424:4-426:5
+    Visibility: public -/
+def ascii_str.AsciiStr.Insts.CoreConvertAsMutAsciiStr.as_mut
+  (self : ascii_str.AsciiStr) :
+  Result (ascii_str.AsciiStr × (ascii_str.AsciiStr → ascii_str.AsciiStr))
+  := do
+  ok (self, fun self1 => self1)
+
 /-- [ascii::ascii_str::AsAsciiStrError]
     Source: 'src/ascii_str.rs', lines 807:0-807:34
     Visibility: public -/
 @[reducible]
 def ascii_str.AsAsciiStrError := Std.Usize
+
+/-- [ascii::ascii_str::ERRORMSG_STR]
+    Source: 'src/ascii_str.rs', lines 809:0-809:61 -/
+@[global_simps, irreducible]
+def ascii_str.ERRORMSG_STR : Str := toStr "one or more bytes are not ASCII"
 
 /-- [ascii::ascii_str::{ascii::ascii_str::AsAsciiStrError}::valid_up_to]:
     Source: 'src/ascii_str.rs', lines 817:4-819:5
@@ -639,6 +665,13 @@ def ascii_str.AsAsciiStrError := Std.Usize
 def ascii_str.AsAsciiStrError.valid_up_to
   (self : ascii_str.AsAsciiStrError) : Result Std.Usize := do
   ok self
+
+/-- [ascii::ascii_str::{impl core::error::Error for ascii::ascii_str::AsAsciiStrError}::description]:
+    Source: 'src/ascii_str.rs', lines 837:4-839:5
+    Visibility: public -/
+def ascii_str.AsAsciiStrError.Insts.CoreErrorError.description
+  (self : ascii_str.AsAsciiStrError) : Result Str := do
+  ok ascii_str.ERRORMSG_STR
 
 /-- [ascii::ascii_str::{impl ascii::ascii_str::AsAsciiStr<ascii::ascii_char::AsciiChar> for ascii::ascii_str::AsciiStr}::as_ascii_str]:
     Source: 'src/ascii_str.rs', lines 1004:4-1006:5

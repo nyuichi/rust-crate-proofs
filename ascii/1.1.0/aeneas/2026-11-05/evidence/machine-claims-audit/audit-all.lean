@@ -1,7 +1,9 @@
 import Lean
 import BorrowViewProofs
+import ErrorDescriptionProofs
 import ErrorProjectionProofs
 import Proofs
+import SelfBorrowProofs
 import SliceProofs
 import StringBorrowViewProofs
 import StringProofs
@@ -513,3 +515,36 @@ run_cmd do
     unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
       throwError "Unapproved axiom in StringBorrowViewProofs.as_mut_slice_contract: {ax}"
   liftIO <| IO.println "proofs.rs:checked:StringBorrowViewProofs.as_mut_slice_contract"
+
+run_cmd do
+  let theorem_name := `SelfBorrowProofs.as_mut_self_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: SelfBorrowProofs.as_mut_self_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in SelfBorrowProofs.as_mut_self_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:SelfBorrowProofs.as_mut_self_exact"
+
+run_cmd do
+  let theorem_name := `ErrorDescriptionProofs.char_description_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: ErrorDescriptionProofs.char_description_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in ErrorDescriptionProofs.char_description_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:ErrorDescriptionProofs.char_description_exact"
+
+run_cmd do
+  let theorem_name := `ErrorDescriptionProofs.str_description_exact
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) => pure ()
+  | _ => throwError "Expected a theorem: ErrorDescriptionProofs.str_description_exact"
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError "Unapproved axiom in ErrorDescriptionProofs.str_description_exact: {ax}"
+  liftIO <| IO.println "proofs.rs:checked:ErrorDescriptionProofs.str_description_exact"
