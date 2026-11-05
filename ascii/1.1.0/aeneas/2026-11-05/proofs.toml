@@ -1,0 +1,35 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "AsciiChar::is_ascii_blank"
+module = "Proofs"
+theorem = "Proofs.blank_spec"
+precondition = "Every valid AsciiChar variant; default features on x86_64."
+
+[[tool.proofs]]
+api = "AsciiChar::is_ascii_digit"
+module = "Proofs"
+theorem = "Proofs.is_ascii_digit_spec"
+precondition = "Every valid AsciiChar variant; default features on x86_64."
+
+[[tool.proofs]]
+api = "AsciiChar::is_ascii_whitespace"
+module = "Proofs"
+theorem = "Proofs.is_ascii_whitespace_spec"
+precondition = "Every valid AsciiChar variant; default features on x86_64."
+
+[[tool.proofs]]
+api = "AsciiChar::is_ascii_control"
+module = "Proofs"
+theorem = "Proofs.is_ascii_control_spec"
+precondition = "Every valid AsciiChar variant; default features on x86_64."
+
+[report]
+title = "Exact ASCII digit, blank, whitespace and control classification"
+explanation = "For ascii 1.1.0, the original AsciiChar classification methods return exact results for every one of the 128 valid characters. is_ascii_digit accepts exactly the characters '0' through '9'; is_ascii_blank accepts space and tab; is_ascii_whitespace accepts space, tab, line feed, carriage return and form feed, and rejects vertical tab. is_ascii_control accepts exactly character codes 0 through 31 and 127. The four generated method bodies, including the call from whitespace classification to blank classification, terminate normally in the model."
+trusted_assumptions = "The Rust compiler, official Charon/Aeneas translation, standard-library scalar models and Lean kernel are trusted. Proofs exhaustively split the full finite AsciiChar type and use kernel-checked reduction. Transitive axioms are limited to propext, Classical.choice and Quot.sound; no extra local axioms or custom models are used."
+limitations = "Only the four named character classification methods are verified. Byte/string conversion, validation, allocation, case conversion, AsciiStr, AsciiString and unsafe implementation paths are not covered. Invalid enum representations are outside the well-typed input domain. The original is_digit_strange_radixes test fails on the pinned modern Rust because char::is_digit now panics at radix 0/1; that distinct is_digit API is outside these proofs. Remaining original tests pass with only that test excluded. Other targets and feature configurations were not checked."
+environment = "Original crates.io ascii 1.1.0 Rust files and Cargo.toml, byte-compared against the archived release; default features, x86_64-unknown-linux-gnu. RUSTFLAGS=-A bindings_with_variant_name and the corresponding rustdoc doctest-build arguments disable a modern compiler lint that otherwise rejects upstream macro bindings; this does not change Rust bodies. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0."
