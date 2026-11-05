@@ -1,0 +1,45 @@
+{
+  "crate": "bit_field",
+  "version": "0.10.3",
+  "tool": "Kani0.68.0/CBMC6.11.0",
+  "rust": "nightly-2026-08-21",
+  "target": "x86_64-unknown-linux-gnu",
+  "api": "<i8 as bit_field::BitField>::set_bits::<core::ops::Range<usize>>",
+  "kind": "observed_counterexample_to_outside_range_preservation",
+  "witness": {
+    "initial_i8": 112,
+    "range_start_inclusive": 0,
+    "range_end_exclusive": 4,
+    "inserted_i8": 1,
+    "returned_original_variable_value": 1,
+    "value_if_outside_bits_preserved": 113,
+    "outside_mask_u8": 240,
+    "before_masked": 112,
+    "after_masked": 0
+  },
+  "positive_observation_harness": {
+    "checks": 103,
+    "failed": 0,
+    "unreachable": 2,
+    "unsigned_control_result": 113
+  },
+  "candidate_contract_harness": {
+    "checks": 57,
+    "failed": 1,
+    "unreachable": 2,
+    "expected_exit_code": 1
+  },
+  "specification_basis": "The documented operation sets the specified range. Outside-range preservation is the explicit candidate contract; arguments satisfy range bounds and inserted value has no bits outside its four-bit field.",
+  "get_bits_note": "Observed signed extraction sign-extends examples 8_i8.get_bits(0..4)=-8 and (-1_i8).get_bits(0..4)=-1. No defect assertion is made for extraction without resolving the intended signed-field specification.",
+  "scope_exclusions": [
+    "Does not refute the single-bit get_bit/set_bit guarantees or generic bit_length contracts.",
+    "No memory-safety or security vulnerability is established.",
+    "This is one concrete range/type counterexample, not exhaustive behavior of all range methods."
+  ],
+  "original_source_hashes": {
+    "src/lib.rs": "cd8402931e8641aedf6a16b5200346be1ef42f1281e85995f131ba68c467dbca",
+    "Cargo.toml": "eb5e585fc332f74166f301eb77a27ed6ee54ad2a0fbc37434c9aff354b11aba7"
+  },
+  "original_source_unchanged": true,
+  "packaging_note": "Only the Cargo dependency path was relocated to the exact same archived source hashes; original-run Cargo.toml retained."
+}
