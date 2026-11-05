@@ -6,11 +6,11 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Current public results
 
-**Thirteen reports contain 401 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 405 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
-| ascii 1.1.0 | [28 / 3](https://proofs.rs/report/28) | 37 |
+| ascii 1.1.0 | [28 / 4](https://proofs.rs/report/28) | 41 |
 | base16ct 1.0.0 | [31 / 3](https://proofs.rs/report/31) | 3 |
 | bit_field 0.10.3 | [34 / 5](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |
@@ -99,3 +99,7 @@ After each successful readback, update the source Sheet's existing row: replace 
 ## Base16 source ledger and collection filters
 
 [Base16 strict reconciliation](diagnostics/base16ct-strict-reconciliation/README.md) retains the three existing mapped source identities and keeps bounded Display/codec Kani evidence separate. Default/minimal56 callable/default rows divide into31 ordinary conditional,10 nightly-gated,14 standard-derive exclusions and1 shadow; all-features69 divide42/10/14/3. These are ledger-specific conditional counts, not new proofs. The previous three-crate189/50/80/128 counts also have an explicit collection-scope addendum: their original commands did not request hidden-item documentation, unlike this base16 input. Neither reconciliation establishes an exhaustive hidden/nightly universe.
+
+## Typed-vector release update
+
+ASCII report28 revision4 now publishes41 mappings after the finite typed-source gate, fresh run and exact remote readback. Its original37 API IDs and prefix are unchanged; the four added IDs retain Vec<AsciiChar> in their full keys. Checked/unchecked existing rustdoc cards report safe/unsafe correctly. The two From cards are new recorded-source identities with empty signature and null safety metadata; their safe Rust headers are checked by the pinned source validator, and null is not asserted to be a server false flag. Earlier strict-inventory notes describing the private four as held are historical: all four are now public, and the four-crate current mapped total is174. Proof-update current_* fields and current_proof_mappings are authoritative; baseline integration prose remains explicitly historical.
