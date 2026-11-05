@@ -1,0 +1,5 @@
+For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition.
+
+This report covers eight integer-write methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced.
+
+Each theorem directly calls the generated original method. `setSlice! 0` specifies replacement of the leading fixed-width bytes while preserving the suffix. Std to_be_bytes/to_le_bytes models provide the byte order.

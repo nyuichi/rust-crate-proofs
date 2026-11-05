@@ -1,0 +1,59 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::write_u16"
+module = "Proofs"
+theorem = "Proofs.be_write_u16_spec"
+precondition = "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::write_u32"
+module = "Proofs"
+theorem = "Proofs.be_write_u32_spec"
+precondition = "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::write_u64"
+module = "Proofs"
+theorem = "Proofs.be_write_u64_spec"
+precondition = "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::BigEndian as byteorder::ByteOrder>::write_u128"
+module = "Proofs"
+theorem = "Proofs.be_write_u128_spec"
+precondition = "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u16"
+module = "Proofs"
+theorem = "Proofs.le_write_u16_spec"
+precondition = "The output slice has at least 2 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u32"
+module = "Proofs"
+theorem = "Proofs.le_write_u32_spec"
+precondition = "The output slice has at least 4 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u64"
+module = "Proofs"
+theorem = "Proofs.le_write_u64_spec"
+precondition = "The output slice has at least 8 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[[tool.proofs]]
+api = "<byteorder::LittleEndian as byteorder::ByteOrder>::write_u128"
+module = "Proofs"
+theorem = "Proofs.le_write_u128_spec"
+precondition = "The output slice has at least 16 bytes; arbitrary input integer and arbitrary remaining bytes, x86_64 default features."
+
+[report]
+title = "Exact endian integer writes and preservation of trailing bytes"
+explanation = "For byteorder 1.5.0, the original BigEndian and LittleEndian write_u16, write_u32, write_u64, and write_u128 bodies write the specified endian bytes into the beginning of every sufficiently long output slice. All remaining bytes are preserved. The proofs quantify over arbitrary input integers and arbitrary output contents and establish normal return under the stated length precondition."
+limitations = "This report covers eight integer-write methods on x86_64 with default features. It does not establish behavior of short buffers, read methods, variable-width integers, signed or floating-point wrappers, bulk slice operations, I/O extensions, or whole-trait integration. Rust source and package manifest are byte-identical to crates.io. No custom standard-library models or axioms are introduced."
+trusted_assumptions = "The official Aeneas standard-library models and Rust-to-Lean translation are the semantic boundary; Lean checks the stated theorems with only propext, Classical.choice, and Quot.sound."
+environment = "Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas be86ab0f1989d04944292b345b24c435be3ad10a; Rust nightly-2026-09-17; Lean 4.35.0; x86_64 default features."
