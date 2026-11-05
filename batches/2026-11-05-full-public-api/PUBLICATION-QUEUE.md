@@ -1,0 +1,13 @@
+# Next verified-source publication queue
+
+Current public total423 is unchanged; report22 is excluded. All next fresh runs are single-heavy and require exact source/config pinning, necessary review, successful proof/audit, official publication and readback. Producer success, local source identity and server registration are separate gates.
+
+1. PCG supplement source can combine MCGserde592, PCG32 public next64 relation81 and external Rng word relations77+81 in one later fresh25, retaining all existing seed/Debug/serde evidence. The seed SSA conversion error is unverified.
+2. ASCII30 Kani scalar contracts are frozen as one aggregate, plus a distinct unchecked5 safety-domain packet; integrate beside existing51, without adding machine mappings or mixing customreference53.
+3. NoHash nightly length-prefix900 is a separate ten-integer/four-configuration supplement; it is not an all-custom-T proof.
+4. Either four reference methods have six supplemental Lean theorems and reviewed standalone package; exact shared/mut machine source identity remains blocked. A separate next_back proof is not yet a frozen union. No nominal-alias collapse or new machine count is allowed.
+5. ASCII customreference53 remains held on its distinct typed source/card/tool gates; installed generic20 CLI includes the known ASCII51 baseline, not53.
+
+See PUBLICATION-QUEUE.json for exact frozen producer paths and manifest hashes. Other current crates remain open for new formal handoffs; absence of an entry is not a claim of completion. Unsafe Oorandom arbitrary-destination clone still requires independent memory/provenance semantics, intrinsic refinement and source/IR bridge, as recorded in the linked diagnostics.
+
+ASCII package scope is runtime src9 plus Cargo archive matching, not original root tests.rs execution/full-package restoration. The unchecked5 packet covers only documented safety values0..127.

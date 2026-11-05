@@ -1,0 +1,48 @@
+{
+  "stdlib08_commit": "8925ea358a0f265ca61026aadc7ecc506c545cbe",
+  "stdlib09_commit": "923c95cdf5ba65cea505aa2ea829f578e1506ed8",
+  "original_crate": "oorandom11.1.5 source same; compiler/std configurations remain separate",
+  "rows": [
+    {
+      "name": "CloneToUninit blanket",
+      "source08_sha256": "0897484e910e0f7354ab867daa07fcf74195189990a2c1eae7d8a0a83a1780c6",
+      "source09_sha256": "be65cc8ef61c425fd84cc53d84347549473aaa639616062f5762d1e4adab4bb0",
+      "block_byte_equal": true,
+      "normalized_block_equal": true,
+      "body08": "unsafe impl<T: Clone> CloneToUninit for T {\n    #[inline]\n    unsafe fn clone_to_uninit(&self, dest: *mut u8) {\n        // SAFETY: we're calling a specialization with the same contract\n        unsafe { <T as self::uninit::CopySpec>::clone_one(self, dest.cast::<T>()) }\n    }\n}",
+      "body09": "unsafe impl<T: Clone> CloneToUninit for T {\n    #[inline]\n    unsafe fn clone_to_uninit(&self, dest: *mut u8) {\n        // SAFETY: we're calling a specialization with the same contract\n        unsafe { <T as self::uninit::CopySpec>::clone_one(self, dest.cast::<T>()) }\n    }\n}"
+    },
+    {
+      "name": "CopySpec default",
+      "source08_sha256": "34342a10efc347a0c40328abe03a413498bad923e3d6b3fe7726963149b1e57e",
+      "source09_sha256": "98aa23a7472366f8cb5e23eaaeea0b7b35a5beee8d13d15582c0959d5137a6da",
+      "block_byte_equal": true,
+      "normalized_block_equal": true,
+      "body08": "unsafe impl<T: Clone> CopySpec for T {\n    #[inline]\n    default unsafe fn clone_one(src: &Self, dst: *mut Self) {\n        // SAFETY: The safety conditions of clone_to_uninit() are a superset of those of\n        // ptr::write().\n        unsafe {\n            // We hope the optimizer will figure out to create the cloned value in-place,\n            // skipping ever storing it on the stack and the copy to the destination.\n            ptr::write(dst, src.clone());\n        }\n    }\n\n    #[inline]\n    #[cfg_attr(debug_assertions, track_caller)]\n    default unsafe fn clone_slice(src: &[Self], dst: *mut [Self]) {\n        let len = src.len();\n        // This is the most likely mistake to make, so check it as a debug assertion.\n        debug_assert_eq!(\n            len,\n            dst.len(),\n            \"clone_to_uninit() source and destination must have equal lengths\",\n        );\n\n        // SAFETY: The produced `&mut` is valid because:\n        // * The caller is obligated to provide a pointer which is valid for writes.\n        // * All bytes pointed to are in MaybeUninit, so we don't care about the memory's\n        //   initialization status.\n        let uninit_ref = unsafe { &mut *(dst as *mut [MaybeUninit<T>]) };\n\n        // Copy the elements\n        let mut initializing = InitializingSlice::from_fully_uninit(uninit_ref);\n        for element_ref in src {\n            // If the clone() panics, `initializing` will take care of the cleanup.\n            initializing.push(element_ref.clone());\n        }\n        // If we reach here, then the entire slice is initialized, and we've satisfied our\n        // responsibilities to the caller. Disarm the cleanup guard by forgetting it.\n        mem::forget(initializing);\n    }\n}",
+      "body09": "unsafe impl<T: Clone> CopySpec for T {\n    #[inline]\n    default unsafe fn clone_one(src: &Self, dst: *mut Self) {\n        // SAFETY: The safety conditions of clone_to_uninit() are a superset of those of\n        // ptr::write().\n        unsafe {\n            // We hope the optimizer will figure out to create the cloned value in-place,\n            // skipping ever storing it on the stack and the copy to the destination.\n            ptr::write(dst, src.clone());\n        }\n    }\n\n    #[inline]\n    #[cfg_attr(debug_assertions, track_caller)]\n    default unsafe fn clone_slice(src: &[Self], dst: *mut [Self]) {\n        let len = src.len();\n        // This is the most likely mistake to make, so check it as a debug assertion.\n        debug_assert_eq!(\n            len,\n            dst.len(),\n            \"clone_to_uninit() source and destination must have equal lengths\",\n        );\n\n        // SAFETY: The produced `&mut` is valid because:\n        // * The caller is obligated to provide a pointer which is valid for writes.\n        // * All bytes pointed to are in MaybeUninit, so we don't care about the memory's\n        //   initialization status.\n        let uninit_ref = unsafe { &mut *(dst as *mut [MaybeUninit<T>]) };\n\n        // Copy the elements\n        let mut initializing = InitializingSlice::from_fully_uninit(uninit_ref);\n        for element_ref in src {\n            // If the clone() panics, `initializing` will take care of the cleanup.\n            initializing.push(element_ref.clone());\n        }\n        // If we reach here, then the entire slice is initialized, and we've satisfied our\n        // responsibilities to the caller. Disarm the cleanup guard by forgetting it.\n        mem::forget(initializing);\n    }\n}"
+    },
+    {
+      "name": "TrivialClone specialization",
+      "source08_sha256": "34342a10efc347a0c40328abe03a413498bad923e3d6b3fe7726963149b1e57e",
+      "source09_sha256": "98aa23a7472366f8cb5e23eaaeea0b7b35a5beee8d13d15582c0959d5137a6da",
+      "block_byte_equal": true,
+      "normalized_block_equal": true,
+      "body08": "unsafe impl<T: TrivialClone> CopySpec for T {\n    #[inline]\n    unsafe fn clone_one(src: &Self, dst: *mut Self) {\n        // SAFETY: The safety conditions of clone_to_uninit() are a superset of those of\n        // ptr::copy_nonoverlapping().\n        unsafe {\n            ptr::copy_nonoverlapping(src, dst, 1);\n        }\n    }\n\n    #[inline]\n    #[cfg_attr(debug_assertions, track_caller)]\n    unsafe fn clone_slice(src: &[Self], dst: *mut [Self]) {\n        let len = src.len();\n        // This is the most likely mistake to make, so check it as a debug assertion.\n        debug_assert_eq!(\n            len,\n            dst.len(),\n            \"clone_to_uninit() source and destination must have equal lengths\",\n        );\n\n        // SAFETY: The safety conditions of clone_to_uninit() are a superset of those of\n        // ptr::copy_nonoverlapping().\n        unsafe {\n            ptr::copy_nonoverlapping(src.as_ptr(), dst.as_mut_ptr(), len);\n        }\n    }\n}",
+      "body09": "unsafe impl<T: TrivialClone> CopySpec for T {\n    #[inline]\n    unsafe fn clone_one(src: &Self, dst: *mut Self) {\n        // SAFETY: The safety conditions of clone_to_uninit() are a superset of those of\n        // ptr::copy_nonoverlapping().\n        unsafe {\n            ptr::copy_nonoverlapping(src, dst, 1);\n        }\n    }\n\n    #[inline]\n    #[cfg_attr(debug_assertions, track_caller)]\n    unsafe fn clone_slice(src: &[Self], dst: *mut [Self]) {\n        let len = src.len();\n        // This is the most likely mistake to make, so check it as a debug assertion.\n        debug_assert_eq!(\n            len,\n            dst.len(),\n            \"clone_to_uninit() source and destination must have equal lengths\",\n        );\n\n        // SAFETY: The safety conditions of clone_to_uninit() are a superset of those of\n        // ptr::copy_nonoverlapping().\n        unsafe {\n            ptr::copy_nonoverlapping(src.as_ptr(), dst.as_mut_ptr(), len);\n        }\n    }\n}"
+    }
+  ],
+  "interpretation": "matching selected source blocks do not prove compiler intrinsic/optimization/runtime equivalence across versions or lift Kani08 success to a separate09 run",
+  "TrivialClone_trait_relevant_declaration_lines08": [
+    "#[lang = \"trivial_clone\"]",
+    "// messages, make it a `#[marker]` trait.",
+    "#[marker]",
+    "pub const unsafe trait TrivialClone: [const] Clone {}"
+  ],
+  "TrivialClone_trait_relevant_declaration_lines09": [
+    "#[lang = \"trivial_clone\"]",
+    "// messages, make it a `#[marker]` trait.",
+    "#[marker]",
+    "pub const unsafe trait TrivialClone: [const] Clone {}"
+  ],
+  "TrivialClone_relevant_lines_equal": true
+}

@@ -38,3 +38,10 @@ All13 current report updates are complete. `python3 resume.py` is a plan-only no
 ## Oorandom API32 and pointer boundary
 
 [The observed32-row ledger and limits index](diagnostics/oorandom-api32-reconciliation/README.md) separates current primary20 (fourteen local plus six conditional external families) from float2 and external10 supplemental evidence; its original14-row publication checkpoint is preserved as history. Every row having some contract or restricted evidence is not full API completion. [Pointer-model followup](diagnostics/oorandom-clone-pointer-options/RESULTS.md) retains object-bits8 failure and source-only PointerGenerator investigation; arbitrary valid destination sizes/placements/provenance remain unproved. Generic6 finite production binding is complete at revision6; its callbacks/bounds/custom-export trust remain conditional. These docs add zero machine contracts and change no recorded public source/run.
+
+
+## Remaining arbitrary-destination clone obligations
+
+[Source/IR intrinsic-delegation investigation](diagnostics/oorandom-clone-pointer-options/intrinsic-delegation/PLAN.md) reads already verified fixed-slot GOTO artifacts. Those builds select TrivialClone copy_nonoverlapping(Self,1); this is not a new solver proof or a compiler-correctness proof. Relevant std08/09 body blocks and TrivialClone declaration lines are byte-equal, while whole-file hashes differ. Arbitrary valid regions still require memory/provenance/permission semantics, intrinsic refinement, source/IR/layout correspondence and a noncircular frame/return composition. Compiler-version semantic equivalence is unproved.
+
+[Publication queue](PUBLICATION-QUEUE.md) tracks other12 crates; formal success does not imply source/fresh/publication readiness. Report22 is excluded and heavy fresh runs are single-job.
