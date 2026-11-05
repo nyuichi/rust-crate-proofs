@@ -22,3 +22,15 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/signed/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/signed/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/check-selector.py'],cwd=p,check=True)
+
+(p/'evidence/variable').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence/variable']
+for endian in ['BigEndian','LittleEndian']:
+ for method in ['write_uint','write_uint128']:cmd+=['--start-from',f'{{impl crate::ByteOrder for crate::{endian}}}::{method}']
+(p/'evidence/variable/charon-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/variable/charon.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-abort-on-error','-dest','proofs/VariableGenerated','evidence/variable/byteorder_lite.llbc']
+(p/'evidence/variable/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/variable/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+
+subprocess.run(['python3','tools/check-variable.py'],cwd=p,check=True)

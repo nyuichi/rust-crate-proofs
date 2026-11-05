@@ -7,3 +7,6 @@ lean_lib Generated
 
 lean_lib SignedProofs
 lean_lib ByteorderLiteApiRoots
+
+lean_lib VariableProofs
+lean_lib VariableGenerated

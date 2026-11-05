@@ -1,3 +1,4 @@
+import VariableProofs
 import SignedProofs
 import Generated.ByteorderLite
 open Aeneas Aeneas.Std Result Std.WP
