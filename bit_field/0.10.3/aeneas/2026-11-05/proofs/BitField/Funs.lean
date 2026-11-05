@@ -30,7 +30,7 @@ namespace bit_field
     Visibility: public -/
 @[global_simps, irreducible]
 def U8.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_of Std.U8
+  let i ← core.mem.size_ofU8
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for u8}::get_bit]:
@@ -43,6 +43,215 @@ def U8.Insts.Bit_fieldBitField.get_bit
   let i1 ← 1#u8 <<< bit
   let i2 ← lift (self &&& i1)
   ok (i2 != 0#u8)
+
+/-- [bit_field::{impl bit_field::BitField for u16}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def U16.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofU16
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for u16}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U16.Insts.Bit_fieldBitField.get_bit
+  (self : Std.U16) (bit : Std.Usize) : Result Bool := do
+  let i ← U16.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#u16 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#u16)
+
+/-- [bit_field::{impl bit_field::BitField for u32}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def U32.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofU32
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for u32}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U32.Insts.Bit_fieldBitField.get_bit
+  (self : Std.U32) (bit : Std.Usize) : Result Bool := do
+  let i ← U32.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#u32 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#u32)
+
+/-- [bit_field::{impl bit_field::BitField for u64}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def U64.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofU64
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for u64}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U64.Insts.Bit_fieldBitField.get_bit
+  (self : Std.U64) (bit : Std.Usize) : Result Bool := do
+  let i ← U64.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#u64 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#u64)
+
+/-- [bit_field::{impl bit_field::BitField for u128}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def U128.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofU128
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for u128}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U128.Insts.Bit_fieldBitField.get_bit
+  (self : Std.U128) (bit : Std.Usize) : Result Bool := do
+  let i ← U128.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#u128 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#u128)
+
+/-- [bit_field::{impl bit_field::BitField for usize}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def Usize.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofUsize
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for usize}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def Usize.Insts.Bit_fieldBitField.get_bit
+  (self : Std.Usize) (bit : Std.Usize) : Result Bool := do
+  let i ← Usize.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#usize <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#usize)
+
+/-- [bit_field::{impl bit_field::BitField for i8}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def I8.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofI8
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for i8}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I8.Insts.Bit_fieldBitField.get_bit
+  (self : Std.I8) (bit : Std.Usize) : Result Bool := do
+  let i ← I8.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#i8 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#i8)
+
+/-- [bit_field::{impl bit_field::BitField for i16}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def I16.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofI16
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for i16}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I16.Insts.Bit_fieldBitField.get_bit
+  (self : Std.I16) (bit : Std.Usize) : Result Bool := do
+  let i ← I16.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#i16 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#i16)
+
+/-- [bit_field::{impl bit_field::BitField for i32}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def I32.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofI32
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for i32}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I32.Insts.Bit_fieldBitField.get_bit
+  (self : Std.I32) (bit : Std.Usize) : Result Bool := do
+  let i ← I32.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#i32 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#i32)
+
+/-- [bit_field::{impl bit_field::BitField for i64}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def I64.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofI64
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for i64}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I64.Insts.Bit_fieldBitField.get_bit
+  (self : Std.I64) (bit : Std.Usize) : Result Bool := do
+  let i ← I64.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#i64 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#i64)
+
+/-- [bit_field::{impl bit_field::BitField for i128}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def I128.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofI128
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for i128}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I128.Insts.Bit_fieldBitField.get_bit
+  (self : Std.I128) (bit : Std.Usize) : Result Bool := do
+  let i ← I128.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#i128 <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#i128)
+
+/-- [bit_field::{impl bit_field::BitField for isize}::BIT_LENGTH]
+    Source: 'src/lib.rs', lines 212:12-212:82; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+@[global_simps, irreducible]
+def Isize.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
+  let i ← core.mem.size_ofIsize
+  i * 8#usize
+
+/-- [bit_field::{impl bit_field::BitField for isize}::get_bit]:
+    Source: 'src/lib.rs', lines 216:12-220:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def Isize.Insts.Bit_fieldBitField.get_bit
+  (self : Std.Isize) (bit : Std.Usize) : Result Bool := do
+  let i ← Isize.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  let i1 ← 1#isize <<< bit
+  let i2 ← lift (self &&& i1)
+  ok (i2 != 0#isize)
 
 /-- [bit_field::{impl bit_field::BitField for u8}::set_bit]:
     Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
@@ -60,6 +269,226 @@ def U8.Insts.Bit_fieldBitField.set_bit
     ok (self1, fun self2 => self2)
   else
     let i1 ← 1#u8 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for u16}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U16.Insts.Bit_fieldBitField.set_bit
+  (self : Std.U16) (bit : Std.Usize) (value : Bool) :
+  Result (Std.U16 × (Std.U16 → Std.U16))
+  := do
+  let i ← U16.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#u16 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#u16 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for u32}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U32.Insts.Bit_fieldBitField.set_bit
+  (self : Std.U32) (bit : Std.Usize) (value : Bool) :
+  Result (Std.U32 × (Std.U32 → Std.U32))
+  := do
+  let i ← U32.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#u32 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#u32 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for u64}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U64.Insts.Bit_fieldBitField.set_bit
+  (self : Std.U64) (bit : Std.Usize) (value : Bool) :
+  Result (Std.U64 × (Std.U64 → Std.U64))
+  := do
+  let i ← U64.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#u64 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#u64 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for u128}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def U128.Insts.Bit_fieldBitField.set_bit
+  (self : Std.U128) (bit : Std.Usize) (value : Bool) :
+  Result (Std.U128 × (Std.U128 → Std.U128))
+  := do
+  let i ← U128.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#u128 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#u128 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for usize}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def Usize.Insts.Bit_fieldBitField.set_bit
+  (self : Std.Usize) (bit : Std.Usize) (value : Bool) :
+  Result (Std.Usize × (Std.Usize → Std.Usize))
+  := do
+  let i ← Usize.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#usize <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#usize <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for i8}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I8.Insts.Bit_fieldBitField.set_bit
+  (self : Std.I8) (bit : Std.Usize) (value : Bool) :
+  Result (Std.I8 × (Std.I8 → Std.I8))
+  := do
+  let i ← I8.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#i8 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#i8 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for i16}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I16.Insts.Bit_fieldBitField.set_bit
+  (self : Std.I16) (bit : Std.Usize) (value : Bool) :
+  Result (Std.I16 × (Std.I16 → Std.I16))
+  := do
+  let i ← I16.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#i16 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#i16 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for i32}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I32.Insts.Bit_fieldBitField.set_bit
+  (self : Std.I32) (bit : Std.Usize) (value : Bool) :
+  Result (Std.I32 × (Std.I32 → Std.I32))
+  := do
+  let i ← I32.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#i32 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#i32 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for i64}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I64.Insts.Bit_fieldBitField.set_bit
+  (self : Std.I64) (bit : Std.Usize) (value : Bool) :
+  Result (Std.I64 × (Std.I64 → Std.I64))
+  := do
+  let i ← I64.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#i64 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#i64 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for i128}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def I128.Insts.Bit_fieldBitField.set_bit
+  (self : Std.I128) (bit : Std.Usize) (value : Bool) :
+  Result (Std.I128 × (Std.I128 → Std.I128))
+  := do
+  let i ← I128.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#i128 <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#i128 <<< bit
+    let i2 ← lift (~~~ i1)
+    let self1 ← lift (self &&& i2)
+    ok (self1, fun self2 => self2)
+
+/-- [bit_field::{impl bit_field::BitField for isize}::set_bit]:
+    Source: 'src/lib.rs', lines 244:12-254:13; this code is generated from a macro invocation at: 'src/lib.rs', lines 282:0-282:78
+    Visibility: public -/
+def Isize.Insts.Bit_fieldBitField.set_bit
+  (self : Std.Isize) (bit : Std.Usize) (value : Bool) :
+  Result (Std.Isize × (Std.Isize → Std.Isize))
+  := do
+  let i ← Isize.Insts.Bit_fieldBitField.BIT_LENGTH
+  massert (bit < i)
+  if value
+  then
+    let i1 ← 1#isize <<< bit
+    let self1 ← lift (self ||| i1)
+    ok (self1, fun self2 => self2)
+  else
+    let i1 ← 1#isize <<< bit
     let i2 ← lift (~~~ i1)
     let self1 ← lift (self &&& i2)
     ok (self1, fun self2 => self2)

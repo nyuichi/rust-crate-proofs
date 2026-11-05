@@ -20,6 +20,147 @@ set_option maxRecDepth 2048
 
 namespace rand_pcg
 
+/-- [rand_pcg::pcg128::MULTIPLIER]
+    Source: 'src/pcg128.rs', lines 14:0-14:67 -/
+@[global_simps, irreducible]
+def pcg128.MULTIPLIER : Std.U128 := 47026247687942121848144207491837523525#u128
+
+/-- [rand_pcg::pcg128::Lcg128Xsl64]
+    Source: 'src/pcg128.rs', lines 38:0-41:1
+    Visibility: public -/
+structure pcg128.Lcg128Xsl64 where
+  state : Std.U128
+  increment : Std.U128
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Lcg128Xsl64}::step]:
+    Source: 'src/pcg128.rs', lines 107:4-113:5 -/
+def pcg128.Lcg128Xsl64.step
+  (self : pcg128.Lcg128Xsl64) : Result pcg128.Lcg128Xsl64 := do
+  let i ← lift (core.num.U128.wrapping_mul self.state pcg128.MULTIPLIER)
+  let i1 ← lift (core.num.U128.wrapping_add i self.increment)
+  ok { self with state := i1 }
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Lcg128Xsl64}::from_state_incr]:
+    Source: 'src/pcg128.rs', lines 98:4-104:5 -/
+def pcg128.Lcg128Xsl64.from_state_incr
+  (state : Std.U128) (increment : Std.U128) : Result pcg128.Lcg128Xsl64 := do
+  let i ← lift (core.num.U128.wrapping_add state increment)
+  pcg128.Lcg128Xsl64.step { state := i, increment }
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Lcg128Xsl64}::new]:
+    Source: 'src/pcg128.rs', lines 91:4-95:5
+    Visibility: public -/
+def pcg128.Lcg128Xsl64.new
+  (state : Std.U128) (stream : Std.U128) : Result pcg128.Lcg128Xsl64 := do
+  let i ← stream <<< 1#i32
+  let increment ← lift (i ||| 1#u128)
+  pcg128.Lcg128Xsl64.from_state_incr state increment
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Lcg128Xsl64}::state]:
+    Source: 'src/lib.rs', lines 105:16-107:17; this code is generated from a macro invocation at: 'src/pcg128.rs', lines 116:0-116:52
+    Visibility: public -/
+def pcg128.Lcg128Xsl64.impl.state
+  (self : pcg128.Lcg128Xsl64) : Result Std.U128 := do
+  ok self.state
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Lcg128Xsl64}::stream]:
+    Source: 'src/lib.rs', lines 115:16-117:17; this code is generated from a macro invocation at: 'src/pcg128.rs', lines 116:0-116:52
+    Visibility: public -/
+def pcg128.Lcg128Xsl64.stream
+  (self : pcg128.Lcg128Xsl64) : Result Std.U128 := do
+  self.increment >>> 1#i32
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Lcg128Xsl64}::from_state]:
+    Source: 'src/lib.rs', lines 127:16-131:17; this code is generated from a macro invocation at: 'src/pcg128.rs', lines 116:0-116:52
+    Visibility: public -/
+def pcg128.Lcg128Xsl64.from_state
+  (state : Std.U128) (stream : Std.U128) : Result pcg128.Lcg128Xsl64 := do
+  let i ← stream <<< 1#i32
+  let increment ← lift (i ||| 1#u128)
+  ok { state, increment }
+
+/-- [rand_pcg::pcg128::Mcg128Xsl64]
+    Source: 'src/pcg128.rs', lines 173:0-175:1
+    Visibility: public -/
+structure pcg128.Mcg128Xsl64 where
+  state : Std.U128
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Mcg128Xsl64}::new]:
+    Source: 'src/pcg128.rs', lines 218:4-221:5
+    Visibility: public -/
+def pcg128.Mcg128Xsl64.new (state : Std.U128) : Result pcg128.Mcg128Xsl64 := do
+  let i ← lift (state ||| 1#u128)
+  ok { state := i }
+
+/-- [rand_pcg::pcg128::{rand_pcg::pcg128::Mcg128Xsl64}::state]:
+    Source: 'src/pcg128.rs', lines 226:4-228:5
+    Visibility: public -/
+def pcg128.Mcg128Xsl64.impl.state
+  (self : pcg128.Mcg128Xsl64) : Result Std.U128 := do
+  ok self.state
+
+/-- [rand_pcg::pcg128cm::MULTIPLIER]
+    Source: 'src/pcg128cm.rs', lines 14:0-14:45 -/
+@[global_simps, irreducible]
+def pcg128cm.MULTIPLIER : Std.U64 := 15750249268501108917#u64
+
+/-- [rand_pcg::pcg128cm::Lcg128CmDxsm64]
+    Source: 'src/pcg128cm.rs', lines 41:0-44:1
+    Visibility: public -/
+structure pcg128cm.Lcg128CmDxsm64 where
+  state : Std.U128
+  increment : Std.U128
+
+/-- [rand_pcg::pcg128cm::{rand_pcg::pcg128cm::Lcg128CmDxsm64}::step]:
+    Source: 'src/pcg128cm.rs', lines 112:4-118:5 -/
+def pcg128cm.Lcg128CmDxsm64.step
+  (self : pcg128cm.Lcg128CmDxsm64) : Result pcg128cm.Lcg128CmDxsm64 := do
+  let i ← lift (UScalar.cast .U128 pcg128cm.MULTIPLIER)
+  let i1 ← lift (core.num.U128.wrapping_mul self.state i)
+  let i2 ← lift (core.num.U128.wrapping_add i1 self.increment)
+  ok { self with state := i2 }
+
+/-- [rand_pcg::pcg128cm::{rand_pcg::pcg128cm::Lcg128CmDxsm64}::from_state_incr]:
+    Source: 'src/pcg128cm.rs', lines 103:4-109:5 -/
+def pcg128cm.Lcg128CmDxsm64.from_state_incr
+  (state : Std.U128) (increment : Std.U128) :
+  Result pcg128cm.Lcg128CmDxsm64
+  := do
+  let i ← lift (core.num.U128.wrapping_add state increment)
+  pcg128cm.Lcg128CmDxsm64.step { state := i, increment }
+
+/-- [rand_pcg::pcg128cm::{rand_pcg::pcg128cm::Lcg128CmDxsm64}::new]:
+    Source: 'src/pcg128cm.rs', lines 96:4-100:5
+    Visibility: public -/
+def pcg128cm.Lcg128CmDxsm64.new
+  (state : Std.U128) (stream : Std.U128) : Result pcg128cm.Lcg128CmDxsm64 := do
+  let i ← stream <<< 1#i32
+  let increment ← lift (i ||| 1#u128)
+  pcg128cm.Lcg128CmDxsm64.from_state_incr state increment
+
+/-- [rand_pcg::pcg128cm::{rand_pcg::pcg128cm::Lcg128CmDxsm64}::state]:
+    Source: 'src/lib.rs', lines 105:16-107:17; this code is generated from a macro invocation at: 'src/pcg128cm.rs', lines 121:0-121:55
+    Visibility: public -/
+def pcg128cm.Lcg128CmDxsm64.impl.state
+  (self : pcg128cm.Lcg128CmDxsm64) : Result Std.U128 := do
+  ok self.state
+
+/-- [rand_pcg::pcg128cm::{rand_pcg::pcg128cm::Lcg128CmDxsm64}::stream]:
+    Source: 'src/lib.rs', lines 115:16-117:17; this code is generated from a macro invocation at: 'src/pcg128cm.rs', lines 121:0-121:55
+    Visibility: public -/
+def pcg128cm.Lcg128CmDxsm64.stream
+  (self : pcg128cm.Lcg128CmDxsm64) : Result Std.U128 := do
+  self.increment >>> 1#i32
+
+/-- [rand_pcg::pcg128cm::{rand_pcg::pcg128cm::Lcg128CmDxsm64}::from_state]:
+    Source: 'src/lib.rs', lines 127:16-131:17; this code is generated from a macro invocation at: 'src/pcg128cm.rs', lines 121:0-121:55
+    Visibility: public -/
+def pcg128cm.Lcg128CmDxsm64.from_state
+  (state : Std.U128) (stream : Std.U128) : Result pcg128cm.Lcg128CmDxsm64 := do
+  let i ← stream <<< 1#i32
+  let increment ← lift (i ||| 1#u128)
+  ok { state, increment }
+
 /-- [rand_pcg::pcg64::MULTIPLIER]
     Source: 'src/pcg64.rs', lines 19:0-19:44 -/
 @[global_simps, irreducible]
@@ -39,6 +180,44 @@ def pcg64.Lcg64Xsh32.step
   let i ← lift (core.num.U64.wrapping_mul self.state pcg64.MULTIPLIER)
   let i1 ← lift (core.num.U64.wrapping_add i self.increment)
   ok { self with state := i1 }
+
+/-- [rand_pcg::pcg64::{rand_pcg::pcg64::Lcg64Xsh32}::from_state_incr]:
+    Source: 'src/pcg64.rs', lines 99:4-105:5 -/
+def pcg64.Lcg64Xsh32.from_state_incr
+  (state : Std.U64) (increment : Std.U64) : Result pcg64.Lcg64Xsh32 := do
+  let i ← lift (core.num.U64.wrapping_add state increment)
+  pcg64.Lcg64Xsh32.step { state := i, increment }
+
+/-- [rand_pcg::pcg64::{rand_pcg::pcg64::Lcg64Xsh32}::new]:
+    Source: 'src/pcg64.rs', lines 92:4-96:5
+    Visibility: public -/
+def pcg64.Lcg64Xsh32.new
+  (state : Std.U64) (stream : Std.U64) : Result pcg64.Lcg64Xsh32 := do
+  let i ← stream <<< 1#i32
+  let increment ← lift (i ||| 1#u64)
+  pcg64.Lcg64Xsh32.from_state_incr state increment
+
+/-- [rand_pcg::pcg64::{rand_pcg::pcg64::Lcg64Xsh32}::state]:
+    Source: 'src/lib.rs', lines 105:16-107:17; this code is generated from a macro invocation at: 'src/pcg64.rs', lines 117:0-117:50
+    Visibility: public -/
+def pcg64.Lcg64Xsh32.impl.state
+  (self : pcg64.Lcg64Xsh32) : Result Std.U64 := do
+  ok self.state
+
+/-- [rand_pcg::pcg64::{rand_pcg::pcg64::Lcg64Xsh32}::stream]:
+    Source: 'src/lib.rs', lines 115:16-117:17; this code is generated from a macro invocation at: 'src/pcg64.rs', lines 117:0-117:50
+    Visibility: public -/
+def pcg64.Lcg64Xsh32.stream (self : pcg64.Lcg64Xsh32) : Result Std.U64 := do
+  self.increment >>> 1#i32
+
+/-- [rand_pcg::pcg64::{rand_pcg::pcg64::Lcg64Xsh32}::from_state]:
+    Source: 'src/lib.rs', lines 127:16-131:17; this code is generated from a macro invocation at: 'src/pcg64.rs', lines 117:0-117:50
+    Visibility: public -/
+def pcg64.Lcg64Xsh32.from_state
+  (state : Std.U64) (stream : Std.U64) : Result pcg64.Lcg64Xsh32 := do
+  let i ← stream <<< 1#i32
+  let increment ← lift (i ||| 1#u64)
+  ok { state, increment }
 
 /-- [rand_pcg::pcg64::{impl rand_core::TryRng<!> for rand_pcg::pcg64::Lcg64Xsh32}::try_next_u32::SPARE]
     Source: 'src/pcg64.rs', lines 151:8-151:30 -/

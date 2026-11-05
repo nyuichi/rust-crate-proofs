@@ -1,0 +1,4045 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling bit_field v0.10.3 (/workspace/full-api/bits/bit_field/source)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling bitfield-all-primitives-kani v0.1.0 (/workspace/full-api/kani-bitfield)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.52s
+Checking harness checks::u64_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11u64_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u64 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u64 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u64 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.00929015s
+size of program expression: 768 steps
+slicing removed 339 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000125819s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0127182s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 5.859e-06s
+Solving with CaDiCaL 3.0.0
+21082 variables, 62686 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00391454s
+Runtime decision procedure: 0.0170918s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21083 variables, 62687 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0319036s
+Runtime decision procedure: 0.0321321s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21084 variables, 62688 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.131278s
+Runtime decision procedure: 0.13141s
+
+RESULTS:
+Check 1: checks::u64_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::u64_get_set
+
+Check 2: checks::u64_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:44:5 in function checks::u64_get_set
+
+Check 3: checks::u64_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::u64_get_set
+
+Check 4: checks::u64_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u64 == expected_bits"
+	 - Location: src/lib.rs:44:5 in function checks::u64_get_set
+
+Check 5: checks::u64_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:44:5 in function checks::u64_get_set
+
+Check 6: checks::u64_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u64) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:44:5 in function checks::u64_get_set
+
+Check 7: checks::u64_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:44:5 in function checks::u64_get_set
+
+Check 8: <u64 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <u64 as bit_field::BitField>::set_bit
+
+Check 9: <u64 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <u64 as bit_field::BitField>::set_bit
+
+Check 10: <u64 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u64 as bit_field::BitField>::set_bit
+
+Check 11: <u64 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <u64 as bit_field::BitField>::get_bit
+
+Check 12: <u64 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u64 as bit_field::BitField>::get_bit
+
+Check 13: checks::u64_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::u64_get_set
+
+Check 14: checks::u64_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::u64_get_set
+
+Check 15: checks::u64_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::u64_get_set
+
+Check 16: checks::u64_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::u64_get_set
+
+Check 17: checks::u64_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::u64_get_set
+
+Check 18: checks::u64_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::u64_get_set
+
+Check 19: checks::u64_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::u64_get_set
+
+Check 20: checks::u64_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::u64_get_set
+
+Check 21: checks::u64_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::u64_get_set
+
+Check 22: checks::u64_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::u64_get_set
+
+Check 23: checks::u64_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::u64_get_set
+
+Check 24: checks::u64_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::u64_get_set
+
+Check 25: checks::u64_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::u64_get_set
+
+Check 26: checks::u64_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::u64_get_set
+
+Check 27: checks::u64_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::u64_get_set
+
+Check 28: checks::u64_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::u64_get_set
+
+Check 29: checks::u64_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::u64_get_set
+
+Check 30: checks::u64_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::u64_get_set
+
+Check 31: <u64 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u64 as bit_field::BitField>::get_bit
+
+Check 32: <u64 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u64 as bit_field::BitField>::get_bit
+
+Check 33: <u64 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u64 as bit_field::BitField>::get_bit
+
+Check 34: <u64 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u64 as bit_field::BitField>::get_bit
+
+Check 35: <u64 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u64 as bit_field::BitField>::get_bit
+
+Check 36: <u64 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u64 as bit_field::BitField>::get_bit
+
+Check 37: <u64 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 38: <u64 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 39: <u64 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 40: <u64 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 41: <u64 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 42: <u64 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 43: <u64 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 44: <u64 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 45: <u64 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 46: <u64 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 47: <u64 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u64 as bit_field::BitField>::set_bit
+
+Check 48: <u64 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u64 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.2368049s
+
+Checking harness checks::i8_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10i8_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i8 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i8 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i8 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.00949624s
+size of program expression: 772 steps
+slicing removed 341 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000236766s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0030968s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 1.332e-05s
+Solving with CaDiCaL 3.0.0
+3426 variables, 9302 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000384929s
+Runtime decision procedure: 0.00361762s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3427 variables, 9303 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00254118s
+Runtime decision procedure: 0.00260998s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3428 variables, 9304 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.00140994s
+Runtime decision procedure: 0.00144849s
+
+RESULTS:
+Check 1: <i8 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <i8 as bit_field::BitField>::get_bit
+
+Check 2: <i8 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i8 as bit_field::BitField>::get_bit
+
+Check 3: <i8 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <i8 as bit_field::BitField>::set_bit
+
+Check 4: <i8 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <i8 as bit_field::BitField>::set_bit
+
+Check 5: <i8 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i8 as bit_field::BitField>::set_bit
+
+Check 6: checks::i8_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::i8_get_set
+
+Check 7: checks::i8_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:47:5 in function checks::i8_get_set
+
+Check 8: checks::i8_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::i8_get_set
+
+Check 9: checks::i8_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u8 == expected_bits"
+	 - Location: src/lib.rs:47:5 in function checks::i8_get_set
+
+Check 10: checks::i8_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:47:5 in function checks::i8_get_set
+
+Check 11: checks::i8_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u8) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:47:5 in function checks::i8_get_set
+
+Check 12: checks::i8_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:47:5 in function checks::i8_get_set
+
+Check 13: checks::i8_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::i8_get_set
+
+Check 14: checks::i8_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::i8_get_set
+
+Check 15: checks::i8_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::i8_get_set
+
+Check 16: checks::i8_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::i8_get_set
+
+Check 17: checks::i8_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::i8_get_set
+
+Check 18: checks::i8_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::i8_get_set
+
+Check 19: checks::i8_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::i8_get_set
+
+Check 20: checks::i8_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::i8_get_set
+
+Check 21: checks::i8_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::i8_get_set
+
+Check 22: checks::i8_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::i8_get_set
+
+Check 23: checks::i8_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::i8_get_set
+
+Check 24: checks::i8_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::i8_get_set
+
+Check 25: checks::i8_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::i8_get_set
+
+Check 26: checks::i8_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::i8_get_set
+
+Check 27: checks::i8_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::i8_get_set
+
+Check 28: checks::i8_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::i8_get_set
+
+Check 29: checks::i8_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::i8_get_set
+
+Check 30: checks::i8_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::i8_get_set
+
+Check 31: <i8 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i8 as bit_field::BitField>::get_bit
+
+Check 32: <i8 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i8 as bit_field::BitField>::get_bit
+
+Check 33: <i8 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i8 as bit_field::BitField>::get_bit
+
+Check 34: <i8 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i8 as bit_field::BitField>::get_bit
+
+Check 35: <i8 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i8 as bit_field::BitField>::get_bit
+
+Check 36: <i8 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i8 as bit_field::BitField>::get_bit
+
+Check 37: <i8 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 38: <i8 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 39: <i8 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 40: <i8 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 41: <i8 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 42: <i8 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 43: <i8 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 44: <i8 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 45: <i8 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 46: <i8 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 47: <i8 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i8 as bit_field::BitField>::set_bit
+
+Check 48: <i8 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i8 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.06579705s
+
+Checking harness checks::i128_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks12i128_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i128 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i128 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i128 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.010512s
+size of program expression: 776 steps
+slicing removed 343 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000188824s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0233641s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 6.61e-06s
+Solving with CaDiCaL 3.0.0
+40858 variables, 122590 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00986212s
+Runtime decision procedure: 0.0340866s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+40859 variables, 122591 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.182756s
+Runtime decision procedure: 0.183205s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+40860 variables, 122592 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.333387s
+Runtime decision procedure: 0.33361s
+
+RESULTS:
+Check 1: <i128 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <i128 as bit_field::BitField>::get_bit
+
+Check 2: <i128 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i128 as bit_field::BitField>::get_bit
+
+Check 3: checks::i128_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::i128_get_set
+
+Check 4: checks::i128_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:51:5 in function checks::i128_get_set
+
+Check 5: checks::i128_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::i128_get_set
+
+Check 6: checks::i128_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u128 == expected_bits"
+	 - Location: src/lib.rs:51:5 in function checks::i128_get_set
+
+Check 7: checks::i128_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:51:5 in function checks::i128_get_set
+
+Check 8: checks::i128_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u128) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:51:5 in function checks::i128_get_set
+
+Check 9: checks::i128_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:51:5 in function checks::i128_get_set
+
+Check 10: <i128 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <i128 as bit_field::BitField>::set_bit
+
+Check 11: <i128 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <i128 as bit_field::BitField>::set_bit
+
+Check 12: <i128 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i128 as bit_field::BitField>::set_bit
+
+Check 13: checks::i128_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::i128_get_set
+
+Check 14: checks::i128_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::i128_get_set
+
+Check 15: checks::i128_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::i128_get_set
+
+Check 16: checks::i128_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::i128_get_set
+
+Check 17: checks::i128_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::i128_get_set
+
+Check 18: checks::i128_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::i128_get_set
+
+Check 19: checks::i128_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::i128_get_set
+
+Check 20: checks::i128_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::i128_get_set
+
+Check 21: checks::i128_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::i128_get_set
+
+Check 22: checks::i128_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::i128_get_set
+
+Check 23: checks::i128_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::i128_get_set
+
+Check 24: checks::i128_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::i128_get_set
+
+Check 25: checks::i128_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::i128_get_set
+
+Check 26: checks::i128_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::i128_get_set
+
+Check 27: checks::i128_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::i128_get_set
+
+Check 28: checks::i128_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::i128_get_set
+
+Check 29: checks::i128_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::i128_get_set
+
+Check 30: checks::i128_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::i128_get_set
+
+Check 31: <i128 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i128 as bit_field::BitField>::get_bit
+
+Check 32: <i128 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i128 as bit_field::BitField>::get_bit
+
+Check 33: <i128 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i128 as bit_field::BitField>::get_bit
+
+Check 34: <i128 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i128 as bit_field::BitField>::get_bit
+
+Check 35: <i128 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i128 as bit_field::BitField>::get_bit
+
+Check 36: <i128 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i128 as bit_field::BitField>::get_bit
+
+Check 37: <i128 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 38: <i128 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 39: <i128 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 40: <i128 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 41: <i128 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 42: <i128 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 43: <i128 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 44: <i128 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 45: <i128 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 46: <i128 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 47: <i128 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i128 as bit_field::BitField>::set_bit
+
+Check 48: <i128 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i128 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.62236905s
+
+Checking harness checks::i64_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11i64_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i64 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i64 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i64 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0101322s
+size of program expression: 774 steps
+slicing removed 342 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000248204s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0129699s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.543e-06s
+Solving with CaDiCaL 3.0.0
+21082 variables, 62686 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00291729s
+Runtime decision procedure: 0.0165884s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21083 variables, 62687 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0316752s
+Runtime decision procedure: 0.0319276s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21084 variables, 62688 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.117404s
+Runtime decision procedure: 0.117538s
+
+RESULTS:
+Check 1: <i64 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <i64 as bit_field::BitField>::get_bit
+
+Check 2: <i64 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i64 as bit_field::BitField>::get_bit
+
+Check 3: <i64 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <i64 as bit_field::BitField>::set_bit
+
+Check 4: <i64 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <i64 as bit_field::BitField>::set_bit
+
+Check 5: <i64 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i64 as bit_field::BitField>::set_bit
+
+Check 6: checks::i64_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::i64_get_set
+
+Check 7: checks::i64_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:50:5 in function checks::i64_get_set
+
+Check 8: checks::i64_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::i64_get_set
+
+Check 9: checks::i64_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u64 == expected_bits"
+	 - Location: src/lib.rs:50:5 in function checks::i64_get_set
+
+Check 10: checks::i64_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:50:5 in function checks::i64_get_set
+
+Check 11: checks::i64_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u64) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:50:5 in function checks::i64_get_set
+
+Check 12: checks::i64_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:50:5 in function checks::i64_get_set
+
+Check 13: checks::i64_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::i64_get_set
+
+Check 14: checks::i64_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::i64_get_set
+
+Check 15: checks::i64_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::i64_get_set
+
+Check 16: checks::i64_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::i64_get_set
+
+Check 17: checks::i64_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::i64_get_set
+
+Check 18: checks::i64_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::i64_get_set
+
+Check 19: checks::i64_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::i64_get_set
+
+Check 20: checks::i64_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::i64_get_set
+
+Check 21: checks::i64_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::i64_get_set
+
+Check 22: checks::i64_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::i64_get_set
+
+Check 23: checks::i64_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::i64_get_set
+
+Check 24: checks::i64_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::i64_get_set
+
+Check 25: checks::i64_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::i64_get_set
+
+Check 26: checks::i64_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::i64_get_set
+
+Check 27: checks::i64_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::i64_get_set
+
+Check 28: checks::i64_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::i64_get_set
+
+Check 29: checks::i64_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::i64_get_set
+
+Check 30: checks::i64_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::i64_get_set
+
+Check 31: <i64 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i64 as bit_field::BitField>::get_bit
+
+Check 32: <i64 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i64 as bit_field::BitField>::get_bit
+
+Check 33: <i64 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i64 as bit_field::BitField>::get_bit
+
+Check 34: <i64 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i64 as bit_field::BitField>::get_bit
+
+Check 35: <i64 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i64 as bit_field::BitField>::get_bit
+
+Check 36: <i64 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i64 as bit_field::BitField>::get_bit
+
+Check 37: <i64 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 38: <i64 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 39: <i64 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 40: <i64 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 41: <i64 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 42: <i64 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 43: <i64 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 44: <i64 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 45: <i64 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 46: <i64 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 47: <i64 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i64 as bit_field::BitField>::set_bit
+
+Check 48: <i64 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i64 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.23052002s
+
+Checking harness checks::i16_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11i16_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i16 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i16 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i16 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0110035s
+size of program expression: 774 steps
+slicing removed 342 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000515067s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00501355s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 7.24e-06s
+Solving with CaDiCaL 3.0.0
+5994 variables, 17054 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000945087s
+Runtime decision procedure: 0.00616921s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+5995 variables, 17055 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00322545s
+Runtime decision procedure: 0.00330704s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+5996 variables, 17056 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.0137537s
+Runtime decision procedure: 0.0138189s
+
+RESULTS:
+Check 1: checks::i16_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::i16_get_set
+
+Check 2: checks::i16_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:48:5 in function checks::i16_get_set
+
+Check 3: checks::i16_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::i16_get_set
+
+Check 4: checks::i16_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u16 == expected_bits"
+	 - Location: src/lib.rs:48:5 in function checks::i16_get_set
+
+Check 5: checks::i16_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:48:5 in function checks::i16_get_set
+
+Check 6: checks::i16_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u16) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:48:5 in function checks::i16_get_set
+
+Check 7: checks::i16_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:48:5 in function checks::i16_get_set
+
+Check 8: <i16 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <i16 as bit_field::BitField>::get_bit
+
+Check 9: <i16 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i16 as bit_field::BitField>::get_bit
+
+Check 10: <i16 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <i16 as bit_field::BitField>::set_bit
+
+Check 11: <i16 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <i16 as bit_field::BitField>::set_bit
+
+Check 12: <i16 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i16 as bit_field::BitField>::set_bit
+
+Check 13: checks::i16_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::i16_get_set
+
+Check 14: checks::i16_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::i16_get_set
+
+Check 15: checks::i16_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::i16_get_set
+
+Check 16: checks::i16_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::i16_get_set
+
+Check 17: checks::i16_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::i16_get_set
+
+Check 18: checks::i16_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::i16_get_set
+
+Check 19: checks::i16_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::i16_get_set
+
+Check 20: checks::i16_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::i16_get_set
+
+Check 21: checks::i16_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::i16_get_set
+
+Check 22: checks::i16_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::i16_get_set
+
+Check 23: checks::i16_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::i16_get_set
+
+Check 24: checks::i16_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::i16_get_set
+
+Check 25: checks::i16_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::i16_get_set
+
+Check 26: checks::i16_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::i16_get_set
+
+Check 27: checks::i16_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::i16_get_set
+
+Check 28: checks::i16_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::i16_get_set
+
+Check 29: checks::i16_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::i16_get_set
+
+Check 30: checks::i16_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::i16_get_set
+
+Check 31: <i16 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i16 as bit_field::BitField>::get_bit
+
+Check 32: <i16 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i16 as bit_field::BitField>::get_bit
+
+Check 33: <i16 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i16 as bit_field::BitField>::get_bit
+
+Check 34: <i16 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i16 as bit_field::BitField>::get_bit
+
+Check 35: <i16 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i16 as bit_field::BitField>::get_bit
+
+Check 36: <i16 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i16 as bit_field::BitField>::get_bit
+
+Check 37: <i16 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 38: <i16 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 39: <i16 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 40: <i16 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 41: <i16 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 42: <i16 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 43: <i16 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 44: <i16 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 45: <i16 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 46: <i16 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 47: <i16 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i16 as bit_field::BitField>::set_bit
+
+Check 48: <i16 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i16 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.08610723s
+
+Checking harness checks::usize_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks13usize_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <usize as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <usize as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <usize as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0130033s
+size of program expression: 772 steps
+slicing removed 341 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000146501s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0121319s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 5.809e-06s
+Solving with CaDiCaL 3.0.0
+21082 variables, 62686 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00547993s
+Runtime decision procedure: 0.0181829s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21083 variables, 62687 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0377372s
+Runtime decision procedure: 0.0380306s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21084 variables, 62688 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.150074s
+Runtime decision procedure: 0.150203s
+
+RESULTS:
+Check 1: <usize as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <usize as bit_field::BitField>::get_bit
+
+Check 2: <usize as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <usize as bit_field::BitField>::get_bit
+
+Check 3: checks::usize_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::usize_get_set
+
+Check 4: checks::usize_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:46:5 in function checks::usize_get_set
+
+Check 5: checks::usize_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::usize_get_set
+
+Check 6: checks::usize_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as usize == expected_bits"
+	 - Location: src/lib.rs:46:5 in function checks::usize_get_set
+
+Check 7: checks::usize_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:46:5 in function checks::usize_get_set
+
+Check 8: checks::usize_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as usize) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:46:5 in function checks::usize_get_set
+
+Check 9: checks::usize_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:46:5 in function checks::usize_get_set
+
+Check 10: <usize as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <usize as bit_field::BitField>::set_bit
+
+Check 11: <usize as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <usize as bit_field::BitField>::set_bit
+
+Check 12: <usize as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <usize as bit_field::BitField>::set_bit
+
+Check 13: checks::usize_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::usize_get_set
+
+Check 14: checks::usize_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::usize_get_set
+
+Check 15: checks::usize_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::usize_get_set
+
+Check 16: checks::usize_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::usize_get_set
+
+Check 17: checks::usize_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::usize_get_set
+
+Check 18: checks::usize_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::usize_get_set
+
+Check 19: checks::usize_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::usize_get_set
+
+Check 20: checks::usize_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::usize_get_set
+
+Check 21: checks::usize_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::usize_get_set
+
+Check 22: checks::usize_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::usize_get_set
+
+Check 23: checks::usize_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::usize_get_set
+
+Check 24: checks::usize_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::usize_get_set
+
+Check 25: checks::usize_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::usize_get_set
+
+Check 26: checks::usize_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::usize_get_set
+
+Check 27: checks::usize_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::usize_get_set
+
+Check 28: checks::usize_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::usize_get_set
+
+Check 29: checks::usize_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::usize_get_set
+
+Check 30: checks::usize_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::usize_get_set
+
+Check 31: <usize as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <usize as bit_field::BitField>::get_bit
+
+Check 32: <usize as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <usize as bit_field::BitField>::get_bit
+
+Check 33: <usize as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <usize as bit_field::BitField>::get_bit
+
+Check 34: <usize as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <usize as bit_field::BitField>::get_bit
+
+Check 35: <usize as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <usize as bit_field::BitField>::get_bit
+
+Check 36: <usize as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <usize as bit_field::BitField>::get_bit
+
+Check 37: <usize as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 38: <usize as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 39: <usize as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 40: <usize as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 41: <usize as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 42: <usize as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 43: <usize as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 44: <usize as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 45: <usize as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 46: <usize as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 47: <usize as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <usize as bit_field::BitField>::set_bit
+
+Check 48: <usize as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <usize as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.27497637s
+
+Checking harness checks::u16_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11u16_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u16 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u16 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u16 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0111375s
+size of program expression: 768 steps
+slicing removed 339 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000182505s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00464499s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 1.9058e-05s
+Solving with CaDiCaL 3.0.0
+5994 variables, 17054 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00106332s
+Runtime decision procedure: 0.00590829s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+5995 variables, 17055 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0037094s
+Runtime decision procedure: 0.00379841s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+5996 variables, 17056 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.0131417s
+Runtime decision procedure: 0.0131966s
+
+RESULTS:
+Check 1: <u16 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <u16 as bit_field::BitField>::get_bit
+
+Check 2: <u16 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u16 as bit_field::BitField>::get_bit
+
+Check 3: checks::u16_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::u16_get_set
+
+Check 4: checks::u16_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:42:5 in function checks::u16_get_set
+
+Check 5: checks::u16_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::u16_get_set
+
+Check 6: checks::u16_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u16 == expected_bits"
+	 - Location: src/lib.rs:42:5 in function checks::u16_get_set
+
+Check 7: checks::u16_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:42:5 in function checks::u16_get_set
+
+Check 8: checks::u16_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u16) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:42:5 in function checks::u16_get_set
+
+Check 9: checks::u16_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:42:5 in function checks::u16_get_set
+
+Check 10: <u16 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <u16 as bit_field::BitField>::set_bit
+
+Check 11: <u16 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <u16 as bit_field::BitField>::set_bit
+
+Check 12: <u16 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u16 as bit_field::BitField>::set_bit
+
+Check 13: checks::u16_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::u16_get_set
+
+Check 14: checks::u16_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::u16_get_set
+
+Check 15: checks::u16_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::u16_get_set
+
+Check 16: checks::u16_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::u16_get_set
+
+Check 17: checks::u16_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::u16_get_set
+
+Check 18: checks::u16_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::u16_get_set
+
+Check 19: checks::u16_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::u16_get_set
+
+Check 20: checks::u16_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::u16_get_set
+
+Check 21: checks::u16_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::u16_get_set
+
+Check 22: checks::u16_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::u16_get_set
+
+Check 23: checks::u16_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::u16_get_set
+
+Check 24: checks::u16_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::u16_get_set
+
+Check 25: checks::u16_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::u16_get_set
+
+Check 26: checks::u16_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::u16_get_set
+
+Check 27: checks::u16_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::u16_get_set
+
+Check 28: checks::u16_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::u16_get_set
+
+Check 29: checks::u16_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::u16_get_set
+
+Check 30: checks::u16_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::u16_get_set
+
+Check 31: <u16 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u16 as bit_field::BitField>::get_bit
+
+Check 32: <u16 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u16 as bit_field::BitField>::get_bit
+
+Check 33: <u16 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u16 as bit_field::BitField>::get_bit
+
+Check 34: <u16 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u16 as bit_field::BitField>::get_bit
+
+Check 35: <u16 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u16 as bit_field::BitField>::get_bit
+
+Check 36: <u16 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u16 as bit_field::BitField>::get_bit
+
+Check 37: <u16 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 38: <u16 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 39: <u16 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 40: <u16 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 41: <u16 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 42: <u16 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 43: <u16 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 44: <u16 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 45: <u16 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 46: <u16 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 47: <u16 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u16 as bit_field::BitField>::set_bit
+
+Check 48: <u16 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u16 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.088467695s
+
+Checking harness checks::isize_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks13isize_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <isize as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <isize as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <isize as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0100335s
+size of program expression: 778 steps
+slicing removed 344 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000117126s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0135204s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 6.029e-06s
+Solving with CaDiCaL 3.0.0
+21082 variables, 62686 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0034941s
+Runtime decision procedure: 0.0178964s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21083 variables, 62687 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0342412s
+Runtime decision procedure: 0.0345469s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+21084 variables, 62688 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.127106s
+Runtime decision procedure: 0.127236s
+
+RESULTS:
+Check 1: <isize as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <isize as bit_field::BitField>::set_bit
+
+Check 2: <isize as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <isize as bit_field::BitField>::set_bit
+
+Check 3: <isize as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <isize as bit_field::BitField>::set_bit
+
+Check 4: checks::isize_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::isize_get_set
+
+Check 5: checks::isize_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:52:5 in function checks::isize_get_set
+
+Check 6: checks::isize_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::isize_get_set
+
+Check 7: checks::isize_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as usize == expected_bits"
+	 - Location: src/lib.rs:52:5 in function checks::isize_get_set
+
+Check 8: checks::isize_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:52:5 in function checks::isize_get_set
+
+Check 9: checks::isize_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as usize) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:52:5 in function checks::isize_get_set
+
+Check 10: checks::isize_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:52:5 in function checks::isize_get_set
+
+Check 11: <isize as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <isize as bit_field::BitField>::get_bit
+
+Check 12: <isize as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <isize as bit_field::BitField>::get_bit
+
+Check 13: checks::isize_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::isize_get_set
+
+Check 14: checks::isize_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::isize_get_set
+
+Check 15: checks::isize_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::isize_get_set
+
+Check 16: checks::isize_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::isize_get_set
+
+Check 17: checks::isize_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::isize_get_set
+
+Check 18: checks::isize_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::isize_get_set
+
+Check 19: checks::isize_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::isize_get_set
+
+Check 20: checks::isize_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::isize_get_set
+
+Check 21: checks::isize_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::isize_get_set
+
+Check 22: checks::isize_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::isize_get_set
+
+Check 23: checks::isize_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::isize_get_set
+
+Check 24: checks::isize_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::isize_get_set
+
+Check 25: checks::isize_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::isize_get_set
+
+Check 26: checks::isize_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::isize_get_set
+
+Check 27: checks::isize_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::isize_get_set
+
+Check 28: checks::isize_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::isize_get_set
+
+Check 29: checks::isize_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::isize_get_set
+
+Check 30: checks::isize_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::isize_get_set
+
+Check 31: <isize as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <isize as bit_field::BitField>::get_bit
+
+Check 32: <isize as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <isize as bit_field::BitField>::get_bit
+
+Check 33: <isize as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <isize as bit_field::BitField>::get_bit
+
+Check 34: <isize as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <isize as bit_field::BitField>::get_bit
+
+Check 35: <isize as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <isize as bit_field::BitField>::get_bit
+
+Check 36: <isize as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <isize as bit_field::BitField>::get_bit
+
+Check 37: <isize as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 38: <isize as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 39: <isize as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 40: <isize as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 41: <isize as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 42: <isize as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 43: <isize as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 44: <isize as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 45: <isize as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 46: <isize as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 47: <isize as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <isize as bit_field::BitField>::set_bit
+
+Check 48: <isize as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <isize as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.25078508s
+
+Checking harness checks::u8_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10u8_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u8 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u8 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u8 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0125652s
+size of program expression: 766 steps
+slicing removed 338 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000284559s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00373253s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 6.69e-06s
+Solving with CaDiCaL 3.0.0
+3426 variables, 9302 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000803532s
+Runtime decision procedure: 0.00474132s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3427 variables, 9303 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00330965s
+Runtime decision procedure: 0.00340231s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3428 variables, 9304 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.00168253s
+Runtime decision procedure: 0.00173726s
+
+RESULTS:
+Check 1: <u8 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <u8 as bit_field::BitField>::get_bit
+
+Check 2: <u8 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u8 as bit_field::BitField>::get_bit
+
+Check 3: checks::u8_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::u8_get_set
+
+Check 4: checks::u8_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:41:5 in function checks::u8_get_set
+
+Check 5: checks::u8_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::u8_get_set
+
+Check 6: checks::u8_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u8 == expected_bits"
+	 - Location: src/lib.rs:41:5 in function checks::u8_get_set
+
+Check 7: checks::u8_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:41:5 in function checks::u8_get_set
+
+Check 8: checks::u8_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u8) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:41:5 in function checks::u8_get_set
+
+Check 9: checks::u8_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:41:5 in function checks::u8_get_set
+
+Check 10: <u8 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <u8 as bit_field::BitField>::set_bit
+
+Check 11: <u8 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <u8 as bit_field::BitField>::set_bit
+
+Check 12: <u8 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u8 as bit_field::BitField>::set_bit
+
+Check 13: checks::u8_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::u8_get_set
+
+Check 14: checks::u8_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::u8_get_set
+
+Check 15: checks::u8_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::u8_get_set
+
+Check 16: checks::u8_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::u8_get_set
+
+Check 17: checks::u8_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::u8_get_set
+
+Check 18: checks::u8_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::u8_get_set
+
+Check 19: checks::u8_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::u8_get_set
+
+Check 20: checks::u8_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::u8_get_set
+
+Check 21: checks::u8_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::u8_get_set
+
+Check 22: checks::u8_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::u8_get_set
+
+Check 23: checks::u8_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::u8_get_set
+
+Check 24: checks::u8_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::u8_get_set
+
+Check 25: checks::u8_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::u8_get_set
+
+Check 26: checks::u8_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::u8_get_set
+
+Check 27: checks::u8_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::u8_get_set
+
+Check 28: checks::u8_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::u8_get_set
+
+Check 29: checks::u8_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::u8_get_set
+
+Check 30: checks::u8_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::u8_get_set
+
+Check 31: <u8 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 32: <u8 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 33: <u8 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 34: <u8 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 35: <u8 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 36: <u8 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 37: <u8 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 38: <u8 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 39: <u8 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 40: <u8 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 41: <u8 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 42: <u8 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 43: <u8 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 44: <u8 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 45: <u8 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 46: <u8 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 47: <u8 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 48: <u8 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.088766985s
+
+Checking harness checks::u128_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks12u128_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u128 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u128 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u128 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0122786s
+size of program expression: 770 steps
+slicing removed 340 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.00015872s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0311026s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 1.8588e-05s
+Solving with CaDiCaL 3.0.0
+40858 variables, 122590 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0141223s
+Runtime decision procedure: 0.0462032s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+40859 variables, 122591 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.245144s
+Runtime decision procedure: 0.245954s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+40860 variables, 122592 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.301088s
+Runtime decision procedure: 0.301399s
+
+RESULTS:
+Check 1: checks::u128_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::u128_get_set
+
+Check 2: checks::u128_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:45:5 in function checks::u128_get_set
+
+Check 3: checks::u128_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::u128_get_set
+
+Check 4: checks::u128_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u128 == expected_bits"
+	 - Location: src/lib.rs:45:5 in function checks::u128_get_set
+
+Check 5: checks::u128_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:45:5 in function checks::u128_get_set
+
+Check 6: checks::u128_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u128) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:45:5 in function checks::u128_get_set
+
+Check 7: checks::u128_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:45:5 in function checks::u128_get_set
+
+Check 8: <u128 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <u128 as bit_field::BitField>::get_bit
+
+Check 9: <u128 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u128 as bit_field::BitField>::get_bit
+
+Check 10: <u128 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <u128 as bit_field::BitField>::set_bit
+
+Check 11: <u128 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <u128 as bit_field::BitField>::set_bit
+
+Check 12: <u128 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u128 as bit_field::BitField>::set_bit
+
+Check 13: checks::u128_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::u128_get_set
+
+Check 14: checks::u128_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::u128_get_set
+
+Check 15: checks::u128_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::u128_get_set
+
+Check 16: checks::u128_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::u128_get_set
+
+Check 17: checks::u128_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::u128_get_set
+
+Check 18: checks::u128_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::u128_get_set
+
+Check 19: checks::u128_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::u128_get_set
+
+Check 20: checks::u128_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::u128_get_set
+
+Check 21: checks::u128_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::u128_get_set
+
+Check 22: checks::u128_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::u128_get_set
+
+Check 23: checks::u128_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::u128_get_set
+
+Check 24: checks::u128_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::u128_get_set
+
+Check 25: checks::u128_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::u128_get_set
+
+Check 26: checks::u128_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::u128_get_set
+
+Check 27: checks::u128_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::u128_get_set
+
+Check 28: checks::u128_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::u128_get_set
+
+Check 29: checks::u128_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::u128_get_set
+
+Check 30: checks::u128_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::u128_get_set
+
+Check 31: <u128 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u128 as bit_field::BitField>::get_bit
+
+Check 32: <u128 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u128 as bit_field::BitField>::get_bit
+
+Check 33: <u128 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u128 as bit_field::BitField>::get_bit
+
+Check 34: <u128 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u128 as bit_field::BitField>::get_bit
+
+Check 35: <u128 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u128 as bit_field::BitField>::get_bit
+
+Check 36: <u128 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u128 as bit_field::BitField>::get_bit
+
+Check 37: <u128 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 38: <u128 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 39: <u128 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 40: <u128 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 41: <u128 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 42: <u128 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 43: <u128 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 44: <u128 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 45: <u128 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 46: <u128 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 47: <u128 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u128 as bit_field::BitField>::set_bit
+
+Check 48: <u128 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u128 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.6550867s
+
+Checking harness checks::u32_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11u32_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u32 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u32 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <u32 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0113003s
+size of program expression: 768 steps
+slicing removed 339 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000107342s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00763941s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 6.239e-06s
+Solving with CaDiCaL 3.0.0
+11066 variables, 32382 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00134112s
+Runtime decision procedure: 0.00936017s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+11067 variables, 32383 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0100206s
+Runtime decision procedure: 0.0101357s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+11068 variables, 32384 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.0295969s
+Runtime decision procedure: 0.0296833s
+
+RESULTS:
+Check 1: checks::u32_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::u32_get_set
+
+Check 2: checks::u32_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:43:5 in function checks::u32_get_set
+
+Check 3: checks::u32_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::u32_get_set
+
+Check 4: checks::u32_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u32 == expected_bits"
+	 - Location: src/lib.rs:43:5 in function checks::u32_get_set
+
+Check 5: checks::u32_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:43:5 in function checks::u32_get_set
+
+Check 6: checks::u32_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u32) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:43:5 in function checks::u32_get_set
+
+Check 7: checks::u32_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:43:5 in function checks::u32_get_set
+
+Check 8: <u32 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <u32 as bit_field::BitField>::set_bit
+
+Check 9: <u32 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <u32 as bit_field::BitField>::set_bit
+
+Check 10: <u32 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u32 as bit_field::BitField>::set_bit
+
+Check 11: <u32 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <u32 as bit_field::BitField>::get_bit
+
+Check 12: <u32 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <u32 as bit_field::BitField>::get_bit
+
+Check 13: checks::u32_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::u32_get_set
+
+Check 14: checks::u32_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::u32_get_set
+
+Check 15: checks::u32_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::u32_get_set
+
+Check 16: checks::u32_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::u32_get_set
+
+Check 17: checks::u32_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::u32_get_set
+
+Check 18: checks::u32_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::u32_get_set
+
+Check 19: checks::u32_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::u32_get_set
+
+Check 20: checks::u32_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::u32_get_set
+
+Check 21: checks::u32_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::u32_get_set
+
+Check 22: checks::u32_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::u32_get_set
+
+Check 23: checks::u32_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::u32_get_set
+
+Check 24: checks::u32_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::u32_get_set
+
+Check 25: checks::u32_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::u32_get_set
+
+Check 26: checks::u32_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::u32_get_set
+
+Check 27: checks::u32_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::u32_get_set
+
+Check 28: checks::u32_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::u32_get_set
+
+Check 29: checks::u32_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::u32_get_set
+
+Check 30: checks::u32_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::u32_get_set
+
+Check 31: <u32 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u32 as bit_field::BitField>::get_bit
+
+Check 32: <u32 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u32 as bit_field::BitField>::get_bit
+
+Check 33: <u32 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u32 as bit_field::BitField>::get_bit
+
+Check 34: <u32 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u32 as bit_field::BitField>::get_bit
+
+Check 35: <u32 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u32 as bit_field::BitField>::get_bit
+
+Check 36: <u32 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <u32 as bit_field::BitField>::get_bit
+
+Check 37: <u32 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 38: <u32 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 39: <u32 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 40: <u32 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 41: <u32 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 42: <u32 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 43: <u32 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 44: <u32 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 45: <u32 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 46: <u32 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 47: <u32 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u32 as bit_field::BitField>::set_bit
+
+Check 48: <u32 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <u32 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.11144457s
+
+Checking harness checks::i32_get_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11i32_get_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i32 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i32 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/full-api/bits/bit_field/source/src/lib.rs line 282 column 1 function <i32 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.0128777s
+size of program expression: 774 steps
+slicing removed 342 assignments
+Generated 67 VCC(s), 25 remaining after simplification
+Runtime Postprocess Equation: 0.000258129s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.0119433s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.232e-06s
+Solving with CaDiCaL 3.0.0
+11066 variables, 32382 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00342692s
+Runtime decision procedure: 0.0164236s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+11067 variables, 32383 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.013864s
+Runtime decision procedure: 0.0141742s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+11068 variables, 32384 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.0452846s
+Runtime decision procedure: 0.0454508s
+
+RESULTS:
+Check 1: checks::i32_get_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:22:37 in function checks::i32_get_set
+
+Check 2: checks::i32_get_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == expected_get"
+	 - Location: src/lib.rs:49:5 in function checks::i32_get_set
+
+Check 3: checks::i32_get_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:24:39 in function checks::i32_get_set
+
+Check 4: checks::i32_get_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: * returned as u32 == expected_bits"
+	 - Location: src/lib.rs:49:5 in function checks::i32_get_set
+
+Check 5: checks::i32_get_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:49:5 in function checks::i32_get_set
+
+Check 6: checks::i32_get_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: ((* returned as u32) ^ original_bits) & ! mask == 0"
+	 - Location: src/lib.rs:49:5 in function checks::i32_get_set
+
+Check 7: checks::i32_get_set.assertion.7
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:49:5 in function checks::i32_get_set
+
+Check 8: <i32 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:26 in function <i32 as bit_field::BitField>::get_bit
+
+Check 9: <i32 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i32 as bit_field::BitField>::get_bit
+
+Check 10: <i32 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:30 in function <i32 as bit_field::BitField>::set_bit
+
+Check 11: <i32 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:31 in function <i32 as bit_field::BitField>::set_bit
+
+Check 12: <i32 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../bits/bit_field/source/src/lib.rs:282:1 in function <i32 as bit_field::BitField>::set_bit
+
+Check 13: checks::i32_get_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:32:28 in function checks::i32_get_set
+
+Check 14: checks::i32_get_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:32:28 in function checks::i32_get_set
+
+Check 15: checks::i32_get_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:32:28 in function checks::i32_get_set
+
+Check 16: checks::i32_get_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:32:28 in function checks::i32_get_set
+
+Check 17: checks::i32_get_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:32:28 in function checks::i32_get_set
+
+Check 18: checks::i32_get_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:32:28 in function checks::i32_get_set
+
+Check 19: checks::i32_get_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:34:30 in function checks::i32_get_set
+
+Check 20: checks::i32_get_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:34:30 in function checks::i32_get_set
+
+Check 21: checks::i32_get_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:34:30 in function checks::i32_get_set
+
+Check 22: checks::i32_get_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:34:30 in function checks::i32_get_set
+
+Check 23: checks::i32_get_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:34:30 in function checks::i32_get_set
+
+Check 24: checks::i32_get_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:34:30 in function checks::i32_get_set
+
+Check 25: checks::i32_get_set.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:36:17 in function checks::i32_get_set
+
+Check 26: checks::i32_get_set.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:36:17 in function checks::i32_get_set
+
+Check 27: checks::i32_get_set.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:36:17 in function checks::i32_get_set
+
+Check 28: checks::i32_get_set.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:36:17 in function checks::i32_get_set
+
+Check 29: checks::i32_get_set.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:36:17 in function checks::i32_get_set
+
+Check 30: checks::i32_get_set.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:36:17 in function checks::i32_get_set
+
+Check 31: <i32 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i32 as bit_field::BitField>::get_bit
+
+Check 32: <i32 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i32 as bit_field::BitField>::get_bit
+
+Check 33: <i32 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i32 as bit_field::BitField>::get_bit
+
+Check 34: <i32 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i32 as bit_field::BitField>::get_bit
+
+Check 35: <i32 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i32 as bit_field::BitField>::get_bit
+
+Check 36: <i32 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:219:18 in function <i32 as bit_field::BitField>::get_bit
+
+Check 37: <i32 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 38: <i32 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 39: <i32 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 40: <i32 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 41: <i32 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 42: <i32 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:248:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 43: <i32 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 44: <i32 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 45: <i32 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 46: <i32 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 47: <i32 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i32 as bit_field::BitField>::set_bit
+
+Check 48: <i32 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../bits/bit_field/source/src/lib.rs:250:21 in function <i32 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 48 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.1594666s
+
+Checking harness checks::u16_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10u16_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00216155s
+size of program expression: 267 steps
+slicing removed 138 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.1888e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000113091s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 9.744e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 4.6039e-05s
+Runtime decision procedure: 0.000190889s
+
+RESULTS:
+Check 1: checks::u16_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < u16 > () == 2"
+	 - Location: src/lib.rs:42:5 in function checks::u16_layout
+
+Check 2: checks::u16_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < u16 as BitField > :: BIT_LENGTH == 16"
+	 - Location: src/lib.rs:42:5 in function checks::u16_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.027511716s
+
+Checking harness checks::i64_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10i64_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00235736s
+size of program expression: 267 steps
+slicing removed 138 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.4252e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000254113s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 1.5363e-05s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00033124s
+Runtime decision procedure: 0.000634066s
+
+RESULTS:
+Check 1: checks::i64_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < i64 > () == 8"
+	 - Location: src/lib.rs:50:5 in function checks::i64_layout
+
+Check 2: checks::i64_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < i64 as BitField > :: BIT_LENGTH == 64"
+	 - Location: src/lib.rs:50:5 in function checks::i64_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.02290878s
+
+Checking harness checks::usize_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks12usize_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00280071s
+size of program expression: 275 steps
+slicing removed 142 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.8147e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000119591s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 7.972e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 5.1999e-05s
+Runtime decision procedure: 0.00020573s
+
+RESULTS:
+Check 1: checks::usize_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < usize > () == 8"
+	 - Location: src/lib.rs:46:5 in function checks::usize_layout
+
+Check 2: checks::usize_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < usize as BitField > :: BIT_LENGTH == 64"
+	 - Location: src/lib.rs:46:5 in function checks::usize_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.024360461s
+
+Checking harness checks::u64_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10u64_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00253048s
+size of program expression: 267 steps
+slicing removed 138 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.288e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000150377s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.513e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 6.0782e-05s
+Runtime decision procedure: 0.000250439s
+
+RESULTS:
+Check 1: checks::u64_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < u64 > () == 8"
+	 - Location: src/lib.rs:44:5 in function checks::u64_layout
+
+Check 2: checks::u64_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < u64 as BitField > :: BIT_LENGTH == 64"
+	 - Location: src/lib.rs:44:5 in function checks::u64_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.032207996s
+
+Checking harness checks::isize_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks12isize_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00216923s
+size of program expression: 275 steps
+slicing removed 142 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 2.2374e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 9.3861e-05s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.423e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 5.0066e-05s
+Runtime decision procedure: 0.000177589s
+
+RESULTS:
+Check 1: checks::isize_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < isize > () == 8"
+	 - Location: src/lib.rs:52:5 in function checks::isize_layout
+
+Check 2: checks::isize_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < isize as BitField > :: BIT_LENGTH == 64"
+	 - Location: src/lib.rs:52:5 in function checks::isize_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.024050204s
+
+Checking harness checks::i128_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11i128_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00238813s
+size of program expression: 275 steps
+slicing removed 142 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 2.3646e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 9.4723e-05s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.853e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 4.7121e-05s
+Runtime decision procedure: 0.000173332s
+
+RESULTS:
+Check 1: checks::i128_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < i128 > () == 16"
+	 - Location: src/lib.rs:51:5 in function checks::i128_layout
+
+Check 2: checks::i128_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < i128 as BitField > :: BIT_LENGTH == 128"
+	 - Location: src/lib.rs:51:5 in function checks::i128_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.023545612s
+
+Checking harness checks::i8_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks9i8_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00261163s
+size of program expression: 261 steps
+slicing removed 135 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 2.4757e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 9.7017e-05s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 7.652e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 4.7291e-05s
+Runtime decision procedure: 0.000176126s
+
+RESULTS:
+Check 1: checks::i8_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < i8 > () == 1"
+	 - Location: src/lib.rs:47:5 in function checks::i8_layout
+
+Check 2: checks::i8_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < i8 as BitField > :: BIT_LENGTH == 8"
+	 - Location: src/lib.rs:47:5 in function checks::i8_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.024693465s
+
+Checking harness checks::u128_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks11u128_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00309928s
+size of program expression: 275 steps
+slicing removed 142 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.8538e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000120642s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 7.962e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 6.3827e-05s
+Runtime decision procedure: 0.000216607s
+
+RESULTS:
+Check 1: checks::u128_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < u128 > () == 16"
+	 - Location: src/lib.rs:45:5 in function checks::u128_layout
+
+Check 2: checks::u128_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < u128 as BitField > :: BIT_LENGTH == 128"
+	 - Location: src/lib.rs:45:5 in function checks::u128_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.02584379s
+
+Checking harness checks::u8_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks9u8_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00214466s
+size of program expression: 261 steps
+slicing removed 135 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 2.3024e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 9.0197e-05s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.483e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 4.8373e-05s
+Runtime decision procedure: 0.00017213s
+
+RESULTS:
+Check 1: checks::u8_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < u8 > () == 1"
+	 - Location: src/lib.rs:41:5 in function checks::u8_layout
+
+Check 2: checks::u8_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < u8 as BitField > :: BIT_LENGTH == 8"
+	 - Location: src/lib.rs:41:5 in function checks::u8_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.022521395s
+
+Checking harness checks::i16_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10i16_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00215294s
+size of program expression: 267 steps
+slicing removed 138 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.7476e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00011956s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 9.845e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 6.3586e-05s
+Runtime decision procedure: 0.000215947s
+
+RESULTS:
+Check 1: checks::i16_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < i16 > () == 2"
+	 - Location: src/lib.rs:48:5 in function checks::i16_layout
+
+Check 2: checks::i16_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < i16 as BitField > :: BIT_LENGTH == 16"
+	 - Location: src/lib.rs:48:5 in function checks::i16_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.022811605s
+
+Checking harness checks::i32_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10i32_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0025728s
+size of program expression: 267 steps
+slicing removed 138 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 3.1988e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000116706s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.443e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 4.9185e-05s
+Runtime decision procedure: 0.000197939s
+
+RESULTS:
+Check 1: checks::i32_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < i32 > () == 4"
+	 - Location: src/lib.rs:49:5 in function checks::i32_layout
+
+Check 2: checks::i32_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < i32 as BitField > :: BIT_LENGTH == 32"
+	 - Location: src/lib.rs:49:5 in function checks::i32_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.021344328s
+
+Checking harness checks::u32_layout...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/kani-bitfield/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-all-primitives-kani/8f7d9175e2918f80/out/bitfield_all_primitives_kani-8f7d9175e2918f80__RNvNtCs1AAELstrSL3_28bitfield_all_primitives_kani6checks10u32_layout.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00546227s
+size of program expression: 267 steps
+slicing removed 138 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 0.000112981s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.000121112s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 8.373e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.00019874s
+Runtime decision procedure: 0.000351401s
+
+RESULTS:
+Check 1: checks::u32_layout.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core :: mem :: size_of :: < u32 > () == 4"
+	 - Location: src/lib.rs:43:5 in function checks::u32_layout
+
+Check 2: checks::u32_layout.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: < u32 as BitField > :: BIT_LENGTH == 32"
+	 - Location: src/lib.rs:43:5 in function checks::u32_layout
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.02431281s
+
+Manual Harness Summary:
+Complete - 24 successfully verified harnesses, 0 failures, 24 total.
+../bits/bit_field/source/src/lib.rs: OK
+../bits/bit_field/source/Cargo.toml: OK

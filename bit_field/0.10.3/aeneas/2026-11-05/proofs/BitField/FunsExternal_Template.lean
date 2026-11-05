@@ -21,10 +21,87 @@ set_option maxHeartbeats 1000000
 set_option maxRecDepth 2048
 open bit_field
 
-/-- [core::mem::size_of]:
+/-- [core::mem::size_of::<isize>]:
     Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
-    Name pattern: [core::mem::size_of]
+    Name pattern: [core::mem::size_of<isize>]
     Visibility: public -/
-@[rust_fun "core::mem::size_of"]
-axiom core.mem.size_of (T : Type _) : Result Std.Usize
+@[rust_fun "core::mem::size_of<isize>"]
+axiom core.mem.size_ofIsize : Result Std.Usize
+
+/-- [core::mem::size_of::<i8>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<i8>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<i8>"]
+axiom core.mem.size_ofI8 : Result Std.Usize
+
+/-- [core::mem::size_of::<i16>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<i16>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<i16>"]
+axiom core.mem.size_ofI16 : Result Std.Usize
+
+/-- [core::mem::size_of::<i32>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<i32>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<i32>"]
+axiom core.mem.size_ofI32 : Result Std.Usize
+
+/-- [core::mem::size_of::<i64>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<i64>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<i64>"]
+axiom core.mem.size_ofI64 : Result Std.Usize
+
+/-- [core::mem::size_of::<i128>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<i128>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<i128>"]
+axiom core.mem.size_ofI128 : Result Std.Usize
+
+/-- [core::mem::size_of::<usize>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<usize>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<usize>"]
+axiom core.mem.size_ofUsize : Result Std.Usize
+
+/-- [core::mem::size_of::<u8>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<u8>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<u8>"]
+axiom core.mem.size_ofU8 : Result Std.Usize
+
+/-- [core::mem::size_of::<u16>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<u16>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<u16>"]
+axiom core.mem.size_ofU16 : Result Std.Usize
+
+/-- [core::mem::size_of::<u32>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<u32>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<u32>"]
+axiom core.mem.size_ofU32 : Result Std.Usize
+
+/-- [core::mem::size_of::<u64>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<u64>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<u64>"]
+axiom core.mem.size_ofU64 : Result Std.Usize
+
+/-- [core::mem::size_of::<u128>]:
+    Source: '/rustc/library/core/src/mem/mod.rs', lines 375:0-375:34
+    Name pattern: [core::mem::size_of<u128>]
+    Visibility: public -/
+@[rust_fun "core::mem::size_of<u128>"]
+axiom core.mem.size_ofU128 : Result Std.Usize
 

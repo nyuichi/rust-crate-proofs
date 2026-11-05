@@ -45,9 +45,51 @@ module = "Proofs"
 theorem = "Proofs.right_or_spec"
 precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
 
+[[tool.proofs]]
+api = "Either::left_and"
+module = "Proofs"
+theorem = "Proofs.left_and_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
+[[tool.proofs]]
+api = "Either::right_and"
+module = "Proofs"
+theorem = "Proofs.right_and_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
+[[tool.proofs]]
+api = "Either::factor_none"
+module = "Proofs"
+theorem = "Proofs.factor_none_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
+[[tool.proofs]]
+api = "Either::factor_first"
+module = "Proofs"
+theorem = "Proofs.factor_first_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
+[[tool.proofs]]
+api = "Either::factor_second"
+module = "Proofs"
+theorem = "Proofs.factor_second_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
+[[tool.proofs]]
+api = "Either::as_ref"
+module = "Proofs"
+theorem = "Proofs.as_ref_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
+[[tool.proofs]]
+api = "Either::as_mut"
+module = "Proofs"
+theorem = "Proofs.as_mut_spec"
+precondition = "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+
 [report]
-title = "Exact branch tests, payload projections and swapping in Either"
-explanation = "For either 1.19.0, is_left and is_right report the actual variant for every Either value. left and right return Some of exactly the corresponding payload or None for the opposite branch. left_or and right_or return the matching payload or the supplied default. flip swaps Left and Right while preserving the payload; a separate composition theorem proves that flipping twice returns the original value. These seven original method bodies terminate normally in the Aeneas model for arbitrary payload types and values, without inspecting or modifying payloads."
-trusted_assumptions = "The Rust compiler, official Charon/Aeneas translation, standard-library models and Lean kernel are trusted. Transitive theorem axioms are limited to propext, Classical.choice and Quot.sound; no local trusted helper contracts or custom models are used."
-limitations = "Coverage is limited to the seven named methods and the two-flip composition. Closure-taking maps, iterators, pinning, borrowed mutable projections, formatting, serde and other trait implementations are not verified. Rust destructor behavior and resource consumption are outside the pure value model. Other targets and feature configurations were not checked."
-environment = "Original crates.io either 1.19.0 Rust sources and Cargo.toml, byte-compared with the archived release; default features on x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. cargo-proofs uses documented generic-owner discovery and checks uniqueness of the explicitly selected APIs; unrelated overloaded methods are not claimed, and proof/axiom audits are unchanged. Official start-from selection extracts the actual methods without source changes."
+title = "Branch operations, borrowed views and payload factoring in Either"
+explanation = "For either 1.19.0 with default features on x86_64, is_left/is_right identify the actual branch; left/right return the corresponding optional payload; left_or/right_or select that payload or the given default; flip swaps the branch and a separate composition theorem proves flipping twice returns the original value. left_and/right_and select the supplied value or preserve the opposite payload. factor_none moves the optional payload outside Either while retaining its tag. factor_first/factor_second move the common tuple component outside Either. as_ref preserves the variant and referenced value; as_mut preserves the initial view and its generated backward function writes a matching-variant replacement payload back to the original variant. The fourteen original bodies terminate normally in the model for all well-typed values in their stated domains."
+trusted_assumptions = "The Rust compiler, official Charon/Aeneas translation, standard-library models and Lean kernel are trusted. Transitive theorem axioms are limited to propext, Classical.choice and Quot.sound. No local helper contracts or custom models are assumed. Reference contracts use Aeneas's value and backward-function semantics; they do not independently verify the compiler borrow checker or Rust aliasing model."
+limitations = "Only the fourteen named methods and the two-flip composition are proved. Remaining inherent methods, callback-taking APIs, iterators, pinning, standard trait implementations and serde remain unproved. Rust destructor behavior and resource consumption are outside the pure value model. All-feature/no-default configurations and other targets were not proved."
+environment = "Original crates.io either 1.19.0 Rust files and Cargo.toml, archive-compared; default features, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. The union of the fourteen roots is extracted once into one Generated module and proved in one Proofs module."

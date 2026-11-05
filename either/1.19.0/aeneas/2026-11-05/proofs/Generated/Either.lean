@@ -28,6 +28,50 @@ inductive Either (L : Type _) (R : Type _) where
 | Left : L → Either L R
 | Right : R → Either L R
 
+/-- [either::Either::Left]:
+    Source: 'src/lib.rs', lines 51:4-51:11 -/
+def Either.Left.constructor
+  {L : Type _} (R : Type _) (t : L) : Result (Either L R) := do
+  ok (Either.Left t)
+
+/-- [either::Either::{impl core::ops::function::FnOnce<(L,), either::Either<L, R>> for either::Either::Left<L, R>}::call_once]:
+    Source: 'src/lib.rs', lines 51:4-51:11 -/
+def P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once
+  {L : Type _} {R : Type _} (state : L → Result (Either L R)) (args : L) :
+  Result (Either L R)
+  := do
+  Either.Left.constructor R args
+
+/-- Trait implementation: [either::Either::{impl core::ops::function::FnOnce<(L,), either::Either<L, R>> for either::Either::Left<L, R>}]
+    Source: 'src/lib.rs', lines 51:4-51:11 -/
+@[reducible]
+def P.Insts.CoreOpsFunctionFnOnceTupleLEither (L : Type _) (R : Type _) :
+  core.ops.function.FnOnce (L → Result (Either L R)) L (Either L R) := {
+  call_once := P.Insts.CoreOpsFunctionFnOnceTupleLEither.call_once
+}
+
+/-- [either::Either::Right]:
+    Source: 'src/lib.rs', lines 53:4-53:12 -/
+def Either.Right.constructor
+  (L : Type _) {R : Type _} (t : R) : Result (Either L R) := do
+  ok (Either.Right t)
+
+/-- [either::Either::{impl core::ops::function::FnOnce<(R,), either::Either<L, R>> for either::Either::Right<L, R>}::call_once]:
+    Source: 'src/lib.rs', lines 53:4-53:12 -/
+def P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once
+  {L : Type _} {R : Type _} (state : R → Result (Either L R)) (args : R) :
+  Result (Either L R)
+  := do
+  Either.Right.constructor L args
+
+/-- Trait implementation: [either::Either::{impl core::ops::function::FnOnce<(R,), either::Either<L, R>> for either::Either::Right<L, R>}]
+    Source: 'src/lib.rs', lines 53:4-53:12 -/
+@[reducible]
+def P.Insts.CoreOpsFunctionFnOnceTupleREither (L : Type _) (R : Type _) :
+  core.ops.function.FnOnce (R → Result (Either L R)) R (Either L R) := {
+  call_once := P.Insts.CoreOpsFunctionFnOnceTupleREither.call_once
+}
+
 /-- [either::{either::Either<L, R>}::is_left]:
     Source: 'src/lib.rs', lines 240:4-245:5
     Visibility: public -/
@@ -63,6 +107,40 @@ def Either.right
   | Either.Left _ => ok none
   | Either.Right r => ok (some r)
 
+/-- [either::{either::Either<L, R>}::as_ref]:
+    Source: 'src/lib.rs', lines 407:4-409:5
+    Visibility: public -/
+def Either.as_ref
+  {L : Type _} {R : Type _} (self : Either L R) : Result (Either L R) := do
+  match self with
+  | Either.Left _ => ok self
+  | Either.Right _ => ok self
+
+/-- [either::{either::Either<L, R>}::as_mut]:
+    Source: 'src/lib.rs', lines 429:4-431:5
+    Visibility: public -/
+def Either.as_mut
+  {L : Type _} {R : Type _} (self : Either L R) :
+  Result ((Either L R) × (Either L R → Either L R))
+  := do
+  match self with
+  | Either.Left inner =>
+    let back :=
+      fun e =>
+        let t := match e with
+                 | Either.Left t1 => t1
+                 | _ => inner
+        Either.Left t
+    ok (self, back)
+  | Either.Right inner =>
+    let back :=
+      fun e =>
+        let t := match e with
+                 | Either.Right t1 => t1
+                 | _ => inner
+        Either.Right t
+    ok (self, back)
+
 /-- [either::{either::Either<L, R>}::flip]:
     Source: 'src/lib.rs', lines 463:4-468:5
     Visibility: public -/
@@ -71,6 +149,30 @@ def Either.flip
   match self with
   | Either.Left l => ok (Either.Right l)
   | Either.Right r => ok (Either.Left r)
+
+/-- [either::{either::Either<L, R>}::left_and]:
+    Source: 'src/lib.rs', lines 699:4-704:5
+    Visibility: public -/
+def Either.left_and
+  {L : Type _} {R : Type _} {S : Type _} (self : Either L R)
+  (other : Either S R) :
+  Result (Either S R)
+  := do
+  match self with
+  | Either.Left _ => ok other
+  | Either.Right r => ok (Either.Right r)
+
+/-- [either::{either::Either<L, R>}::right_and]:
+    Source: 'src/lib.rs', lines 727:4-732:5
+    Visibility: public -/
+def Either.right_and
+  {L : Type _} {R : Type _} {S : Type _} (self : Either L R)
+  (other : Either L S) :
+  Result (Either L S)
+  := do
+  match self with
+  | Either.Left l => ok (Either.Left l)
+  | Either.Right _ => ok other
 
 /-- [either::{either::Either<L, R>}::left_or]:
     Source: 'src/lib.rs', lines 940:4-945:5
@@ -89,5 +191,46 @@ def Either.right_or
   match self with
   | Either.Left _ => ok other
   | Either.Right r => ok r
+
+/-- [either::{either::Either<core::option::Option<L>, core::option::Option<R>>}::factor_none]:
+    Source: 'src/lib.rs', lines 1263:4-1268:5
+    Visibility: public -/
+def EitherOptionOption.factor_none
+  {L : Type _} {R : Type _} (self : Either (Option L) (Option R)) :
+  Result (Option (Either L R))
+  := do
+  match self with
+  | Either.Left l =>
+    core.option.Option.map (P.Insts.CoreOpsFunctionFnOnceTupleLEither L R) l
+      (Either.Left.constructor R)
+  | Either.Right r =>
+    core.option.Option.map (P.Insts.CoreOpsFunctionFnOnceTupleREither L R) r
+      (Either.Right.constructor L)
+
+/-- [either::{either::Either<(T, L), (T, R)>}::factor_first]:
+    Source: 'src/lib.rs', lines 1328:4-1333:5
+    Visibility: public -/
+def EitherPairPair.factor_first
+  {T : Type _} {L : Type _} {R : Type _} (self : Either (T × L) (T × R)) :
+  Result (T × (Either L R))
+  := do
+  match self with
+  | Either.Left p => let (t, l) := p
+                     ok (t, Either.Left l)
+  | Either.Right p => let (t, r) := p
+                      ok (t, Either.Right r)
+
+/-- [either::{either::Either<(L, T), (R, T)>}::factor_second]:
+    Source: 'src/lib.rs', lines 1349:4-1354:5
+    Visibility: public -/
+def EitherPairPair.factor_second
+  {T : Type _} {L : Type _} {R : Type _} (self : Either (L × T) (R × T)) :
+  Result ((Either L R) × T)
+  := do
+  match self with
+  | Either.Left p => let (l, t) := p
+                     ok (Either.Left l, t)
+  | Either.Right p => let (r, t) := p
+                      ok (Either.Right r, t)
 
 end either

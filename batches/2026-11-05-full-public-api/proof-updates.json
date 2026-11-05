@@ -1,5 +1,629 @@
 {
   "schema_version": 1,
   "policy": "Add only after checking source/body/specification/success and failure domains/model boundaries/integration evidence. Never silently promote prior mappings to full coverage.",
-  "updates": []
+  "updates": [
+    {
+      "id": "either-expanded-default-x86_64",
+      "crate": "either",
+      "version": "1.19.0",
+      "artifact_path": "either/1.19.0/aeneas/2026-11-05",
+      "prior_mapping_count": 7,
+      "new_mapping_count": 14,
+      "added_mappings": [
+        "Either::as_mut",
+        "Either::as_ref",
+        "Either::factor_first",
+        "Either::factor_none",
+        "Either::factor_second",
+        "Either::left_and",
+        "Either::right_and"
+      ],
+      "retained_mappings": [
+        "Either::flip",
+        "Either::is_left",
+        "Either::is_right",
+        "Either::left",
+        "Either::left_or",
+        "Either::right",
+        "Either::right_or"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/into_either.rs": "0477f226bbba78ef017de08b87d421d3cd99fbc95b90ba4e6e3e803e3d15254e",
+        "src/serde_untagged_optional.rs": "ba5d6c2213388b69e127e763b6e394de6388bdd682ffb5d5696b068f1938ec79",
+        "src/iterator.rs": "c642e2f6a462cd4d426a82c82bef79cebc8296602fc5893823abcfd746a046e0",
+        "src/lib.rs": "f80ef9ef753ae93e29a3671eda922103d18f82502c4fc3217c22781512971270",
+        "src/serde_untagged.rs": "5f7a4035ca164125a433f42ac0949185d1732e2fcf5b1ac6dfca1e5aede439bb",
+        "Cargo.toml": "a245f305b622e445db7b93c14dda11a8157741a7f119d9b7cd0a532fa4e66834"
+      },
+      "proof_mappings": [
+        {
+          "api": "Either::is_left",
+          "module": "Proofs",
+          "theorem": "Proofs.is_left_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::is_right",
+          "module": "Proofs",
+          "theorem": "Proofs.is_right_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::left",
+          "module": "Proofs",
+          "theorem": "Proofs.left_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::right",
+          "module": "Proofs",
+          "theorem": "Proofs.right_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::flip",
+          "module": "Proofs",
+          "theorem": "Proofs.flip_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::left_or",
+          "module": "Proofs",
+          "theorem": "Proofs.left_or_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::right_or",
+          "module": "Proofs",
+          "theorem": "Proofs.right_or_spec",
+          "precondition": "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+        },
+        {
+          "api": "Either::left_and",
+          "module": "Proofs",
+          "theorem": "Proofs.left_and_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        },
+        {
+          "api": "Either::right_and",
+          "module": "Proofs",
+          "theorem": "Proofs.right_and_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        },
+        {
+          "api": "Either::factor_none",
+          "module": "Proofs",
+          "theorem": "Proofs.factor_none_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        },
+        {
+          "api": "Either::factor_first",
+          "module": "Proofs",
+          "theorem": "Proofs.factor_first_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        },
+        {
+          "api": "Either::factor_second",
+          "module": "Proofs",
+          "theorem": "Proofs.factor_second_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        },
+        {
+          "api": "Either::as_ref",
+          "module": "Proofs",
+          "theorem": "Proofs.as_ref_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        },
+        {
+          "api": "Either::as_mut",
+          "module": "Proofs",
+          "theorem": "Proofs.as_mut_spec",
+          "precondition": "All well-typed inputs for this generic or specialized Either implementation; default features, x86_64. Reference APIs use the Aeneas borrow translation."
+        }
+      ],
+      "report": {
+        "title": "Branch operations, borrowed views and payload factoring in Either",
+        "explanation": "For either 1.19.0 with default features on x86_64, is_left/is_right identify the actual branch; left/right return the corresponding optional payload; left_or/right_or select that payload or the given default; flip swaps the branch and a separate composition theorem proves flipping twice returns the original value. left_and/right_and select the supplied value or preserve the opposite payload. factor_none moves the optional payload outside Either while retaining its tag. factor_first/factor_second move the common tuple component outside Either. as_ref preserves the variant and referenced value; as_mut preserves the initial view and its generated backward function writes a matching-variant replacement payload back to the original variant. The fourteen original bodies terminate normally in the model for all well-typed values in their stated domains.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, standard-library models and Lean kernel are trusted. Transitive theorem axioms are limited to propext, Classical.choice and Quot.sound. No local helper contracts or custom models are assumed. Reference contracts use Aeneas's value and backward-function semantics; they do not independently verify the compiler borrow checker or Rust aliasing model.",
+        "limitations": "Only the fourteen named methods and the two-flip composition are proved. Remaining inherent methods, callback-taking APIs, iterators, pinning, standard trait implementations and serde remain unproved. Rust destructor behavior and resource consumption are outside the pure value model. All-feature/no-default configurations and other targets were not proved.",
+        "environment": "Original crates.io either 1.19.0 Rust files and Cargo.toml, archive-compared; default features, x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. The union of the fourteen roots is extracted once into one Generated module and proved in one Proofs module."
+      },
+      "existing_report_to_update": 27,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "not_yet_updated",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
+    },
+    {
+      "id": "oorandom-expanded-default-x86_64",
+      "crate": "oorandom",
+      "version": "11.1.5",
+      "artifact_path": "oorandom/11.1.5/aeneas/2026-11-05",
+      "prior_mapping_count": 1,
+      "new_mapping_count": 12,
+      "added_mappings": [
+        "Rand32::from_state",
+        "Rand32::new",
+        "Rand32::new_inc",
+        "Rand32::rand_i32",
+        "Rand32::state",
+        "Rand64::from_state",
+        "Rand64::new",
+        "Rand64::new_inc",
+        "Rand64::rand_i64",
+        "Rand64::rand_u64",
+        "Rand64::state"
+      ],
+      "retained_mappings": [
+        "Rand32::rand_u32"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/lib.rs": "2543317e21d94f1b579b31d92882d7c3a088a6b6bd43362861468f078b455a4e",
+        "Cargo.toml": "c2d20a6c59f36e8ce5912d434a19dd4946f1599ce36556d4879e2043c7dd1d14"
+      },
+      "proof_mappings": [
+        {
+          "api": "Rand32::rand_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_u32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::rand_i32",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_i32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::new_inc",
+          "module": "Proofs",
+          "theorem": "Proofs.new_inc32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand32::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new32_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::rand_u64",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_u64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::rand_i64",
+          "module": "Proofs",
+          "theorem": "Proofs.rand_i64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::new_inc",
+          "module": "Proofs",
+          "theorem": "Proofs.new_inc64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        },
+        {
+          "api": "Rand64::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new64_spec",
+          "precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition."
+        }
+      ],
+      "report": {
+        "title": "Exact integer generation, seed initialization and state restoration in Rand32 and Rand64",
+        "explanation": "For oorandom 11.1.5, twelve unchanged APIs have exact value/state proofs: new, new_inc, state, from_state, the unsigned output method and the signed output method for both Rand32 and Rand64. For arbitrary seed and increment input, new_inc normalizes the stream to ((increment << 1) OR 1), starts at zero, performs one PCG state update, adds the seed modulo the state width, then performs a second PCG state update. new uses the published DEFAULT_INC. state returns the exact current state and increment, and from_state restores those values unchanged; two additional composition theorems establish save/restore identity. Unsigned generation returns the exact PCG-XSH-RR output permutation of the old state and advances to multiplier*state+increment modulo 2^64 or 2^128. Signed generation preserves that updated state and reinterprets the unsigned result bits as i32 or i64. Each covered call terminates normally in the Aeneas model for every scalar input, including zero states and even restored increments.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models or local trusted helper contracts are used. All fourteen public and supplementary theorem dependency audits permit only propext, Classical.choice and Quot.sound. Standard-library wrapping, casts, shifts and rotations use official Aeneas models, rather than body proofs of Rust std implementations.",
+        "limitations": "The proof covers twelve integer/state APIs on x86_64-unknown-linux-gnu with the original default configuration. rand_float and rand_range for both generators remain unproved, as do non-excluded inherited/default and external blanket methods. The save/restore composition theorem establishes pure state identity; no arbitrary user callback or destructor behavior is modeled. No period, statistical distribution, independence or cryptographic guarantee is established. Other targets were not checked.",
+        "environment": "Original crates.io oorandom 11.1.5 src/Cargo.toml, archive-compared without changes. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction selects all twelve original bodies and their shared callees. Original tests, regeneration hashes and integrated Lean/axiom audits are retained in evidence."
+      },
+      "existing_report_to_update": 25,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "not_yet_updated",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
+    },
+    {
+      "id": "rand_pcg-expanded-default-x86_64",
+      "crate": "rand_pcg",
+      "version": "0.10.2",
+      "artifact_path": "rand_pcg/0.10.2/aeneas/2026-11-05",
+      "prior_mapping_count": 1,
+      "new_mapping_count": 15,
+      "added_mappings": [
+        "Lcg128CmDxsm64::from_state",
+        "Lcg128CmDxsm64::new",
+        "Lcg128CmDxsm64::state",
+        "Lcg128CmDxsm64::stream",
+        "Lcg128Xsl64::from_state",
+        "Lcg128Xsl64::new",
+        "Lcg128Xsl64::state",
+        "Lcg128Xsl64::stream",
+        "Lcg64Xsh32::from_state",
+        "Lcg64Xsh32::new",
+        "Lcg64Xsh32::state",
+        "Lcg64Xsh32::stream",
+        "Mcg128Xsl64::new",
+        "Mcg128Xsl64::state"
+      ],
+      "retained_mappings": [
+        "<rand_pcg::Lcg64Xsh32 as rand_core::TryRng>::try_next_u32"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/pcg128.rs": "45937c23eb7002003a770acad22789933c2e7a829e511f3749f1122f51342ba3",
+        "src/pcg128cm.rs": "d99758022a77f6a610756cb8f82c78356dbce06105a96a10c82834db8ab5bff6",
+        "src/lib.rs": "f50ce36ee49f7836fb24fc7c97dc88c77a46f30150484db5bfcc32726d43860c",
+        "src/pcg64.rs": "c44078d20150da6f7b0a86d3f976b932e8d0ce61e2d2dee853e6b4bcb5144119",
+        "Cargo.toml": "7244a51b7bdf719aeecf8a06f6c65913d347bb0800373129ac41ea77cbadf655"
+      },
+      "proof_mappings": [
+        {
+          "api": "<rand_pcg::Lcg64Xsh32 as rand_core::TryRng>::try_next_u32",
+          "module": "Proofs",
+          "theorem": "Proofs.try_next_u32_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg64Xsh32::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state_Lcg64Xsh32_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg64Xsh32::stream",
+          "module": "Proofs",
+          "theorem": "Proofs.stream_Lcg64Xsh32_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg64Xsh32::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state_Lcg64Xsh32_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg64Xsh32::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new_Lcg64Xsh32_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128Xsl64::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state_Lcg128Xsl64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128Xsl64::stream",
+          "module": "Proofs",
+          "theorem": "Proofs.stream_Lcg128Xsl64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128Xsl64::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state_Lcg128Xsl64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128Xsl64::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new_Lcg128Xsl64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128CmDxsm64::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state_Lcg128CmDxsm64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128CmDxsm64::stream",
+          "module": "Proofs",
+          "theorem": "Proofs.stream_Lcg128CmDxsm64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128CmDxsm64::from_state",
+          "module": "Proofs",
+          "theorem": "Proofs.from_state_Lcg128CmDxsm64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Lcg128CmDxsm64::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new_Lcg128CmDxsm64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Mcg128Xsl64::state",
+          "module": "Proofs",
+          "theorem": "Proofs.state_Mcg128Xsl64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        },
+        {
+          "api": "Mcg128Xsl64::new",
+          "module": "Proofs",
+          "theorem": "Proofs.new_Mcg128Xsl64_spec",
+          "precondition": "All scalar state/stream inputs and all well-typed modeled states; original default feature configuration, x86_64."
+        }
+      ],
+      "report": {
+        "title": "Exact PCG construction, state access and stream normalization for four generator types",
+        "explanation": "For rand_pcg 0.10.2, state returns the exact stored word for Lcg64Xsh32, Lcg128Xsl64, Lcg128CmDxsm64 and Mcg128Xsl64. For the three LCG types, stream returns the stored increment shifted logically right by one; from_state preserves the given state and stores increment=(stream<<1) OR 1, discarding the highest stream bit. Their new constructors normalize that increment and initialize state=((input_state+increment)*multiplier+increment), with state-width modular arithmetic. The multipliers are 6364136223846793005, 47026247687942121848144207491837523525, and 15750249268501108917, respectively. Mcg128Xsl64::new stores input_state OR 1. Each of these fourteen original APIs terminates normally in the model for arbitrary scalar inputs. The prior Lcg64Xsh32::try_next_u32 exact PCG-XSH-RR output/state theorem is also retained, for fifteen proved API bodies total.",
+        "trusted_assumptions": "The Rust compiler, official Charon/Aeneas translation, official Aeneas scalar models and Lean kernel are trusted. No custom external models, source adaptations or local trusted helper contracts are used. All fifteen theorem dependency audits permit only propext, Classical.choice and Quot.sound. Wrapping arithmetic, shifts, casts and rotations use official standard-library models, rather than proofs of Rust std implementation bodies.",
+        "limitations": "Coverage is limited to the fifteen named bodies, default features, x86_64-unknown-linux-gnu. Model states need not have odd increments: the getter theorem reports the logical shift for every modeled state, but no save/restore identity is claimed for an arbitrary even-increment state. from_state/new normalize the increment exactly as specified. Advance, seed bytes/from_seed/seed_from_u64, other random-output methods, byte-buffer filling, RNG callbacks/forking, manual Debug, serde and inherited/default/external blanket APIs remain unproved. The proof does not establish period, statistical quality or cryptographic security. Other targets and feature configurations were not checked.",
+        "environment": "Unchanged crates.io rand_pcg 0.10.2 Rust sources and Cargo.toml; original archive/hash checks, tests and regeneration comparisons retained in evidence. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; official Aeneas frontend/library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official targeted extraction includes each actual original body, macro-expanded state helpers and private constructor helpers."
+      },
+      "existing_report_to_update": null,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "new_catalogue_quota_hold",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
+    },
+    {
+      "id": "bit_field-expanded-default-x86_64",
+      "crate": "bit_field",
+      "version": "0.10.3",
+      "artifact_path": "bit_field/0.10.3/aeneas/2026-11-05",
+      "prior_mapping_count": 2,
+      "new_mapping_count": 24,
+      "added_mappings": [
+        "<i128 as bit_field::BitField>::get_bit",
+        "<i128 as bit_field::BitField>::set_bit",
+        "<i16 as bit_field::BitField>::get_bit",
+        "<i16 as bit_field::BitField>::set_bit",
+        "<i32 as bit_field::BitField>::get_bit",
+        "<i32 as bit_field::BitField>::set_bit",
+        "<i64 as bit_field::BitField>::get_bit",
+        "<i64 as bit_field::BitField>::set_bit",
+        "<i8 as bit_field::BitField>::get_bit",
+        "<i8 as bit_field::BitField>::set_bit",
+        "<isize as bit_field::BitField>::get_bit",
+        "<isize as bit_field::BitField>::set_bit",
+        "<u128 as bit_field::BitField>::get_bit",
+        "<u128 as bit_field::BitField>::set_bit",
+        "<u16 as bit_field::BitField>::get_bit",
+        "<u16 as bit_field::BitField>::set_bit",
+        "<u32 as bit_field::BitField>::get_bit",
+        "<u32 as bit_field::BitField>::set_bit",
+        "<u64 as bit_field::BitField>::get_bit",
+        "<u64 as bit_field::BitField>::set_bit",
+        "<usize as bit_field::BitField>::get_bit",
+        "<usize as bit_field::BitField>::set_bit"
+      ],
+      "retained_mappings": [
+        "<u8 as bit_field::BitField>::get_bit",
+        "<u8 as bit_field::BitField>::set_bit"
+      ],
+      "original_source_and_manifest_unchanged": true,
+      "original_hashes": {
+        "src/lib.rs": "cd8402931e8641aedf6a16b5200346be1ef42f1281e85995f131ba68c467dbca",
+        "src/tests.rs": "507a13fc18734b2f9fceb2e200b19b4782518805606fd9fb2a0052bb8d68cc3b",
+        "Cargo.toml": "eb5e585fc332f74166f301eb77a27ed6ee54ad2a0fbc37434c9aff354b11aba7"
+      },
+      "proof_mappings": [
+        {
+          "api": "<u8 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u8_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u8 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u8_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u16 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u16_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u16 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u16_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u32 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u32_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u32 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u32_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u64 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u64_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u64 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u64_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u128 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u128_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<u128 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.u128_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<usize as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.usize_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<usize as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.usize_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i8 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i8_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i8 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i8_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i16 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i16_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i16 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i16_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i32 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i32_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i32 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i32_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i64 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i64_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i64 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i64_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i128 as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i128_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<i128 as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.i128_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<isize as bit_field::BitField>::get_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.isize_get_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        },
+        {
+          "api": "<isize as bit_field::BitField>::set_bit",
+          "module": "Proofs",
+          "theorem": "Proofs.isize_set_bit_contract",
+          "precondition": "Arbitrary integer, index, and (for set_bit) boolean on x86_64; twelve explicit monomorphized integer size_of models, independently checked with Kani. Pointer-sized theorems assume a 64-bit platform."
+        }
+      ],
+      "report": {
+        "title": "Exact single-bit reads, updates and out-of-range panics for all integer types",
+        "explanation": "For bit_field 0.10.3, the unchanged get_bit and set_bit bodies are verified for all twelve signed and unsigned integer types on x86_64. Every in-range index reads the requested bit or sets/clears exactly that bit; other bits are preserved. set_bit returns a mutable reference to the updated integer, and subsequent writes through that reference update the original value. Every out-of-range index fails at the explicit assertion. All twelve BIT_LENGTH values equal the integer widths. Original Rust source and Cargo.toml are unchanged. The Lean proofs use twelve explicit, separately monomorphized size_of integer layout models; Kani independently checks the original methods, returned-reference behavior and layout values for arbitrary valid inputs.",
+        "trusted_assumptions": "The official Charon/Aeneas translation and scalar models, Rust compiler, Lean kernel, and Kani/CBMC are trusted. Twelve executable models supply size_of for the twelve integer types, with x86_64 byte sizes 1,2,4,8,16 and pointer size 8. No model is provided for arbitrary other Rust types. Kani layout/formula checks and Lean bitvector models are a reviewed semantic bridge, not mechanically connected proofs of Rust standard-library layout in Lean. The pointer-sized theorems explicitly assume System.Platform.numBits=64. All mapped transitive axiom audits permit only propext, Classical.choice and Quot.sound.",
+        "limitations": "Only get_bit, set_bit and the associated primitive BIT_LENGTH values are established. The get_bits/set_bits range methods, generic BitArray slice methods, downstream trait implementations, other targets and release extraction remain unproved. The out-of-range result describes the translated explicit assertion failure, not panic text or unwinding side effects. Kani checks valid-index original method behavior and layout; Lean separately proves invalid-index assertion failure. Kani and Aeneas use different Rust nightly versions. This is partial crate coverage, not a proof of all public APIs.",
+        "environment": "Original crates.io bit_field 0.10.3; x86_64-unknown-linux-gnu; default features; debug extraction. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean4.35.0. Official targeted wildcard extraction with --monomorphize and split files. Kani0.68.0/CBMC6.11.0/Rust nightly-2026-08-21: 24 supplementary harnesses, 600 checks, no failures."
+      },
+      "existing_report_to_update": null,
+      "author_integrated_verification": "passed",
+      "source_specification_review": "passed; actual theorem statements and source/archive relationship inspected",
+      "publisher_fresh_record_status": "pending",
+      "publisher_run_id": null,
+      "source_commit": null,
+      "publication_status": "new_catalogue_quota_hold",
+      "body_contract_evidence": "Original body proofs in their stated models and configurations; see individual mappings/report for precise input and failure domains.",
+      "configuration_scope": [
+        "default features",
+        "x86_64-unknown-linux-gnu",
+        "debug extraction"
+      ],
+      "full_crate_completion": false
+    }
+  ]
 }

@@ -27,6 +27,12 @@ structure Rand32 where
   state : Std.U64
   inc : Std.U64
 
+/-- [oorandom::{oorandom::Rand32}::DEFAULT_INC]
+    Source: 'src/lib.rs', lines 39:4-39:53
+    Visibility: public -/
+@[global_simps, irreducible]
+def Rand32.DEFAULT_INC : Std.U64 := 1442695040888963407#u64
+
 /-- [oorandom::{oorandom::Rand32}::MULTIPLIER]
     Source: 'src/lib.rs', lines 45:4-45:59 -/
 @[global_simps, irreducible]
@@ -46,5 +52,116 @@ def Rand32.rand_u32 (self : Rand32) : Result (Std.U32 × Rand32) := do
   let rot ← lift (UScalar.cast .U32 i5)
   let i6 ← lift (core.num.U32.rotate_right xorshifted rot)
   ok (i6, { self with state := i1 })
+
+/-- [oorandom::{oorandom::Rand32}::new_inc]:
+    Source: 'src/lib.rs', lines 59:4-70:5
+    Visibility: public -/
+def Rand32.new_inc (seed : Std.U64) (increment : Std.U64) : Result Rand32 := do
+  let i ← lift (core.num.U64.wrapping_shl increment 1#u32)
+  let i1 ← lift (i ||| 1#u64)
+  let (_, rng) ← Rand32.rand_u32 { state := 0#u64, inc := i1 }
+  let i2 ← lift (core.num.U64.wrapping_add rng.state seed)
+  let (_, rng1) ← Rand32.rand_u32 { rng with state := i2 }
+  ok rng1
+
+/-- [oorandom::{oorandom::Rand32}::new]:
+    Source: 'src/lib.rs', lines 48:4-50:5
+    Visibility: public -/
+def Rand32.new (seed : Std.U64) : Result Rand32 := do
+  Rand32.new_inc seed Rand32.DEFAULT_INC
+
+/-- [oorandom::{oorandom::Rand32}::state]:
+    Source: 'src/lib.rs', lines 75:4-77:5
+    Visibility: public -/
+def Rand32.impl.state (self : Rand32) : Result (Std.U64 × Std.U64) := do
+  ok (self.state, self.inc)
+
+/-- [oorandom::{oorandom::Rand32}::from_state]:
+    Source: 'src/lib.rs', lines 82:4-85:5
+    Visibility: public -/
+def Rand32.from_state (state : (Std.U64 × Std.U64)) : Result Rand32 := do
+  let (state1, inc) := state
+  ok { state := state1, inc }
+
+/-- [oorandom::{oorandom::Rand32}::rand_i32]:
+    Source: 'src/lib.rs', lines 99:4-101:5
+    Visibility: public -/
+def Rand32.rand_i32 (self : Rand32) : Result (Std.I32 × Rand32) := do
+  let (i, self1) ← Rand32.rand_u32 self
+  let i1 ← lift (UScalar.hcast .I32 i)
+  ok (i1, self1)
+
+/-- [oorandom::Rand64]
+    Source: 'src/lib.rs', lines 164:0-167:1
+    Visibility: public -/
+structure Rand64 where
+  state : Std.U128
+  inc : Std.U128
+
+/-- [oorandom::{oorandom::Rand64}::DEFAULT_INC]
+    Source: 'src/lib.rs', lines 173:4-173:72
+    Visibility: public -/
+@[global_simps, irreducible]
+def Rand64.DEFAULT_INC : Std.U128 :=
+  63641362238467930051442695040888963407#u128
+
+/-- [oorandom::{oorandom::Rand64}::MULTIPLIER]
+    Source: 'src/lib.rs', lines 179:4-179:79 -/
+@[global_simps, irreducible]
+def Rand64.MULTIPLIER : Std.U128 := 47026247687942121848144207491837523525#u128
+
+/-- [oorandom::{oorandom::Rand64}::rand_u64]:
+    Source: 'src/lib.rs', lines 214:4-222:5
+    Visibility: public -/
+def Rand64.rand_u64 (self : Rand64) : Result (Std.U64 × Rand64) := do
+  let i ← lift (core.num.U128.wrapping_mul self.state Rand64.MULTIPLIER)
+  let i1 ← lift (core.num.U128.wrapping_add i self.inc)
+  let i2 ← self.state >>> 29#i32
+  let i3 ← lift (i2 ^^^ self.state)
+  let i4 ← i3 >>> 58#i32
+  let xorshifted ← lift (UScalar.cast .U64 i4)
+  let i5 ← self.state >>> 122#i32
+  let rot ← lift (UScalar.cast .U32 i5)
+  let i6 ← lift (core.num.U64.rotate_right xorshifted rot)
+  ok (i6, { self with state := i1 })
+
+/-- [oorandom::{oorandom::Rand64}::new_inc]:
+    Source: 'src/lib.rs', lines 187:4-196:5
+    Visibility: public -/
+def Rand64.new_inc
+  (seed : Std.U128) (increment : Std.U128) : Result Rand64 := do
+  let i ← lift (core.num.U128.wrapping_shl increment 1#u32)
+  let i1 ← lift (i ||| 1#u128)
+  let (_, rng) ← Rand64.rand_u64 { state := 0#u128, inc := i1 }
+  let i2 ← lift (core.num.U128.wrapping_add rng.state seed)
+  let (_, rng1) ← Rand64.rand_u64 { rng with state := i2 }
+  ok rng1
+
+/-- [oorandom::{oorandom::Rand64}::new]:
+    Source: 'src/lib.rs', lines 182:4-184:5
+    Visibility: public -/
+def Rand64.new (seed : Std.U128) : Result Rand64 := do
+  Rand64.new_inc seed Rand64.DEFAULT_INC
+
+/-- [oorandom::{oorandom::Rand64}::state]:
+    Source: 'src/lib.rs', lines 201:4-203:5
+    Visibility: public -/
+def Rand64.impl.state (self : Rand64) : Result (Std.U128 × Std.U128) := do
+  ok (self.state, self.inc)
+
+/-- [oorandom::{oorandom::Rand64}::from_state]:
+    Source: 'src/lib.rs', lines 208:4-211:5
+    Visibility: public -/
+def Rand64.from_state (state : (Std.U128 × Std.U128)) : Result Rand64 := do
+  let (state1, inc) := state
+  ok { state := state1, inc }
+
+/-- [oorandom::{oorandom::Rand64}::rand_i64]:
+    Source: 'src/lib.rs', lines 225:4-227:5
+    Visibility: public -/
+def Rand64.rand_i64 (self : Rand64) : Result (Std.I64 × Rand64) := do
+  let (i, self1) ← Rand64.rand_u64 self
+  let i1 ← lift (UScalar.hcast .I64 i)
+  ok (i1, self1)
 
 end oorandom
