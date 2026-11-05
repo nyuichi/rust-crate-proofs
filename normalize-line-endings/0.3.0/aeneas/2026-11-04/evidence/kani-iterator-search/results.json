@@ -1,0 +1,50 @@
+{
+  "crate": "normalize-line-endings",
+  "version": "0.3.0",
+  "tool": "Kani0.68.0/CBMC6.11.0/Rustnightly2026-08-21",
+  "configuration": "default/debug/x86_64-unknown-linux-gnu",
+  "inputDomain": "concrete fused Input; every valid [char;4] with active length0..4 and position0",
+  "targetDomain": "every valid Unicode scalar char",
+  "assumptions": [
+    "active len<=4"
+  ],
+  "arbitraryPredicatesProved": false,
+  "arbitraryIteratorOrLengthProved": false,
+  "originalSourceAndManifest": "all archive files identical, no adaptation",
+  "unwind": 8,
+  "unwindingAssertions": true,
+  "harnesses": 2,
+  "checks": 909,
+  "failed": 0,
+  "AeneasClaimsAdded": 0,
+  "APIs": [
+    {
+      "rustIdentity": "<normalize_line_endings::Normalized<I> as core::iter::traits::iterator::Iterator>::position",
+      "publicExposure": "opaque Iterator returned by normalized",
+      "predicateFamily": "pure Unicode char equality to arbitrary valid char target; no arbitrary callbacks",
+      "result": "first matching normalized-output index",
+      "postIterator": "exact normalized suffix after first match, or exhausted if absent; two further None calls at EOF",
+      "rawUnderlyingCursorOrCallbackCount": "not observed or claimed",
+      "harness": "position_character_and_remainder",
+      "checks": 480,
+      "unreachable": 7,
+      "failed": 0,
+      "seconds": 4.196849,
+      "log": "evidence/position_character_and_remainder.log"
+    },
+    {
+      "rustIdentity": "<normalize_line_endings::Normalized<I> as core::iter::traits::iterator::Iterator>::find",
+      "publicExposure": "opaque Iterator returned by normalized",
+      "predicateFamily": "pure Unicode char equality to arbitrary valid char target; no arbitrary callbacks",
+      "result": "first matching normalized character",
+      "postIterator": "exact normalized suffix after first match, or exhausted if absent; two further None calls at EOF",
+      "rawUnderlyingCursorOrCallbackCount": "not observed or claimed",
+      "harness": "find_character_and_remainder",
+      "checks": 429,
+      "unreachable": 7,
+      "failed": 0,
+      "seconds": 3.975424,
+      "log": "evidence/find_character_and_remainder.log"
+    }
+  ]
+}
