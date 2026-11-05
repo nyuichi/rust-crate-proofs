@@ -1,0 +1,20 @@
+/workspace/full-api/prng/rng-fill-delegation-probe/proofs/Proofs.lean:19:24: error: Tactic `rfl` failed: The left-hand side
+  do
+    let (_, rng1, buf1) ← ok (core.result.Result.Ok (), rng1, buf1)
+    pure (rng1, buf1)
+is not definitionally equal to the right-hand side
+  ok (rng1, buf1)
+
+R : Type
+d : rand_core.TryRng R Never
+rng rng1 : R
+buf buf1 : Slice U8
+h : d.try_fill_bytes rng buf = ok (core.result.Result.Ok (), rng1, buf1)
+⊢ (do
+      let (_, rng1, buf1) ← ok (core.result.Result.Ok (), rng1, buf1)
+      pure (rng1, buf1)) =
+    ok (rng1, buf1)
+'FillDelegation.original_exact' depends on axioms: [propext, Classical.choice, Quot.sound, core.fmt.Formatter]
+'FillDelegation.original_normal' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound, core.fmt.Formatter]
+'FillDelegation.original_failure' depends on axioms: [propext, Classical.choice, Quot.sound, core.fmt.Formatter]
+'FillDelegation.original_divergence' depends on axioms: [propext, Classical.choice, Quot.sound, core.fmt.Formatter]

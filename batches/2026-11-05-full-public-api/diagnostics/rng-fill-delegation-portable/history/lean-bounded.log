@@ -1,0 +1,30 @@
+/workspace/full-api/prng/rng-fill-delegation-probe/proofs/Proofs.lean:11:1: error: Invalid alternative name `fail`: Expected `ret` or `vis`
+/workspace/full-api/prng/rng-fill-delegation-probe/proofs/Proofs.lean:13:1: error: Invalid alternative name `ok`: Expected `ret` or `vis`
+/workspace/full-api/prng/rng-fill-delegation-probe/proofs/Proofs.lean:12:10: error: Tactic `rfl` failed: The left-hand side
+  do
+    let (r, self1, dst1) ← div
+    match r with
+      | core.result.Result.Ok a => ok (self1, dst1)
+      | core.result.Result.Err a => fail Error.panic
+is not definitionally equal to the right-hand side
+  do
+    let (_, rng1, buf1) ← div
+    pure (rng1, buf1)
+
+case div
+R : Type
+d : rand_core.TryRng R Never
+rng : R
+buf : Slice U8
+h : d.try_fill_bytes rng buf = div
+⊢ (do
+      let (r, self1, dst1) ← div
+      match r with
+        | core.result.Result.Ok a => ok (self1, dst1)
+        | core.result.Result.Err a => fail Error.panic) =
+    do
+    let (_, rng1, buf1) ← div
+    pure (rng1, buf1)
+/workspace/full-api/prng/rng-fill-delegation-probe/proofs/Proofs.lean:10:1: error: Alternative `ret` has not been provided
+/workspace/full-api/prng/rng-fill-delegation-probe/proofs/Proofs.lean:10:1: error: Alternative `vis` has not been provided
+'FillDelegation.original_exact' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound, core.fmt.Formatter]

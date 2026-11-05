@@ -1,0 +1,5 @@
+# Source-only diagnostic publication
+
+This packet contains four kernel-checked actual rand_core0.10.0 Rng::fill_bytes delegation theorems. The transitive official Formatter type axiom is live: these are **not standard3-only** proofs. It is preserved and documented, not erased or replaced with a false model. The quantified matching TryRng<Error=Never> dictionary is conditional; no arbitrary callback correctness/termination, generator/Rust dictionary bridge or independent physical heap/aliasing guarantee is established.
+
+Portable generation replay passed with all three generated files byte-identical. Minimal Lake package build and the consolidated portable proof replay have not been run after packaging. Earlier bounded kernel success logs and earlier proof failures remain distinct. Publishing these diagnostic source files performs no new verification, formal fresh run, API registration or consumer-report update, and adds zero machine claims to the current424. Private unsupported ABI/source binding tasks remain uncompleted.

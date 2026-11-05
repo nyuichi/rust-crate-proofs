@@ -1,0 +1,9 @@
+# Actual blanket fill_bytes: kernel success with explicit typeaxiom boundary
+
+Officialunchangedgeneratedactual rand_core0.10.0::Rng blanketcalls TryRngErrorNever.try_fill_bytes. Fourtheorems kernelchecked with bounded30s/4500MiB run, no sorryAx: exactcallbackbind equation, normalreturn exactgen/bufwriteback, outerAeneasfailure propagation, outerdivergence propagation. ArbitrarymodeledR and everytypedSliceU8 length; no finitebufferrestriction. RustErrNever eliminated by emptytypecases. Wrappernotprimarytarget. No callbackcorrectness/termination/globalheap/Drop/physicalalias guarantees.
+
+Every successfulaudit includes standard3 plus extra `core.fmt.Formatter : Type` from official Std/Core/Fmt.lean15. TryRngdictionary ErrorNever parent structurallycontains Debug/Display dictionaries whose fmt signatures mentionFormatter. Neither implementation norproof calls fmt, and noequation/Formatterbehavior assumption appears; nevertheless this is a live transitive typeaxiom, not standard3-only. It was not erased, supplied a falsemodel, replaced, or suppressed. Formatter-boundary.json records exacttypes/sourcehashes. No publicAPI/count change, no standard3claim.
+
+Firstproof used obsoleteResultconstructorcases and failed; retained separately. A laternormalhelper required bind_ok reduction and failedfirst; also retained. Finalcorrectedfourtheorems allpassed and audits contain no sorryAx. GeneratedTypes/Funs and originalRust/Std models unchanged; only newproofsource was corrected. Finalboundedlog/json is authoritative, olderfailedlogs are historical. No machinebinding or release-readyregistration implied.
+
+Portablepackaging: officialgeneration-only replay actuallyPASS, all3generatedfiles byteidentity. FullnewLake/consolidatedreplay notrun due publisherheavycoordination. Frozenfinalproof changes only stalecomment, originalsuccessfultheorembodies identical.
