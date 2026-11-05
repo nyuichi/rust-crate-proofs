@@ -20,7 +20,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |
 | byteorder-lite 0.1.0 | [33 / 5](https://proofs.rs/report/33) | 64 |
 | either 1.19.0 | [27 / 8](https://proofs.rs/report/27) | 41 |
-| endian-type 0.2.0 | [26 / 2](https://proofs.rs/report/26) | 66 |
+| endian-type 0.2.0 | [26 / 3](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [23 / 5](https://proofs.rs/report/23) | 14 |
 | normalize-line-endings 0.3.0 | [21 / 5](https://proofs.rs/report/21) | 1 |
 | oorandom 11.1.5 | [25 / 6](https://proofs.rs/report/25) | 20 |
