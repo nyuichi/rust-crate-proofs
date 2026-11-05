@@ -1,0 +1,46 @@
+diff --git a/src/Config.ml b/src/Config.ml
+index 87e3469..5a92680 100644
+--- a/src/Config.ml
++++ b/src/Config.ml
+@@ -469,6 +469,9 @@ let use_nested_tuple_projectors = ref false
+ (** Generate name patterns for the external definitions we encounter *)
+ let extract_external_name_patterns = ref true
+ 
++(** Opt-in: omit only external Lean rust_type registration attributes. *)
++let no_register_external_rust_types = ref false
++
+ (** *)
+ let match_patterns_with_trait_decl_refs = true
+ 
+diff --git a/src/Main.ml b/src/Main.ml
+index 3ba4be5..a4f1695 100644
+--- a/src/Main.ml
++++ b/src/Main.ml
+@@ -222,6 +222,9 @@ let () =
+          absent from the model of the trait declaration in the target backend \
+          (e.g., Lean). Trait declarations which have no model are not \
+          affected." );
++      ( "-no-register-external-rust-types",
++        Arg.Set no_register_external_rust_types,
++        " For Lean: omit external rust_type registration only; keep type terms and all other attributes unchanged (opt-in)." );
+       ( "-all-computable",
+         Arg.Set all_computable,
+         " For Lean: do not insert `noncomputable section` at the top of the \
+diff --git a/src/extract/ExtractTypes.ml b/src/extract/ExtractTypes.ml
+index 1b75eb7..0c03f6f 100644
+--- a/src/extract/ExtractTypes.ml
++++ b/src/extract/ExtractTypes.ml
+@@ -1257,7 +1257,12 @@ let extract_attributes (span : Meta.span) (ctx : extraction_ctx)
+     (rust_model_attr_options : string list) ~(is_external : bool) : unit =
+   if backend () = Lean then (
+     let name_pattern : string list list =
+-      if is_external then
++      if
++        is_external
++        && not
++             (!Config.no_register_external_rust_types
++             && rust_model_attr = "rust_type")
++      then
+         match generics with
+         | None ->
+             [
