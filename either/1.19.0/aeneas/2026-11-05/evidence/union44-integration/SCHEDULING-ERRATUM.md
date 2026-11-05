@@ -1,0 +1,3 @@
+# Scheduling measurements and proof results
+
+The immutable producer result for CallbackProofs records a45.123-second conservative wall duration that includes a publisher-priority pause. The first pause signal's exact clock was not recorded, so its active runtime cannot be reconstructed and no assertion that every14 build targets completed within30 seconds of wall time is supported. No timestamp or successful proof result is rewritten. The final independent all44 and all141 audits were separately measured at5.52 and3.04 seconds respectively. Proof success and standard-three-axiom audits are independent of the unmeasured scheduling gap. Recorded source, proof text, generated output and immutable producer manifests remain unchanged.

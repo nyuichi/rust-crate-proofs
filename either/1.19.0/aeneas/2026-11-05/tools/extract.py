@@ -5,6 +5,7 @@ roots = ['either::Either::is_left', 'either::Either::is_right', 'either::Either:
 roots += ['{impl core::iter::traits::double_ended::DoubleEndedIterator for either::Either}::next_back']
 roots += ['either::Either::factor_into_iter']
 roots += ['either::Either::into_iter']
+roots += ['either::Either::iter']
 cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--remove-unused-self-clauses','--dest','evidence']
 for root in roots:cmd+=['--start-from',root]
 for excluded in ['core::iter::traits::iterator::Iterator::size_hint', 'core::iter::traits::iterator::Iterator::count', 'core::iter::traits::iterator::Iterator::last', 'core::iter::traits::iterator::Iterator::nth', 'core::iter::traits::iterator::Iterator::for_each', 'core::iter::traits::iterator::Iterator::partition', 'core::iter::traits::iterator::Iterator::fold', 'core::iter::traits::iterator::Iterator::all', 'core::iter::traits::iterator::Iterator::any', 'core::iter::traits::iterator::Iterator::find', 'core::iter::traits::iterator::Iterator::find_map', 'core::iter::traits::iterator::Iterator::position']:cmd+=['--exclude',excluded]

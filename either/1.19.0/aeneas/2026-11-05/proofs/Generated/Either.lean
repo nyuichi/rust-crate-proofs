@@ -493,6 +493,31 @@ def Either.into_iter
     let t ← coreitertraitscollectIntoIteratorInst1.into_iter inner
     ok (Either.Right t)
 
+/-- [either::{either::Either<L, R>}::iter]:
+    Source: 'src/lib.rs', lines 813:4-819:5
+    Visibility: public -/
+def Either.iter
+  {L : Type _} {R : Type _} {Clause0_Item : Type _} {Clause0_IntoIter : Type _}
+  {Clause1_IntoIter : Type _}
+  (coreitertraitscollectIntoIteratorShared0LClause0_ItemClause0_IntoIterInst :
+  core.iter.traits.collect.IntoIterator L Clause0_Item Clause0_IntoIter)
+  (coreitertraitscollectIntoIteratorShared0RClause0_ItemClause1_IntoIterInst :
+  core.iter.traits.collect.IntoIterator R Clause0_Item Clause1_IntoIter)
+  (self : Either L R) :
+  Result (Either Clause0_IntoIter Clause1_IntoIter)
+  := do
+  match self with
+  | Either.Left inner =>
+    let t ←
+      coreitertraitscollectIntoIteratorShared0LClause0_ItemClause0_IntoIterInst.into_iter
+        inner
+    ok (Either.Left t)
+  | Either.Right inner =>
+    let t ←
+      coreitertraitscollectIntoIteratorShared0RClause0_ItemClause1_IntoIterInst.into_iter
+        inner
+    ok (Either.Right t)
+
 /-- [either::{either::Either<L, R>}::factor_into_iter]:
     Source: 'src/lib.rs', lines 866:4-872:5
     Visibility: public -/

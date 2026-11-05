@@ -31,3 +31,5 @@ lean_lib NextBackProofs
 lean_lib FactorProofs
 
 lean_lib IntoIterProofs
+
+lean_lib IterSharedProofs
