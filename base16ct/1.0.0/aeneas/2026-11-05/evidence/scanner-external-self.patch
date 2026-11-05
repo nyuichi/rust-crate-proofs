@@ -1,0 +1,105 @@
+--- a/src/scan.rs
++++ b/src/scan.rs
+@@ -656,6 +656,49 @@
+         })
+     }
+ 
++    // A crate can supply a public foreign-trait implementation for a foreign
++    // self type when a public crate-owned type occurs in the trait arguments
++    // (e.g. From<crate::Error> for core::fmt::Error). Do not infer ownership from
++    // an arbitrary spelling or a shadowing generic parameter.
++    fn has_public_local_trait_argument(
++        &self,
++        trait_path: &syn::Path,
++        module: &[String],
++        generics: &syn::Generics,
++    ) -> Result<bool> {
++        for segment in &trait_path.segments {
++            let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
++                continue;
++            };
++            for argument in &arguments.args {
++                let syn::GenericArgument::Type(argument_type) = argument else { continue };
++                let mut ty = argument_type;
++                loop {
++                    ty = match ty {
++                        syn::Type::Reference(r) => &r.elem,
++                        syn::Type::Paren(p) => &p.elem,
++                        syn::Type::Group(g) => &g.elem,
++                        _ => break,
++                    };
++                }
++                if let syn::Type::Path(p) = ty {
++                    if p.qself.is_none() && p.path.leading_colon.is_none()
++                        && p.path.segments.len() == 1
++                        && generics.type_params().any(|g| p.path.is_ident(&g.ident)) {
++                        continue;
++                    }
++                }
++                if let Some(nominal) = self.nominal_type(ty, module)? {
++                    if self.types.contains(&nominal)
++                        && !self.creusot_public_paths(&nominal)?.is_empty() {
++                        return Ok(true);
++                    }
++                }
++            }
++        }
++        Ok(false)
++    }
++
+     fn public_callable_paths(
+         &self,
+         context: &CallableContext,
+@@ -691,7 +734,8 @@
+                     vec![self.render_type_in(self_ty, module, generics, true)?]
+                 };
+                 let local_trait = self.traits.contains(&tr);
+-                if !legacy && !local_trait {
++                if !legacy && !local_trait
++                    && !self.has_public_local_trait_argument(trait_path, module, generics)? {
+                     return Ok(vec![]);
+                 }
+                 let suffix = self.render_arguments_in(
+@@ -1499,6 +1543,42 @@
+         assert_eq!(all[0].api_paths, ["plain"]);
+     }
+     #[test]
++    fn foreign_self_trait_with_public_owned_argument() {
++        let source = r#"
++mod errors { pub enum Error { Encoding, Length } }
++pub use errors::Error;
++impl From<Error> for core::fmt::Error {
++    fn from(_: Error) -> Self { core::fmt::Error }
++}
++impl From<&Error> for u8 { fn from(_: &Error) -> Self { 0 } }
++"#;
++        let c = creusot_contracts(source, CreusotTarget::All);
++        assert_eq!(c.len(), 2);
++        assert!(c.iter().any(|c| c.api_paths.contains(
++            &"<core::fmt::Error as From<demo::Error>>::from".into())));
++        assert!(c.iter().any(|c| c.api_paths.contains(
++            &"<u8 as From<&demo::Error>>::from".into())));
++    }
++
++    #[test]
++    fn foreign_self_trait_rejects_unowned_private_or_shadowed_arguments() {
++        let source = r#"
++pub struct Local;
++struct Private;
++pub fn anchor() {}
++impl From<u8> for core::fmt::Error { fn from(_: u8) -> Self { core::fmt::Error } }
++impl From<Private> for u8 { fn from(_: Private) -> Self { 0 } }
++impl<Local> From<Local> for u16 { fn from(_: Local) -> Self { 0 } }
++impl core::fmt::Display for u32 {
++    fn fmt(&self, _: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { Ok(()) }
++}
++"#;
++        let c = creusot_contracts(source, CreusotTarget::All);
++        assert_eq!(c.len(), 1);
++        assert_eq!(c[0].api_paths, ["anchor"]);
++    }
++
++    #[test]
+     fn creusot_public_methods_reexports_and_cfg() {
+         let c = creusot_contracts(
+             r#"
