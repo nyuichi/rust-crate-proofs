@@ -45,3 +45,12 @@ lean_lib NativeFloatIdentityProofs
 
 lean_lib ByteorderLiteU48Roots
 lean_lib U48Proofs
+
+lean_lib LiteSigned128Roots
+lean_lib Signed128Support
+lean_lib Signed128Math
+lean_lib Signed128WriteHelper
+lean_lib Signed128WriteNormal
+lean_lib Signed128WriteFailure
+lean_lib Signed128WriteContracts
+lean_lib Signed128Reads

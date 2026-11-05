@@ -115,3 +115,14 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 (p/'evidence/u48/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
 with (p/'evidence/u48/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/check-u48.py'],cwd=p,check=True)
+
+(p/'evidence/signed128').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder_lite','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/signed128')]
+(p/'evidence/signed128/charon-command.json').write_text(json.dumps(cmd,indent=2))
+signed128_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/signed128/rustflags.json').write_text(json.dumps({'RUSTFLAGS':signed128_flags}))
+with (p/'evidence/signed128/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/i128-selector',env=dict(os.environ,RUSTFLAGS=signed128_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/LiteSigned128Roots'),str(p/'evidence/signed128/lite_signed128_roots.llbc')]
+(p/'evidence/signed128/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/signed128/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-signed128.py'],cwd=p,check=True)
