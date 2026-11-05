@@ -6,11 +6,11 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Single strict-inventory entry point
 
-[All13 strict source inventories and current415 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
+[All13 strict source inventories and current417 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
 
 ## Current public results
 
-**Thirteen reports contain 415 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 417 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
@@ -23,7 +23,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 | endian-type 0.2.0 | [26 / 2](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [23 / 3](https://proofs.rs/report/23) | 14 |
 | normalize-line-endings 0.3.0 | [21 / 5](https://proofs.rs/report/21) | 1 |
-| oorandom 11.1.5 | [25 / 4](https://proofs.rs/report/25) | 12 |
+| oorandom 11.1.5 | [25 / 5](https://proofs.rs/report/25) | 14 |
 | rand_pcg 0.10.2 | [29 / 5](https://proofs.rs/report/29) | 25 |
 | rand_xorshift 0.5.0 | [24 / 7](https://proofs.rs/report/24) | 1 |
 | rand_xoshiro 0.8.1 | [30 / 3](https://proofs.rs/report/30) | 69 |
