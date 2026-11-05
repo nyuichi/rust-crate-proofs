@@ -1,0 +1,12 @@
+{
+  "run": "same original harness unmodified, valid Layout domain unchanged",
+  "official_option": "cargo kani -Z unstable-options --cbmc-args --object-bits 8",
+  "pointer_encoding": "8objectbits/56offsetbits; prior16/48",
+  "result": "FAILED1/105,4unreachable,9.587455s",
+  "failure": "Offset result address must equal original pointer address plus offset",
+  "model_source_url": "https://github.com/model-checking/kani/blob/kani-0.68.0/library/kani_core/src/models.rs",
+  "model_source_sha256": "e7e6b72e62e084e8417e8e3335dc8704c95c8b0e19a050d2b59073271d087fd6",
+  "source_diagnosis": "lines125\u2013145 explicitly explain CBMC offset wrap at2^(pointerwidth-objectbits), and guard retained despite CBMCfix. Reducing object bits extends range but cannot encode full64bit pointer offsets with positive object-id partition. No regular setting demonstrated full Rust Layout/isize domain.",
+  "claims": "no crate defect concluded, no new successful contract, no checks disabled or source/model/domain changes",
+  "raw_log_sha256": "c33170c7958db901f7bb6424230ff3d5790547ec96754513e9eab4940559be2d"
+}

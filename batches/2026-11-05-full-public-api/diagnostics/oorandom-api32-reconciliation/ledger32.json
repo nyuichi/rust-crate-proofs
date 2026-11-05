@@ -1,0 +1,1694 @@
+{
+  "summary": {
+    "observed_default": 46,
+    "excluded_std_derive": 14,
+    "nonexcluded_observed": 32,
+    "local": 16,
+    "local_primary_Aeneas": 14,
+    "local_float_supplement": 2,
+    "external": 16,
+    "external_identity": 6,
+    "external_Any": 2,
+    "external_CloneToUninit_restricted": 2,
+    "external_conditional_generic": 6,
+    "primary_published": 14,
+    "all32_full_Rust_API_completion_claim": false,
+    "all32_have_some_contract_or_restricted_evidence": true,
+    "configuration_scope": "Observed default x86_64; three rustdoc configurations produce duplicate observations (raw138). No local features declared. This is not all targets/dependency configurations."
+  },
+  "records": [
+    {
+      "observed_rust_identity": "oorandom::Rand32::from_state",
+      "owner": "oorandom::Rand32",
+      "method": "from_state",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          82,
+          5
+        ],
+        "end": [
+          85,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Restores arbitrary supplied complete state/inc pair exactly; save/restore identity, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::new",
+      "owner": "oorandom::Rand32",
+      "method": "new",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          48,
+          5
+        ],
+        "end": [
+          50,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Exact constructor warm-up state/odd transformed increment using DEFAULT_INC, all scalar seeds, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::new_inc",
+      "owner": "oorandom::Rand32",
+      "method": "new_inc",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          59,
+          5
+        ],
+        "end": [
+          70,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Exact increment ((input<<1)|1), zero-state warm-up, wrapped seed addition and next warm-up, all scalar seeds/increments, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::rand_float",
+      "owner": "oorandom::Rand32",
+      "method": "rand_float",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          104,
+          5
+        ],
+        "end": [
+          120,
+          6
+        ]
+      },
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/prng/kani-oorandom-float-split/COMPOSITION.md",
+        "/workspace/full-api/prng/kani-oorandom-float-split/FREEZE.json"
+      ],
+      "status": "supplement-full-state-composed",
+      "tool": "Kani",
+      "guarantee": "For every full state/inc pair, exact IEEE encoding of n/2^24, n=top24 bits of actual unsigned word; result in [0,1); poststate equals unsigned call.",
+      "limits": "Two-stage logical composition over identical helper, source-normalization guard and compiler/IEEE semantics trusted; state equality alone is not a call-count proof. No distribution/uniformity claim. No primary Aeneas mapping."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::rand_i32",
+      "owner": "oorandom::Rand32",
+      "method": "rand_i32",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          99,
+          5
+        ],
+        "end": [
+          101,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Same unsigned output bits interpreted as signed integer, same complete poststate, all restored pairs, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::rand_range",
+      "owner": "oorandom::Rand32",
+      "method": "rand_range",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          128,
+          5
+        ],
+        "end": [
+          154,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "Every represented state/range, typed width equals end.val-start.val. Invalid range asserts in debug extraction. For valid ranges, least accepted candidate n implies normal return with exact high-product-plus-start sample and candidate_n generator state; all rejected implies divergence. Canonical threshold is proved. Existence of an accepted index is conditional, not guaranteed; uniformity/period/runtime are unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee. Acceptance existence is conditional, not guaranteed; unconditional termination is false for restored (0,0),0..3. No uniformity/period/runtime claim.",
+      "guarantee": "Invalid range asserts; valid range first accepted candidate n yields exact high-product-plus-start sample and candidate state after n+1 words; all rejected diverges. Canonical threshold and exhaustive classical cases proved."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::rand_u32",
+      "owner": "oorandom::Rand32",
+      "method": "rand_u32",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          88,
+          5
+        ],
+        "end": [
+          96,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Exact PCG output permutation of old state and modular multiplier*state+increment poststate; all restored pairs, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand32::state",
+      "owner": "oorandom::Rand32",
+      "method": "state",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          75,
+          5
+        ],
+        "end": [
+          77,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Returns exact complete state/inc pair without changing receiver."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::from_state",
+      "owner": "oorandom::Rand64",
+      "method": "from_state",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          208,
+          5
+        ],
+        "end": [
+          211,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Restores arbitrary supplied complete state/inc pair exactly; save/restore identity, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::new",
+      "owner": "oorandom::Rand64",
+      "method": "new",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          182,
+          5
+        ],
+        "end": [
+          184,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Exact constructor warm-up state/odd transformed increment using DEFAULT_INC, all scalar seeds, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::new_inc",
+      "owner": "oorandom::Rand64",
+      "method": "new_inc",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          187,
+          5
+        ],
+        "end": [
+          196,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Exact increment ((input<<1)|1), zero-state warm-up, wrapped seed addition and next warm-up, all scalar seeds/increments, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::rand_float",
+      "owner": "oorandom::Rand64",
+      "method": "rand_float",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          230,
+          5
+        ],
+        "end": [
+          237,
+          6
+        ]
+      },
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/prng/kani-oorandom-float-split/COMPOSITION.md",
+        "/workspace/full-api/prng/kani-oorandom-float-split/FREEZE.json"
+      ],
+      "status": "supplement-full-state-composed",
+      "tool": "Kani",
+      "guarantee": "For every full state/inc pair, exact IEEE encoding of n/2^53, n=top53 bits of actual unsigned word; result in [0,1); poststate equals unsigned call.",
+      "limits": "Two-stage logical composition over identical helper, source-normalization guard and compiler/IEEE semantics trusted; state equality alone is not a call-count proof. No distribution/uniformity claim. No primary Aeneas mapping."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::rand_i64",
+      "owner": "oorandom::Rand64",
+      "method": "rand_i64",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          225,
+          5
+        ],
+        "end": [
+          227,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Same unsigned output bits interpreted as signed integer, same complete poststate, all restored pairs, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::rand_range",
+      "owner": "oorandom::Rand64",
+      "method": "rand_range",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          245,
+          5
+        ],
+        "end": [
+          263,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "Every represented state/range, typed width equals end.val-start.val. Invalid range asserts in debug extraction. For valid ranges, least accepted candidate n implies normal return with exact high-product-plus-start sample and candidate_n generator state; all rejected implies divergence. Canonical threshold is proved. Existence of an accepted index is conditional, not guaranteed; uniformity/period/runtime are unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee. Acceptance existence is conditional, not guaranteed; unconditional termination is false for restored (0,0),0..3. No uniformity/period/runtime claim.",
+      "guarantee": "Invalid range asserts; valid range first accepted candidate n yields exact high-product-plus-start sample and candidate state after n+1 words; all rejected diverges. Canonical threshold and exhaustive classical cases proved."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::rand_u64",
+      "owner": "oorandom::Rand64",
+      "method": "rand_u64",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          214,
+          5
+        ],
+        "end": [
+          222,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Exact PCG output permutation of old state and modular multiplier*state+increment poststate; all restored pairs, normal termination."
+    },
+    {
+      "observed_rust_identity": "oorandom::Rand64::state",
+      "owner": "oorandom::Rand64",
+      "method": "state",
+      "origin": "crate_manual",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": {
+        "filename": "src/lib.rs",
+        "begin": [
+          201,
+          5
+        ],
+        "end": [
+          203,
+          6
+        ]
+      },
+      "primary_public_claim": true,
+      "public_revision": 5,
+      "primary_precondition": "All well-typed scalar seeds, states and increments; default feature set on x86_64. No odd-increment or nonzero-state precondition.",
+      "family": "local",
+      "quantified_domain": "All scalar inputs / arbitrary complete public state+increment pairs for the method; pinned extracted configuration.",
+      "evidence": [
+        "/workspace/full-api/records/oorandom-exact-range14-report-readback.json"
+      ],
+      "status": "primary14-direct-original",
+      "tool": "Aeneas/Lean",
+      "limits": "Pinned debug/default x86_64 extraction and Aeneas/Rust translation boundary; no cross-target/compiler correctness or resource guarantee.",
+      "guarantee": "Returns exact complete state/inc pair without changing receiver."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::borrow::Borrow<T>>::borrow",
+      "owner": "oorandom::Rand32",
+      "method": "borrow",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Sized",
+                      "id": 31,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "maybe"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external16/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external16/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "effective_rust_identity": "<oorandom::Rand32 as core::borrow::Borrow<oorandom::Rand32>>::borrow",
+      "status": "supplement-all-state-observations",
+      "tool": "Kani",
+      "guarantee": "Borrow<Self> observes exact source state/inc.",
+      "limits": "Original concrete Self blanket, not arbitrary T or downstream trait impl. Guarantees public contents/writeback observations; physical pointer identity, general alias/layout and arbitrary global effects are not independently established."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::borrow::BorrowMut<T>>::borrow_mut",
+      "owner": "oorandom::Rand32",
+      "method": "borrow_mut",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Sized",
+                      "id": 31,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "maybe"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external16/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external16/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "effective_rust_identity": "<oorandom::Rand32 as core::borrow::BorrowMut<oorandom::Rand32>>::borrow_mut",
+      "status": "supplement-all-state-observations",
+      "tool": "Kani",
+      "guarantee": "BorrowMut<Self> observes original state/inc and propagates an arbitrary complete replacement pair back to the source.",
+      "limits": "Original concrete Self blanket, not arbitrary T or downstream trait impl. Guarantees public contents/writeback observations; physical pointer identity, general alias/layout and arbitrary global effects are not independently established."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::clone::CloneToUninit>::clone_to_uninit",
+      "owner": "oorandom::Rand32",
+      "method": "clone_to_uninit",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Clone",
+                      "id": 38,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external-remaining/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-clone-symbolic-region/RESULTS.md",
+        "/workspace/full-api/prng/oorandom-clone-pointer-options/RESULTS.md"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "status": "supplement-restricted-destination-incomplete",
+      "tool": "Kani",
+      "guarantee": "For all source state/inc pairs, actual unsafe clone copies complete state into a distinct valid aligned writable MaybeUninit<Self> stack slot and leaves source unchanged.",
+      "limits": "One destination shape only. Arbitrary valid allocation/offset/provenance domains, all safe destination layouts, frame for arbitrary regions, allocation behavior/failure not proved. Caller must supply valid extent, alignment, nonoverlap/provenance. Derive Clone/Copy not counted separately."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::convert::From<T>>::from",
+      "owner": "oorandom::Rand32",
+      "method": "from",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": []
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external16/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external16/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "effective_rust_identity": "<oorandom::Rand32 as core::convert::From<oorandom::Rand32>>::from",
+      "status": "supplement-all-state-observations",
+      "tool": "Kani",
+      "guarantee": "From<Self> preserves complete state/inc values.",
+      "limits": "Original concrete Self blanket, not arbitrary T or downstream trait impl. Guarantees public contents/writeback observations; physical pointer identity, general alias/layout and arbitrary global effects are not independently established."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::convert::Into<U>>::into",
+      "owner": "oorandom::Rand32",
+      "method": "into",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [
+        "U"
+      ],
+      "bound_class": "conditional_generic_bound_not_discharged",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          },
+          {
+            "name": "U",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "U"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "From",
+                      "id": 40,
+                      "args": {
+                        "angle_bracketed": {
+                          "args": [
+                            {
+                              "type": {
+                                "generic": "T"
+                              }
+                            }
+                          ],
+                          "constraints": []
+                        }
+                      }
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/enum/oorandom-generic6/README.md",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/OriginalDelegationProofs.lean",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/Proofs.lean"
+      ],
+      "quantified_domain": "All represented owner/input values, modeled U and selected matching dictionaries satisfying actual Rust trait bounds; not proof arbitrary U implements the bound.",
+      "status": "supplement-conditional-generic-body-complete-binding-pending",
+      "tool": "Aeneas/Lean original-core delegation",
+      "guarantee": "Original Into<U> body equals the selected U:From<Self> callback result; normal result, modeled fail and divergence propagate exactly.",
+      "limits": "Conditional generic family, not six concrete samples. Callback correctness/termination, actual matching trait availability/coherence, Drop/unwind/captured global/heap effects, physical alias/layout, resources and const evaluation are not proved. Four Into/TryInto bodies require separately pinned export-only custom translator, two TryFrom bodies official. Production six-family source binding not added; no primary count increase."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::convert::TryFrom<U>>::try_from",
+      "owner": "oorandom::Rand32",
+      "method": "try_from",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [
+        "U"
+      ],
+      "bound_class": "conditional_generic_bound_not_discharged",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          },
+          {
+            "name": "U",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "U"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Into",
+                      "id": 43,
+                      "args": {
+                        "angle_bracketed": {
+                          "args": [
+                            {
+                              "type": {
+                                "generic": "T"
+                              }
+                            }
+                          ],
+                          "constraints": []
+                        }
+                      }
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/enum/oorandom-generic6/README.md",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/OriginalDelegationProofs.lean",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/Proofs.lean"
+      ],
+      "quantified_domain": "All represented owner/input values, modeled U and selected matching dictionaries satisfying actual Rust trait bounds; not proof arbitrary U implements the bound.",
+      "status": "supplement-conditional-generic-body-complete-binding-pending",
+      "tool": "Aeneas/Lean original-core delegation",
+      "guarantee": "Original blanket Self:TryFrom<U> delegates to U:Into<Self>; normal callback return wrapped in Ok; modeled fail/divergence propagate; Infallible is uninhabited so no normal Err.",
+      "limits": "Conditional generic family, not six concrete samples. Callback correctness/termination, actual matching trait availability/coherence, Drop/unwind/captured global/heap effects, physical alias/layout, resources and const evaluation are not proved. Four Into/TryInto bodies require separately pinned export-only custom translator, two TryFrom bodies official. Production six-family source binding not added; no primary count increase."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::convert::TryInto<U>>::try_into",
+      "owner": "oorandom::Rand32",
+      "method": "try_into",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [
+        "U"
+      ],
+      "bound_class": "conditional_generic_bound_not_discharged",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          },
+          {
+            "name": "U",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "U"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "TryFrom",
+                      "id": 47,
+                      "args": {
+                        "angle_bracketed": {
+                          "args": [
+                            {
+                              "type": {
+                                "generic": "T"
+                              }
+                            }
+                          ],
+                          "constraints": []
+                        }
+                      }
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/enum/oorandom-generic6/README.md",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/OriginalDelegationProofs.lean",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/Proofs.lean"
+      ],
+      "quantified_domain": "All represented owner/input values, modeled U and selected matching dictionaries satisfying actual Rust trait bounds; not proof arbitrary U implements the bound.",
+      "status": "supplement-conditional-generic-body-complete-binding-pending",
+      "tool": "Aeneas/Lean original-core delegation",
+      "guarantee": "Original TryInto<U> body equals selected U:TryFrom<Self> callback result; complete Ok/Err payload and associated Error, modeled fail/divergence propagate.",
+      "limits": "Conditional generic family, not six concrete samples. Callback correctness/termination, actual matching trait availability/coherence, Drop/unwind/captured global/heap effects, physical alias/layout, resources and const evaluation are not proved. Four Into/TryInto bodies require separately pinned export-only custom translator, two TryFrom bodies official. Production six-family source binding not added; no primary count increase."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand32 as core::any::Any>::type_id",
+      "owner": "oorandom::Rand32",
+      "method": "type_id",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand32"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "outlives": "'static"
+                },
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Sized",
+                      "id": 31,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "maybe"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external-remaining/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external-remaining/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "status": "supplement-all-state-self-TypeId",
+      "tool": "Kani",
+      "guarantee": "For all complete state/inc pairs, actual Any::type_id equals TypeId::of<Self>(), differs from other generator type, and leaves public state unchanged.",
+      "limits": "Self-TypeId equality is all-state, not a fixed-state sample. Does not establish global uniqueness of all Rust types or cross-compilation stable TypeId values."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::borrow::Borrow<T>>::borrow",
+      "owner": "oorandom::Rand64",
+      "method": "borrow",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Sized",
+                      "id": 31,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "maybe"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external16/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external16/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "effective_rust_identity": "<oorandom::Rand64 as core::borrow::Borrow<oorandom::Rand64>>::borrow",
+      "status": "supplement-all-state-observations",
+      "tool": "Kani",
+      "guarantee": "Borrow<Self> observes exact source state/inc.",
+      "limits": "Original concrete Self blanket, not arbitrary T or downstream trait impl. Guarantees public contents/writeback observations; physical pointer identity, general alias/layout and arbitrary global effects are not independently established."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::borrow::BorrowMut<T>>::borrow_mut",
+      "owner": "oorandom::Rand64",
+      "method": "borrow_mut",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Sized",
+                      "id": 31,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "maybe"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external16/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external16/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "effective_rust_identity": "<oorandom::Rand64 as core::borrow::BorrowMut<oorandom::Rand64>>::borrow_mut",
+      "status": "supplement-all-state-observations",
+      "tool": "Kani",
+      "guarantee": "BorrowMut<Self> observes original state/inc and propagates an arbitrary complete replacement pair back to the source.",
+      "limits": "Original concrete Self blanket, not arbitrary T or downstream trait impl. Guarantees public contents/writeback observations; physical pointer identity, general alias/layout and arbitrary global effects are not independently established."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::clone::CloneToUninit>::clone_to_uninit",
+      "owner": "oorandom::Rand64",
+      "method": "clone_to_uninit",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Clone",
+                      "id": 38,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external-remaining/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-clone-symbolic-region/RESULTS.md",
+        "/workspace/full-api/prng/oorandom-clone-pointer-options/RESULTS.md"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "status": "supplement-restricted-destination-incomplete",
+      "tool": "Kani",
+      "guarantee": "For all source state/inc pairs, actual unsafe clone copies complete state into a distinct valid aligned writable MaybeUninit<Self> stack slot and leaves source unchanged.",
+      "limits": "One destination shape only. Arbitrary valid allocation/offset/provenance domains, all safe destination layouts, frame for arbitrary regions, allocation behavior/failure not proved. Caller must supply valid extent, alignment, nonoverlap/provenance. Derive Clone/Copy not counted separately."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::convert::From<T>>::from",
+      "owner": "oorandom::Rand64",
+      "method": "from",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": []
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external16/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external16/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "effective_rust_identity": "<oorandom::Rand64 as core::convert::From<oorandom::Rand64>>::from",
+      "status": "supplement-all-state-observations",
+      "tool": "Kani",
+      "guarantee": "From<Self> preserves complete state/inc values.",
+      "limits": "Original concrete Self blanket, not arbitrary T or downstream trait impl. Guarantees public contents/writeback observations; physical pointer identity, general alias/layout and arbitrary global effects are not independently established."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::convert::Into<U>>::into",
+      "owner": "oorandom::Rand64",
+      "method": "into",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [
+        "U"
+      ],
+      "bound_class": "conditional_generic_bound_not_discharged",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          },
+          {
+            "name": "U",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "U"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "From",
+                      "id": 40,
+                      "args": {
+                        "angle_bracketed": {
+                          "args": [
+                            {
+                              "type": {
+                                "generic": "T"
+                              }
+                            }
+                          ],
+                          "constraints": []
+                        }
+                      }
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/enum/oorandom-generic6/README.md",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/OriginalDelegationProofs.lean",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/Proofs.lean"
+      ],
+      "quantified_domain": "All represented owner/input values, modeled U and selected matching dictionaries satisfying actual Rust trait bounds; not proof arbitrary U implements the bound.",
+      "status": "supplement-conditional-generic-body-complete-binding-pending",
+      "tool": "Aeneas/Lean original-core delegation",
+      "guarantee": "Original Into<U> body equals the selected U:From<Self> callback result; normal result, modeled fail and divergence propagate exactly.",
+      "limits": "Conditional generic family, not six concrete samples. Callback correctness/termination, actual matching trait availability/coherence, Drop/unwind/captured global/heap effects, physical alias/layout, resources and const evaluation are not proved. Four Into/TryInto bodies require separately pinned export-only custom translator, two TryFrom bodies official. Production six-family source binding not added; no primary count increase."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::convert::TryFrom<U>>::try_from",
+      "owner": "oorandom::Rand64",
+      "method": "try_from",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [
+        "U"
+      ],
+      "bound_class": "conditional_generic_bound_not_discharged",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          },
+          {
+            "name": "U",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "U"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Into",
+                      "id": 43,
+                      "args": {
+                        "angle_bracketed": {
+                          "args": [
+                            {
+                              "type": {
+                                "generic": "T"
+                              }
+                            }
+                          ],
+                          "constraints": []
+                        }
+                      }
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/enum/oorandom-generic6/README.md",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/OriginalDelegationProofs.lean",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/Proofs.lean"
+      ],
+      "quantified_domain": "All represented owner/input values, modeled U and selected matching dictionaries satisfying actual Rust trait bounds; not proof arbitrary U implements the bound.",
+      "status": "supplement-conditional-generic-body-complete-binding-pending",
+      "tool": "Aeneas/Lean original-core delegation",
+      "guarantee": "Original blanket Self:TryFrom<U> delegates to U:Into<Self>; normal callback return wrapped in Ok; modeled fail/divergence propagate; Infallible is uninhabited so no normal Err.",
+      "limits": "Conditional generic family, not six concrete samples. Callback correctness/termination, actual matching trait availability/coherence, Drop/unwind/captured global/heap effects, physical alias/layout, resources and const evaluation are not proved. Four Into/TryInto bodies require separately pinned export-only custom translator, two TryFrom bodies official. Production six-family source binding not added; no primary count increase."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::convert::TryInto<U>>::try_into",
+      "owner": "oorandom::Rand64",
+      "method": "try_into",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [
+        "U"
+      ],
+      "bound_class": "conditional_generic_bound_not_discharged",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          },
+          {
+            "name": "U",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "U"
+              },
+              "bounds": [
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "TryFrom",
+                      "id": 47,
+                      "args": {
+                        "angle_bracketed": {
+                          "args": [
+                            {
+                              "type": {
+                                "generic": "T"
+                              }
+                            }
+                          ],
+                          "constraints": []
+                        }
+                      }
+                    },
+                    "generic_params": [],
+                    "modifier": "none"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/enum/oorandom-generic6/README.md",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/OriginalDelegationProofs.lean",
+        "/workspace/full-api/enum/oorandom-generic6/proofs/Proofs.lean"
+      ],
+      "quantified_domain": "All represented owner/input values, modeled U and selected matching dictionaries satisfying actual Rust trait bounds; not proof arbitrary U implements the bound.",
+      "status": "supplement-conditional-generic-body-complete-binding-pending",
+      "tool": "Aeneas/Lean original-core delegation",
+      "guarantee": "Original TryInto<U> body equals selected U:TryFrom<Self> callback result; complete Ok/Err payload and associated Error, modeled fail/divergence propagate.",
+      "limits": "Conditional generic family, not six concrete samples. Callback correctness/termination, actual matching trait availability/coherence, Drop/unwind/captured global/heap effects, physical alias/layout, resources and const evaluation are not proved. Four Into/TryInto bodies require separately pinned export-only custom translator, two TryFrom bodies official. Production six-family source binding not added; no primary count increase."
+    },
+    {
+      "observed_rust_identity": "<oorandom::Rand64 as core::any::Any>::type_id",
+      "owner": "oorandom::Rand64",
+      "method": "type_id",
+      "origin": "external_blanket",
+      "configuration": "default",
+      "target": "x86_64-unknown-linux-gnu",
+      "source_span": null,
+      "primary_public_claim": false,
+      "public_revision": null,
+      "primary_precondition": null,
+      "family": "external",
+      "self_substitution": {
+        "T": "oorandom::Rand64"
+      },
+      "remaining_type_parameters": [],
+      "bound_class": "concrete_self_observed_or_declaration_bounds_retained",
+      "rust_bounds": {
+        "params": [
+          {
+            "name": "T",
+            "kind": {
+              "type": {
+                "bounds": [],
+                "default": null,
+                "is_synthetic": false
+              }
+            }
+          }
+        ],
+        "where_predicates": [
+          {
+            "bound_predicate": {
+              "type": {
+                "generic": "T"
+              },
+              "bounds": [
+                {
+                  "outlives": "'static"
+                },
+                {
+                  "trait_bound": {
+                    "trait": {
+                      "path": "Sized",
+                      "id": 31,
+                      "args": null
+                    },
+                    "generic_params": [],
+                    "modifier": "maybe"
+                  }
+                }
+              ],
+              "generic_params": []
+            }
+          }
+        ]
+      },
+      "evidence": [
+        "/workspace/full-api/prng/oorandom-external-remaining/RESULTS.json",
+        "/workspace/full-api/prng/oorandom-external-remaining/src/lib.rs"
+      ],
+      "quantified_domain": "Every complete public state/inc pair; original blanket method called through unchanged path dependency.",
+      "status": "supplement-all-state-self-TypeId",
+      "tool": "Kani",
+      "guarantee": "For all complete state/inc pairs, actual Any::type_id equals TypeId::of<Self>(), differs from other generator type, and leaves public state unchanged.",
+      "limits": "Self-TypeId equality is all-state, not a fixed-state sample. Does not establish global uniqueness of all Rust types or cross-compilation stable TypeId values."
+    }
+  ],
+  "derive_exclusions": [
+    "<oorandom::Rand32 as core::clone::Clone>::clone",
+    "<oorandom::Rand32 as core::clone::Clone>::clone_from",
+    "<oorandom::Rand64 as core::clone::Clone>::clone",
+    "<oorandom::Rand64 as core::clone::Clone>::clone_from",
+    "<oorandom::Rand64 as core::cmp::Eq>::assert_receiver_is_total_eq",
+    "<oorandom::Rand64 as core::cmp::Eq>::assert_fields_are_eq",
+    "<oorandom::Rand64 as core::cmp::PartialEq>::eq",
+    "<oorandom::Rand64 as core::cmp::PartialEq>::ne",
+    "<oorandom::Rand32 as core::cmp::Eq>::assert_receiver_is_total_eq",
+    "<oorandom::Rand32 as core::cmp::Eq>::assert_fields_are_eq",
+    "<oorandom::Rand32 as core::fmt::Debug>::fmt",
+    "<oorandom::Rand32 as core::cmp::PartialEq>::eq",
+    "<oorandom::Rand32 as core::cmp::PartialEq>::ne",
+    "<oorandom::Rand64 as core::fmt::Debug>::fmt"
+  ],
+  "input_sha256": {
+    "/workspace/full-api/prng/oorandom.json": "65d90065085e0e4f7e877d028ef79aaebf75eee35faa1c2febff6556d3ee1172",
+    "/workspace/full-api/prng/oorandom-external16/exact16.json": "6d690ddb3be3ff850bf5efc9311e8d8b411957609bc6365fa16c883dd97ff66e",
+    "/workspace/full-api/records/oorandom-exact-range14-report-readback.json": "fe6f61f8f04cc0b134341785c4d3123eafc23f6bba29722b41b4d01ac9ff28ca",
+    "/workspace/full-api/prng/oorandom-external16/RESULTS.json": "52657577ee35eef08e43b787de99dca7a7678f63fb2b3a560eccf0f7ea726fae",
+    "/workspace/full-api/prng/oorandom-external-remaining/RESULTS.json": "7bb3c1502f76f33b7849ec72b260bb1c95e5a6efa022405353a5380c1805abd6",
+    "/workspace/full-api/enum/oorandom-generic6/README.md": "d8dd0ebe68c1bc3a1aad8add0d8145b2378d2e34c9a63888d956efe66065e75b",
+    "/workspace/full-api/prng/kani-oorandom-float-split/COMPOSITION.md": "0a41d2c7a836ff72d3c88b05a0fad9fbea97dce15906acf918894048f2fb4cab"
+  },
+  "audit_mode": "source/evidence reconciliation only; no new build, proof, solver, source edit or publication",
+  "noncallable_boundary": {
+    "not_in_32_count": [
+      "pub struct Rand32",
+      "pub struct Rand64",
+      "pub associated const Rand32::DEFAULT_INC",
+      "pub associated const Rand64::DEFAULT_INC",
+      "conditional blanket associated Error bindings"
+    ],
+    "constants": "DEFAULT_INC literal/source correspondence participates in constructor proofs; not independently counted as callable API. Private MULTIPLIER is a callee constant, not an extra public API.",
+    "associated_Error": "TryInto preserves the selected actual TryFrom associated Error; blanket TryFrom error Infallible is uninhabited. No arbitrary Rust error type availability is asserted."
+  }
+}
