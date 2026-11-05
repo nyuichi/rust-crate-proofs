@@ -1,0 +1,5 @@
+# Seed512 public tuple constructor: all64bytes
+
+TwoactualRustKani/Z3harnesses succeeded:33+51=84checks,0failed,4unreachable,0.421/0.620s. First: every512bit64bytearray is passed to actualpublic Seed512(bytes), public.0 field and actualAsRef returnexact64bytes. Second: everyindependent64replacementbytes is copiedthroughactualAsMut slice and exactpublicfield/AsRef updateisverified. Enabledunwind70 covers64bytecomparisons/copyloops; no checksdisabled.
+
+The newpublicoperation is the tupleconstructor, not a fictitiousassociatedmethod/sourcecard. Default/AsRef/AsMut/iter alreadycurrent69 and notcountedagain. Viewsareobservations/composition for constructedvalues; no newmachineclaim. Fullvalidconstructorinputdomain quantified, no finiteexample sampling or nonzeroassumption. Originalsource/archive/defaultconfiguration/core0.10.1 pins retained, no observer/privateinject/model/sourcechange. StandardRust/Kani memory/compiler semantics trusted; arbitraryexternalaliasing/heap/provenance, serde/manualDebug/otherconfig/target behavior notguaranteed.
