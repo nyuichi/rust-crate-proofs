@@ -6,15 +6,15 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 ## Single strict-inventory entry point
 
-[All13 strict source inventories and current405 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
+[All13 strict source inventories and current410 results](STRICT-INVENTORY-INDEX.md) provides original publication commits, preserved count axes, current report/run/source records and resume boundaries. Final scoped inventories are not full API proofs.
 
 ## Current public results
 
-**Thirteen reports contain 405 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
+**Thirteen reports contain 410 mapped model contracts in their stated configurations and domains. This is not full public API completion.** BitField now uses supported non-monomorphic extraction; its twelve primitive layout dictionaries remain explicitly bounded to the frozen ground-use closure. Generic callback contracts and manual primitive models retain their stated trust conditions.
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
-| ascii 1.1.0 | [28 / 4](https://proofs.rs/report/28) | 41 |
+| ascii 1.1.0 | [28 / 5](https://proofs.rs/report/28) | 46 |
 | base16ct 1.0.0 | [31 / 3](https://proofs.rs/report/31) | 3 |
 | bit_field 0.10.3 | [34 / 5](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |
@@ -111,3 +111,7 @@ ASCII report28 revision4 now publishes41 mappings after the finite typed-source 
 ## Either final scoped inventory
 
 [Either strict reconciliation](diagnostics/either-strict-reconciliation/README.md) preserves2096 observed rows across default/all/no-default/serde-without-std and uniquely matches all40 existing default model contracts. Shadowed defaults are50/50/38/40 respectively, not duplicate concrete executable bodies. Two constructor operations have four public alias rows; seven serde-on operations remain unproved. The diagnostic binder IR distinguishes owner/impl/trait/method/HRTB scopes, substitutes blanket Self once, preserves foreign Result ownership and retains unknown lifetime/Sized/associated/type predicates as conditions. These records are not unconditional concrete-callability or trait-solver certificates and do not broaden any proof domain.
+
+## Borrowed-view release update
+
+ASCII report28 revision5 now publishes46 mappings; the current13-report total is410. The five additional AsRef/AsMut source-canonical cards preserve the original41 prefix and IDs and have distinct typed recorded IDs. Their signature/safety metadata is empty/null rather than independent rustdoc verification; safe headers are pinned by the finite source gate. The existing Vec4 and new borrow5 source groups are separate, and only known41/46 proof/config snapshots are accepted. Mutable guarantees cover valid same-length sequence writeback, not resizing, physical pointer/capacity/allocator/lifetime/aliasing or OOM proofs. Older release and strict-packet counts below retain their original checkpoint meaning; the single index/current table gives the current values.
