@@ -14,6 +14,6 @@ Run `./verify-all.bash`. Unknown external/axiom guards and all public transitive
 
 Default returns 64 zero bytes. AsRef preserves the complete stored byte sequence. AsMut preserves that initial view and its backward function writes back any legal 64-byte replacement. The fixed-length condition is the natural length invariant of a returned slice into this fixed-size array. iter initializes the official standard slice-iterator model at index zero over the full byte sequence; this proof does not separately body-verify standard Iterator methods. These four APIs add direct proofs, bringing the Aeneas total to 29 (20 direct plus 9 compiler-inlined calls). See proofs/SeedProofs.lean and evidence/seed512-equivalence.json.
 
-## External Rng calls
+## SplitMix64 state serializer
 
-25 exact FQ external rand_core 0.10.1 Rng calls are proved through compiler-inlined forwarding selectors, with all native callees independently specified. The domain is every complete internal word state including zero. The output and every final word are specified; 32-bit projections preserve their native algorithm’s high/low selection. These are call proofs, distinguished from direct original body extraction. The five 32-bit-engine next_u64 compositions remain outside Aeneas coverage. Original production sources and Cargo manifest are unchanged. See RngProofs.lean and rng-selection-wrapper compiler-provenance/MIR evidence.
+StateProofs.splitmix_state_spec proves the original state method returns all eight little-endian bytes of the internal u64 state, with no restriction on that state. This adds a direct original-body claim; other generators’ state serializers remain unproved. No custom size_of model is supplied. Default/serde official output files are byte-identical.

@@ -1,0 +1,3 @@
+# Report wording correction after frozen handoff
+
+The producer identified a stale limitation left from its former fifteen-API candidate: “the distinct is_digit API is not covered.” The integrated twenty-four-API candidate includes the original is_digit body contract for all AsciiChar values and all u32 radices, including assertion failure when radix exceeds 36. The report now states this coverage and separately identifies the original failed comparison test invoking std char::is_digit at radix 0/1. Rust sources, all proof mappings, generated modules and theorem statements are unchanged. The producer freeze hash identifies the pre-editorial-correction package; this file records the explicit editorial delta.

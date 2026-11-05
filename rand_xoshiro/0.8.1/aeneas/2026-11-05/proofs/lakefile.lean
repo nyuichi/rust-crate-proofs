@@ -14,6 +14,6 @@ lean_lib XoshiroApiRoots where
 lean_lib Seed512 where
  roots := #[`Seed512.Types, `Seed512.Funs]
 
-@[default_target] lean_lib RngProofs
-lean_lib XoshiroRngApiRoots where
- roots := #[`XoshiroRngApiRoots.Types, `XoshiroRngApiRoots.Funs]
+@[default_target] lean_lib StateProofs
+lean_lib SplitMixState where
+ roots := #[`SplitMixState.Types, `SplitMixState.Funs]
