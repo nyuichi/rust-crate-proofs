@@ -14,7 +14,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 
 | Crate | Public report / revision | Mapped contracts |
 |---|---:|---:|
-| ascii 1.1.0 | [28 / 7](https://proofs.rs/report/28) | 51 |
+| ascii 1.1.0 | [28 / 8](https://proofs.rs/report/28) | 51 |
 | base16ct 1.0.0 | [31 / 3](https://proofs.rs/report/31) | 3 |
 | bit_field 0.10.3 | [34 / 5](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |

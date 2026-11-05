@@ -11,3 +11,5 @@ Current public total423 is unchanged; report22 is excluded. All next fresh runs 
 See PUBLICATION-QUEUE.json for exact frozen producer paths and manifest hashes. Other current crates remain open for new formal handoffs; absence of an entry is not a claim of completion. Unsafe Oorandom arbitrary-destination clone still requires independent memory/provenance semantics, intrinsic refinement and source/IR bridge, as recorded in the linked diagnostics.
 
 ASCII package scope is runtime src9 plus Cargo archive matching, not original root tests.rs execution/full-package restoration. The unchecked5 packet covers only documented safety values0..127.
+
+ASCII scalar30 and documented-safe unchecked5 are now published as supplemental Kani evidence in report28 revision8, run `9f261af8-bee6-4142-b934-997995b3027e`, source `6142b4105f93bed130c921550ad814c0c039b461`. Primary51 and the global423 remain unchanged. Earlier queue statuses above describe the producer handoff checkpoint.
