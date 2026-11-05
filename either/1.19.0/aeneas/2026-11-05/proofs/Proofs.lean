@@ -1,3 +1,6 @@
+import DefaultProofs
+import ResultProofs
+import IntoEitherProofs
 import CallbackProofs
 import Generated.Either
 open Aeneas Aeneas.Std
@@ -84,3 +87,29 @@ end Proofs
 #print axioms CallbackProofs.right_and_then_spec
 #print axioms CallbackProofs.right_and_then_failure
 #print axioms CallbackProofs.right_and_then_short_circuit
+
+#print axioms IntoEitherProofs.into_either_default_spec
+#print axioms IntoEitherProofs.into_either_with_default_spec
+#print axioms IntoEitherProofs.callback_failure
+#print axioms IntoEitherProofs.selected_dispatch
+#print axioms IntoEitherProofs.dispatch_failure
+#print axioms IntoEitherProofs.blanket_dispatch_is_original_default
+#print axioms IntoEitherProofs.into_either_blanket_spec
+#print axioms IntoEitherProofs.into_either_with_blanket_spec
+#print axioms IntoEitherProofs.blanket_callback_failure
+
+#print axioms ResultProofs.from_result_spec
+#print axioms ResultProofs.from_either_spec
+#print axioms ResultProofs.result_roundtrip
+#print axioms ResultProofs.either_roundtrip
+
+#print axioms DefaultProofs.left_or_default_spec
+#print axioms DefaultProofs.left_or_default_selected
+#print axioms DefaultProofs.left_or_default_normal
+#print axioms DefaultProofs.left_or_default_failure
+#print axioms DefaultProofs.left_or_default_divergence
+#print axioms DefaultProofs.right_or_default_spec
+#print axioms DefaultProofs.right_or_default_selected
+#print axioms DefaultProofs.right_or_default_normal
+#print axioms DefaultProofs.right_or_default_failure
+#print axioms DefaultProofs.right_or_default_divergence

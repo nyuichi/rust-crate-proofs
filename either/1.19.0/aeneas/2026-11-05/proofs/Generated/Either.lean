@@ -28,6 +28,54 @@ inductive Either (L : Type _) (R : Type _) where
 | Left : L → Either L R
 | Right : R → Either L R
 
+/-- Trait declaration: [either::into_either::IntoEither]
+    Source: 'src/into_either.rs', lines 14:0-62:1
+    Visibility: public -/
+structure into_either.IntoEither (Self : Type _) where
+  into_either : Self → Bool → Result (Either Self Self)
+  into_either_with : forall {F : Type}
+    (coreopsfunctionFnOncePTupleSharedFBoolInst : core.ops.function.FnOnce F
+    Self Bool), Self → F → Result (Either Self Self)
+
+/-- [either::into_either::IntoEither::into_either]:
+    Source: 'src/into_either.rs', lines 29:4-35:5
+    Visibility: public -/
+@[trait_default]
+def into_either.IntoEither.into_either.default
+  {Self : Type _} (self : Self) (into_left : Bool) :
+  Result (Either Self Self)
+  := do
+  if into_left
+  then ok (Either.Left self)
+  else ok (Either.Right self)
+
+/-- [either::into_either::IntoEither::into_either_with]:
+    Source: 'src/into_either.rs', lines 55:4-61:5
+    Visibility: public -/
+@[trait_default]
+def into_either.IntoEither.into_either_with.default
+  {Self : Type _} {F : Type _} (IntoEitherInst : into_either.IntoEither Self)
+  (coreopsfunctionFnOnceFTupleSharedSelfBoolInst : core.ops.function.FnOnce F
+  Self Bool) (self : Self) (into_left : F) :
+  Result (Either Self Self)
+  := do
+  let into_left1 ←
+    coreopsfunctionFnOnceFTupleSharedSelfBoolInst.call_once into_left self
+  IntoEitherInst.into_either self into_left1
+
+/-- Trait implementation: [either::into_either::{impl either::into_either::IntoEither for T}]
+    Source: 'src/into_either.rs', lines 64:0-64:27 -/
+@[reducible]
+impl_def into_either.IntoEither.Blanket (T : Type _) : into_either.IntoEither T
+  := {
+  into_either := into_either.IntoEither.into_either.default
+  into_either_with := fun {F : Type}
+    (coreopsfunctionFnOncePTupleSharedFBoolInst : core.ops.function.FnOnce F T
+    Bool) => into_either.IntoEither.into_either_with.default
+    (into_either.IntoEither.Blanket T)
+    coreopsfunctionFnOncePTupleSharedFBoolInst
+}
+
 /-- [either::Either::Left]:
     Source: 'src/lib.rs', lines 51:4-51:11 -/
 def Either.Left.constructor
@@ -315,6 +363,18 @@ def Either.left_or
   | Either.Left l => ok l
   | Either.Right _ => ok other
 
+/-- [either::{either::Either<L, R>}::left_or_default]:
+    Source: 'src/lib.rs', lines 959:4-967:5
+    Visibility: public -/
+def Either.left_or_default
+  {L : Type _} {R : Type _} (coredefaultDefaultInst : core.default.Default L)
+  (self : Either L R) :
+  Result L
+  := do
+  match self with
+  | Either.Left l => ok l
+  | Either.Right _ => coredefaultDefaultInst.default
+
 /-- [either::{either::Either<L, R>}::left_or_else]:
     Source: 'src/lib.rs', lines 981:4-989:5
     Visibility: public -/
@@ -334,6 +394,18 @@ def Either.right_or
   {L : Type _} {R : Type _} (self : Either L R) (other : R) : Result R := do
   match self with
   | Either.Left _ => ok other
+  | Either.Right r => ok r
+
+/-- [either::{either::Either<L, R>}::right_or_default]:
+    Source: 'src/lib.rs', lines 1026:4-1034:5
+    Visibility: public -/
+def Either.right_or_default
+  {L : Type _} {R : Type _} (coredefaultDefaultInst : core.default.Default R)
+  (self : Either L R) :
+  Result R
+  := do
+  match self with
+  | Either.Left _ => coredefaultDefaultInst.default
   | Either.Right r => ok r
 
 /-- [either::{either::Either<L, R>}::right_or_else]:
@@ -388,5 +460,27 @@ def EitherPairPair.factor_second
                      ok (Either.Left l, t)
   | Either.Right p => let (r, t) := p
                       ok (Either.Right r, t)
+
+/-- [either::{impl core::convert::From<core::result::Result<R, L>> for either::Either<L, R>}::from]:
+    Source: 'src/lib.rs', lines 1438:4-1443:5
+    Visibility: public -/
+def Either.Insts.CoreConvertFromResult.from
+  {L : Type _} {R : Type _} (r : core.result.Result R L) :
+  Result (Either L R)
+  := do
+  match r with
+  | core.result.Result.Ok o => ok (Either.Right o)
+  | core.result.Result.Err e => ok (Either.Left e)
+
+/-- [either::{impl core::convert::From<either::Either<L, R>> for core::result::Result<R, L>}::from]:
+    Source: 'src/lib.rs', lines 1448:4-1453:5
+    Visibility: public -/
+def core.result.Result.Insts.CoreConvertFromEither.from
+  {L : Type _} {R : Type _} (val : Either L R) :
+  Result (core.result.Result R L)
+  := do
+  match val with
+  | Either.Left l => ok (core.result.Result.Err l)
+  | Either.Right r => ok (core.result.Result.Ok r)
 
 end either

@@ -7,3 +7,9 @@ package enumproofs
 lean_lib Generated
 
 lean_lib CallbackProofs
+
+lean_lib IntoEitherProofs
+
+lean_lib ResultProofs
+
+lean_lib DefaultProofs

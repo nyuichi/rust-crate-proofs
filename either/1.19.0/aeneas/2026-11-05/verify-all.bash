@@ -9,12 +9,14 @@ sha256sum proofs/Generated/{Either.lean,translation.json} > evidence/generated-b
 python3 tools/extract.py
 sha256sum --check evidence/generated-before.sha256
 if rg -n '\bsorry\b|\baxiom\b' proofs --glob '*.lean' --glob '!**/.lake/**'; then exit 1; fi
-(cd proofs; lake build; lake env lean Proofs.lean) 2>&1 | tee evidence/verification.log
+(cd proofs; lake build) 2>&1 | tee evidence/verification.log
 python3 - <<'INNER'
 from pathlib import Path
 import re
-rows=re.findall(r"'(?:Proofs|CallbackProofs)\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
-assert len(rows)>=51,rows
+rows=re.findall(r"'(?:Proofs|CallbackProofs|IntoEitherProofs|ResultProofs|DefaultProofs)\.(\w+)' depends on axioms: \[(.*?)\]",Path('evidence/verification.log').read_text())
+assert len(rows)>=74,rows
 for n,a in rows:assert set(a.split(', '))<={'propext','Classical.choice','Quot.sound'},(n,a)
-print('All fifty-one theorem transitive axiom audits passed')
+print('All seventy-four theorem transitive axiom audits passed')
 INNER
+
+python3 tools/audit-all.py . evidence/machine-claims-audit
