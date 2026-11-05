@@ -27,3 +27,7 @@ lean_lib ReferenceSupplement
 @[default_target] lean_lib PrimaryCoimport
 
 lean_lib NextBackProofs
+
+lean_lib FactorProofs
+
+lean_lib IntoIterProofs

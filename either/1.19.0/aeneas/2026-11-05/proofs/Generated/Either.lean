@@ -76,6 +76,20 @@ impl_def into_either.IntoEither.Blanket (T : Type _) : into_either.IntoEither T
     coreopsfunctionFnOncePTupleSharedFBoolInst
 }
 
+/-- [either::iterator::IterEither]
+    Source: 'src/iterator.rs', lines 19:0-21:1
+    Visibility: public -/
+structure iterator.IterEither (L : Type _) (R : Type _) where
+  inner : Either L R
+
+/-- [either::iterator::{either::iterator::IterEither<L, R>}::new]:
+    Source: 'src/iterator.rs', lines 24:4-26:5 -/
+def iterator.IterEither.new
+  {L : Type _} {R : Type _} (inner : Either L R) :
+  Result (iterator.IterEither L R)
+  := do
+  ok { inner }
+
 /-- [either::iterator::{impl core::iter::traits::iterator::Iterator<Clause0_Item> for either::Either<L, R>}::next]:
     Source: 'src/iterator.rs', lines 92:4-94:5
     Visibility: public -/
@@ -458,6 +472,51 @@ def Either.right_and_then
   match self with
   | Either.Left l => ok (Either.Left l)
   | Either.Right r => coreopsfunctionFnOnceFTupleREitherInst.call_once f r
+
+/-- [either::{either::Either<L, R>}::into_iter]:
+    Source: 'src/lib.rs', lines 790:4-796:5
+    Visibility: public -/
+def Either.into_iter
+  {L : Type _} {R : Type _} {Clause0_Item : Type _} {Clause0_IntoIter : Type _}
+  {Clause1_IntoIter : Type _} (coreitertraitscollectIntoIteratorInst :
+  core.iter.traits.collect.IntoIterator L Clause0_Item Clause0_IntoIter)
+  (coreitertraitscollectIntoIteratorInst1 :
+  core.iter.traits.collect.IntoIterator R Clause0_Item Clause1_IntoIter)
+  (self : Either L R) :
+  Result (Either Clause0_IntoIter Clause1_IntoIter)
+  := do
+  match self with
+  | Either.Left inner =>
+    let t ← coreitertraitscollectIntoIteratorInst.into_iter inner
+    ok (Either.Left t)
+  | Either.Right inner =>
+    let t ← coreitertraitscollectIntoIteratorInst1.into_iter inner
+    ok (Either.Right t)
+
+/-- [either::{either::Either<L, R>}::factor_into_iter]:
+    Source: 'src/lib.rs', lines 866:4-872:5
+    Visibility: public -/
+def Either.factor_into_iter
+  {L : Type _} {R : Type _} {Clause0_Item : Type _} {Clause0_IntoIter : Type _}
+  {Clause1_Item : Type _} {Clause1_IntoIter : Type _}
+  (coreitertraitscollectIntoIteratorInst :
+  core.iter.traits.collect.IntoIterator L Clause0_Item Clause0_IntoIter)
+  (coreitertraitscollectIntoIteratorInst1 :
+  core.iter.traits.collect.IntoIterator R Clause1_Item Clause1_IntoIter)
+  (self : Either L R) :
+  Result (iterator.IterEither Clause0_IntoIter Clause1_IntoIter)
+  := do
+  let e ←
+    match self with
+    | Either.Left inner =>
+      do
+      let t ← coreitertraitscollectIntoIteratorInst.into_iter inner
+      ok (Either.Left t)
+    | Either.Right inner =>
+      do
+      let t ← coreitertraitscollectIntoIteratorInst1.into_iter inner
+      ok (Either.Right t)
+  iterator.IterEither.new e
 
 /-- [either::{either::Either<L, R>}::left_or]:
     Source: 'src/lib.rs', lines 940:4-945:5

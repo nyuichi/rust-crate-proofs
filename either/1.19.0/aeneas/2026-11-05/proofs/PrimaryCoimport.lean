@@ -3,3 +3,5 @@ import BothProofs
 import MapInspectProofs
 import IteratorProofs
 import NextBackProofs
+import FactorProofs
+import IntoIterProofs
