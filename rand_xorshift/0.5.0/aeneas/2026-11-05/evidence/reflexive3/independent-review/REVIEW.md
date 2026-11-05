@@ -1,0 +1,5 @@
+Mathematical/source/scope PASS for immutable0312/251files. Archiveallmembers/sourcepins/threeexacttypedMIRscopes/zeroIRcalls/reachableopaque0, generatedfourWrappingU32type,3kernelstandard2audits and recordedportablegeneration/ownLake checks match. Frozen sidecars0 (actualdir compiled artifacts excluded), oldprimary1 typebridge/coimport explicitly notrun. Identity/writeback does not prove physicalalias/Drop effects.
+
+Provenance metadata correction required: TOOL-PINS rustc actually hashes rustup, prints rustupversion and exit-6. This is not successful actualRust09identity capture. Keep immutable raw and add corrected actualcompilercommit/binary identity or explicit unavailable boundary; no need to rerun proofs or alter models. Producer notified. No build/solver rerun.
+
+Clarify READY opaque_functions0: LLBC has3transparent and19unused opaque array/slice builtin declarations; generated3functions and reachablecallgraph contain no opaque function. This does not affect the3zero-call kernel proofs, but globalLLBCopaque0 would be inaccurate.

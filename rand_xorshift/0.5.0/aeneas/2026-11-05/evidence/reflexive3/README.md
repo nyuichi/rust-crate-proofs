@@ -1,0 +1,7 @@
+XorShift original external reflexive3 supplement
+
+Actualstandardblanket From<Self>,Borrow<Self>,BorrowMut<Self> onoriginalXorShiftRng are selected bythinUFCSdrivers. AllfourWrapping<u32>fields arbitraryincludingzero. From/sharedBorrowreturnidenticalmodeledvalue; BorrowMutreturnsvalueandidentityabstractbackwardfunction. Threekerneltheorems useonlypropext/Quot.sound. No arithmetic/wrappingoperationmodelneeded: officialgeneratedWrapping<T>isreducibleT, originaltypefieldsretained.
+
+Thesearethreeexternalblanketspecializations, notnewlocaldeclarations/functioncards. Compiler-inlined originalbodyevidence: before/aftertypedMIRscopes, threefinaltransparentbodies/zeroCall/noopaque. Nooriginal/IR/generated/modelhandedits. Existingprimary1/nativewordandits3reviewedWrappingmodels areunchanged; coimport/nominaltypebridgewithprimary1notrun, separateLeanenvironment. Physicalpointer/alias/lifetime/Drop/global effects areoutsidevalue/backwardmodel.
+
+Originalarchiveallfiles/Cargo/runtimepins retained. Cargo.producer.toml isactualexecutedabsoluteoriginaldependency; Cargo.toml relocatesidenticaldependencyto./original. Reproducer allows onlyexactdocumented original dependency source-prefix relocation in generatedLean/translation. Portableofficialregeneration and ownpinnedLake1798build both PASS, with3cleanaxiommarkers in portable-lake.log. PREPARED/CHECKPOINT pendingphrases arehistorical and superseded by READY. Initialproofsyntaxfailure ishistoryonly; finalclean3audit supersedes it.

@@ -1,0 +1,26 @@
+// MIR for `original_borrow_mut` before AddMovesForPackedDrops
+
+fn original_borrow_mut(_1: &mut rand_xorshift::XorShiftRng) -> &mut rand_xorshift::XorShiftRng {
+    debug value => _1;
+    let mut _0: &mut rand_xorshift::XorShiftRng;
+    let mut _2: &mut rand_xorshift::XorShiftRng;
+    let mut _3: &mut rand_xorshift::XorShiftRng;
+    let mut _4: &mut rand_xorshift::XorShiftRng;
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        StorageLive(_4);
+        _4 = &mut (*_1);
+        _3 = <rand_xorshift::XorShiftRng as std::borrow::BorrowMut<rand_xorshift::XorShiftRng>>::borrow_mut(move _4) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _2 = &mut (*_3);
+        StorageDead(_4);
+        StorageDead(_3);
+        _0 = &mut (*_2);
+        StorageDead(_2);
+        return;
+    }
+}

@@ -1,0 +1,26 @@
+// MIR for `original_borrow` after built
+
+fn original_borrow(_1: &rand_xorshift::XorShiftRng) -> &rand_xorshift::XorShiftRng {
+    debug value => _1;
+    let mut _0: &rand_xorshift::XorShiftRng;
+    let _2: &rand_xorshift::XorShiftRng;
+    let mut _3: &rand_xorshift::XorShiftRng;
+
+    bb0: {
+        StorageLive(_2);
+        StorageLive(_3);
+        _3 = &(*_1);
+        _2 = <rand_xorshift::XorShiftRng as std::borrow::Borrow<rand_xorshift::XorShiftRng>>::borrow(move _3) -> [return: bb1, unwind: bb2];
+    }
+
+    bb1: {
+        _0 = &(*_2);
+        StorageDead(_3);
+        StorageDead(_2);
+        return;
+    }
+
+    bb2 (cleanup): {
+        resume;
+    }
+}

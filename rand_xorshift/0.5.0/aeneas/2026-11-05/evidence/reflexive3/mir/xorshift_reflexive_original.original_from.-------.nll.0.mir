@@ -1,0 +1,37 @@
+// MIR for `original_from` 0 nll
+
+| Free Region Mapping
+| '?0 | Global | ['?0, '?1]
+| '?1 | Local | ['?1]
+|
+| Inferred Region Values
+| '?0 | U0 | {bb0[0..=2], bb1[0..=1], bb2[0], '?0, '?1}
+| '?1 | U0 | {bb0[0..=2], bb1[0..=1], bb2[0], '?1}
+|
+| Inference Constraints
+| '?0 live at {bb0[0..=2], bb1[0..=1], bb2[0]}
+| '?1 live at {bb0[0..=2], bb1[0..=1], bb2[0]}
+|
+fn original_from(_1: rand_xorshift::XorShiftRng) -> rand_xorshift::XorShiftRng {
+    debug value => _1;                   // in scope 0 at src/lib.rs:2:22: 2:27
+    let mut _0: rand_xorshift::XorShiftRng; // return place in scope 0 at src/lib.rs:2:42: 2:53
+    let mut _2: rand_xorshift::XorShiftRng; // in scope 0 at src/lib.rs:2:97: 2:102
+
+    bb0: {
+        StorageLive(_2);                 // scope 0 at src/lib.rs:2:97: 2:102
+        _2 = move _1;                    // scope 0 at src/lib.rs:2:97: 2:102
+        _0 = <rand_xorshift::XorShiftRng as std::convert::From<rand_xorshift::XorShiftRng>>::from(move _2) -> [return: bb1, unwind: bb2]; // scope 0 at src/lib.rs:2:56: 2:103
+                                         // mir::ConstOperand
+                                         // + span: src/lib.rs:2:56: 2:96
+                                         // + const_: Const { ty: fn(rand_xorshift::XorShiftRng) -> rand_xorshift::XorShiftRng {<rand_xorshift::XorShiftRng as std::convert::From<rand_xorshift::XorShiftRng>>::from}, val: Value(<rand_xorshift::XorShiftRng as std::convert::From<rand_xorshift::XorShiftRng>>::from) }
+    }
+
+    bb1: {
+        StorageDead(_2);                 // scope 0 at src/lib.rs:2:102: 2:103
+        return;                          // scope 0 at src/lib.rs:2:105: 2:105
+    }
+
+    bb2 (cleanup): {
+        resume;                          // scope 0 at src/lib.rs:2:1: 2:105
+    }
+}

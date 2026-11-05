@@ -1,0 +1,64 @@
+// MIR for `original_borrow` 0 nll
+
+| Free Region Mapping
+| '?0 | Global | ['?0, '?2, '?1]
+| '?1 | Local | ['?2, '?1]
+| '?2 | Local | ['?2]
+|
+| Inferred Region Values
+| '?0 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?0, '?1, '?2}
+| '?1 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?2 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?2}
+| '?3 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?4 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?5 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?6 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?7 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?8 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+| '?9 | U0 | {bb0[0..=3], bb1[0..=3], bb2[0], '?1}
+|
+| Inference Constraints
+| '?0 live at {bb0[0..=3], bb1[0..=3], bb2[0]}
+| '?1 live at {bb0[0..=3], bb1[0..=3], bb2[0]}
+| '?2 live at {bb0[0..=3], bb1[0..=3], bb2[0]}
+| '?3 live at {bb0[2]}
+| '?4 live at {bb1[0]}
+| '?9 live at {bb0[3]}
+| '?1: '?5 due to BoringNoLocation at All(src/lib.rs:3:45: 3:57) (src/lib.rs:3:45: 3:57 (#0)
+| '?1: '?6 due to BoringNoLocation at All(src/lib.rs:3:24: 3:29) (src/lib.rs:3:24: 3:29 (#0)
+| '?3: '?8 due to Boring at Single(bb0[2]) (src/lib.rs:3:119: 3:124 (#0)
+| '?4: '?5 due to Return(Normal) at Single(bb1[0]) (src/lib.rs:3:60: 3:125 (#0)
+| '?5: '?1 due to BoringNoLocation at All(src/lib.rs:3:45: 3:57) (src/lib.rs:3:45: 3:57 (#0)
+| '?6: '?1 due to BoringNoLocation at All(src/lib.rs:3:24: 3:29) (src/lib.rs:3:24: 3:29 (#0)
+| '?6: '?3 due to Boring at Single(bb0[2]) (src/lib.rs:3:119: 3:124 (#0)
+| '?7: '?4 due to Boring at Single(bb1[0]) (src/lib.rs:3:60: 3:125 (#0)
+| '?8: '?9 due to CallArgument(Some(FnDef(core::borrow::Borrow::borrow, Binder { value: [rand_xorshift::XorShiftRng, rand_xorshift::XorShiftRng], bound_vars: [] }))) at Single(bb0[3]) (src/lib.rs:3:60: 3:125 (#0)
+| '?9: '?7 due to Boring at Single(bb0[3]) (src/lib.rs:3:60: 3:125 (#0)
+|
+fn original_borrow(_1: &rand_xorshift::XorShiftRng) -> &rand_xorshift::XorShiftRng {
+    debug value => _1;                   // in scope 0 at src/lib.rs:3:24: 3:29
+    let mut _0: &rand_xorshift::XorShiftRng; // return place in scope 0 at src/lib.rs:3:45: 3:57
+    let _2: &rand_xorshift::XorShiftRng; // in scope 0 at src/lib.rs:3:60: 3:125
+    let mut _3: &rand_xorshift::XorShiftRng; // in scope 0 at src/lib.rs:3:119: 3:124
+
+    bb0: {
+        StorageLive(_2);                 // scope 0 at src/lib.rs:3:60: 3:125
+        StorageLive(_3);                 // scope 0 at src/lib.rs:3:119: 3:124
+        _3 = &(*_1);                     // scope 0 at src/lib.rs:3:119: 3:124
+        _2 = <rand_xorshift::XorShiftRng as std::borrow::Borrow<rand_xorshift::XorShiftRng>>::borrow(move _3) -> [return: bb1, unwind: bb2]; // scope 0 at src/lib.rs:3:60: 3:125
+                                         // mir::ConstOperand
+                                         // + span: src/lib.rs:3:60: 3:118
+                                         // + const_: Const { ty: for<'a> fn(&'a rand_xorshift::XorShiftRng) -> &'a rand_xorshift::XorShiftRng {<rand_xorshift::XorShiftRng as std::borrow::Borrow<rand_xorshift::XorShiftRng>>::borrow}, val: Value(<rand_xorshift::XorShiftRng as std::borrow::Borrow<rand_xorshift::XorShiftRng>>::borrow) }
+    }
+
+    bb1: {
+        _0 = &(*_2);                     // scope 0 at src/lib.rs:3:60: 3:125
+        StorageDead(_3);                 // scope 0 at src/lib.rs:3:124: 3:125
+        StorageDead(_2);                 // scope 0 at src/lib.rs:3:124: 3:125
+        return;                          // scope 0 at src/lib.rs:3:127: 3:127
+    }
+
+    bb2 (cleanup): {
+        resume;                          // scope 0 at src/lib.rs:3:1: 3:127
+    }
+}

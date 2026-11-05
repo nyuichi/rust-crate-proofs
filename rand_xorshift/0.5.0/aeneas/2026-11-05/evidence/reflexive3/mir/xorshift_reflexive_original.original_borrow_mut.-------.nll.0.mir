@@ -1,0 +1,83 @@
+// MIR for `original_borrow_mut` 0 nll
+
+| Free Region Mapping
+| '?0 | Global | ['?0, '?2, '?1]
+| '?1 | Local | ['?2, '?1]
+| '?2 | Local | ['?2]
+|
+| Inferred Region Values
+| '?0 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?0, '?1, '?2}
+| '?1 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?2 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?2}
+| '?3 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?4 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?5 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?6 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?7 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?8 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?9 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?10 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+| '?11 | U0 | {bb0[0..=4], bb1[0..=5], bb2[0], '?1}
+|
+| Inference Constraints
+| '?0 live at {bb0[0..=4], bb1[0..=5], bb2[0]}
+| '?1 live at {bb0[0..=4], bb1[0..=5], bb2[0]}
+| '?2 live at {bb0[0..=4], bb1[0..=5], bb2[0]}
+| '?3 live at {bb0[3]}
+| '?4 live at {bb1[0]}
+| '?5 live at {bb1[3]}
+| '?6 live at {bb1[4..=5]}
+| '?7 live at {bb0[0..=3]}
+| '?8 live at {bb1[1..=3]}
+| '?9 live at {bb1[0]}
+| '?10 live at {bb0[4]}
+| '?11 live at {bb0[4]}
+| '?1: '?6 due to BoringNoLocation at All(src/lib.rs:4:53: 4:69) (src/lib.rs:4:53: 4:69 (#0)
+| '?1: '?7 due to BoringNoLocation at All(src/lib.rs:4:28: 4:33) (src/lib.rs:4:28: 4:33 (#0)
+| '?3: '?10 due to Boring at Single(bb0[3]) (src/lib.rs:4:138: 4:143 (#0)
+| '?4: '?8 due to Boring at Single(bb1[0]) (src/lib.rs:4:72: 4:144 (#0)
+| '?5: '?6 due to Return(Normal) at Single(bb1[3]) (src/lib.rs:4:72: 4:144 (#0)
+| '?6: '?1 due to BoringNoLocation at All(src/lib.rs:4:53: 4:69) (src/lib.rs:4:53: 4:69 (#0)
+| '?7: '?1 due to BoringNoLocation at All(src/lib.rs:4:28: 4:33) (src/lib.rs:4:28: 4:33 (#0)
+| '?7: '?3 due to Boring at Single(bb0[3]) (src/lib.rs:4:138: 4:143 (#0)
+| '?8: '?5 due to Boring at Single(bb1[3]) (src/lib.rs:4:72: 4:144 (#0)
+| '?9: '?4 due to Boring at Single(bb1[0]) (src/lib.rs:4:72: 4:144 (#0)
+| '?10: '?11 due to CallArgument(Some(FnDef(core::borrow::BorrowMut::borrow_mut, Binder { value: [rand_xorshift::XorShiftRng, rand_xorshift::XorShiftRng], bound_vars: [] }))) at Single(bb0[4]) (src/lib.rs:4:72: 4:144 (#0)
+| '?11: '?9 due to Boring at Single(bb0[4]) (src/lib.rs:4:72: 4:144 (#0)
+|
+| Borrows
+| bw0: issued at bb0[3] in '?3
+| bw1: issued at bb1[0] in '?4
+| bw2: issued at bb1[3] in '?5
+|
+fn original_borrow_mut(_1: &mut rand_xorshift::XorShiftRng) -> &mut rand_xorshift::XorShiftRng {
+    debug value => _1;                   // in scope 0 at src/lib.rs:4:28: 4:33
+    let mut _0: &mut rand_xorshift::XorShiftRng; // return place in scope 0 at src/lib.rs:4:53: 4:69
+    let mut _2: &mut rand_xorshift::XorShiftRng; // in scope 0 at src/lib.rs:4:72: 4:144
+    let mut _3: &mut rand_xorshift::XorShiftRng; // in scope 0 at src/lib.rs:4:72: 4:144
+    let mut _4: &mut rand_xorshift::XorShiftRng; // in scope 0 at src/lib.rs:4:138: 4:143
+
+    bb0: {
+        StorageLive(_2);                 // scope 0 at src/lib.rs:4:72: 4:144
+        StorageLive(_3);                 // scope 0 at src/lib.rs:4:72: 4:144
+        StorageLive(_4);                 // scope 0 at src/lib.rs:4:138: 4:143
+        _4 = &mut (*_1);                 // scope 0 at src/lib.rs:4:138: 4:143
+        _3 = <rand_xorshift::XorShiftRng as std::borrow::BorrowMut<rand_xorshift::XorShiftRng>>::borrow_mut(move _4) -> [return: bb1, unwind: bb2]; // scope 0 at src/lib.rs:4:72: 4:144
+                                         // mir::ConstOperand
+                                         // + span: src/lib.rs:4:72: 4:137
+                                         // + const_: Const { ty: for<'a> fn(&'a mut rand_xorshift::XorShiftRng) -> &'a mut rand_xorshift::XorShiftRng {<rand_xorshift::XorShiftRng as std::borrow::BorrowMut<rand_xorshift::XorShiftRng>>::borrow_mut}, val: Value(<rand_xorshift::XorShiftRng as std::borrow::BorrowMut<rand_xorshift::XorShiftRng>>::borrow_mut) }
+    }
+
+    bb1: {
+        _2 = &mut (*_3);                 // scope 0 at src/lib.rs:4:72: 4:144
+        StorageDead(_4);                 // scope 0 at src/lib.rs:4:143: 4:144
+        StorageDead(_3);                 // scope 0 at src/lib.rs:4:143: 4:144
+        _0 = &mut (*_2);                 // scope 0 at src/lib.rs:4:72: 4:144
+        StorageDead(_2);                 // scope 0 at src/lib.rs:4:145: 4:146
+        return;                          // scope 0 at src/lib.rs:4:146: 4:146
+    }
+
+    bb2 (cleanup): {
+        resume;                          // scope 0 at src/lib.rs:4:1: 4:146
+    }
+}

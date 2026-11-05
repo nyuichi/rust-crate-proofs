@@ -7,3 +7,6 @@ package randproofs
   roots := #[`Proofs, `Nonzero]
 lean_lib RandXorshift where
   roots := #[`RandXorshift.Types, `RandXorshift.FunsExternal, `RandXorshift.Funs]
+
+lean_lib XorshiftReflexiveOriginal
+lean_lib ReflexiveProofs
