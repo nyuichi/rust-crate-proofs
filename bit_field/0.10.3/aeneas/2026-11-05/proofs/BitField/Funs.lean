@@ -30,7 +30,7 @@ namespace bit_field
     Visibility: public -/
 @[global_simps, irreducible]
 def U8.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofU8
+  let i ← core.mem.size_of Std.U8
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for u8}::get_bit]:
@@ -49,7 +49,7 @@ def U8.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def U16.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofU16
+  let i ← core.mem.size_of Std.U16
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for u16}::get_bit]:
@@ -68,7 +68,7 @@ def U16.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def U32.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofU32
+  let i ← core.mem.size_of Std.U32
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for u32}::get_bit]:
@@ -87,7 +87,7 @@ def U32.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def U64.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofU64
+  let i ← core.mem.size_of Std.U64
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for u64}::get_bit]:
@@ -106,7 +106,7 @@ def U64.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def U128.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofU128
+  let i ← core.mem.size_of Std.U128
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for u128}::get_bit]:
@@ -125,7 +125,7 @@ def U128.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def Usize.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofUsize
+  let i ← core.mem.size_of Std.Usize
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for usize}::get_bit]:
@@ -144,7 +144,7 @@ def Usize.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def I8.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofI8
+  let i ← core.mem.size_of Std.I8
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for i8}::get_bit]:
@@ -163,7 +163,7 @@ def I8.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def I16.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofI16
+  let i ← core.mem.size_of Std.I16
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for i16}::get_bit]:
@@ -182,7 +182,7 @@ def I16.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def I32.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofI32
+  let i ← core.mem.size_of Std.I32
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for i32}::get_bit]:
@@ -201,7 +201,7 @@ def I32.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def I64.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofI64
+  let i ← core.mem.size_of Std.I64
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for i64}::get_bit]:
@@ -220,7 +220,7 @@ def I64.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def I128.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofI128
+  let i ← core.mem.size_of Std.I128
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for i128}::get_bit]:
@@ -239,7 +239,7 @@ def I128.Insts.Bit_fieldBitField.get_bit
     Visibility: public -/
 @[global_simps, irreducible]
 def Isize.Insts.Bit_fieldBitField.BIT_LENGTH : Result Std.Usize := do
-  let i ← core.mem.size_ofIsize
+  let i ← core.mem.size_of Std.Isize
   i * 8#usize
 
 /-- [bit_field::{impl bit_field::BitField for isize}::get_bit]:
