@@ -1,3 +1,4 @@
+import SupplementalProofs
 import StdProofs
 import NoStdProofs
 open Aeneas Aeneas.Std Result Error

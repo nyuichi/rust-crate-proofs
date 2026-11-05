@@ -1,4 +1,5 @@
-import Proofs
+import StdProofs
+import NoStdProofs
 open Aeneas Aeneas.Std Result
 namespace SupplementalProofs
 /-- Actual handwritten Clone method with the official default clone_from model. -/
