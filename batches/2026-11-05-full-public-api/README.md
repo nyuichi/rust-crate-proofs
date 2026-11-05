@@ -16,7 +16,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 |---|---:|---:|
 | ascii 1.1.0 | [28 / 9](https://proofs.rs/report/28) | 51 |
 | base16ct 1.0.0 | [31 / 4](https://proofs.rs/report/31) | 3 |
-| bit_field 0.10.3 | [34 / 6](https://proofs.rs/report/34) | 27 |
+| bit_field 0.10.3 | [34 / 7](https://proofs.rs/report/34) | 27 |
 | byteorder 1.5.0 | [32 / 5](https://proofs.rs/report/32) | 42 |
 | byteorder-lite 0.1.0 | [33 / 5](https://proofs.rs/report/33) | 64 |
 | either 1.19.0 | [27 / 9](https://proofs.rs/report/27) | 43 |
