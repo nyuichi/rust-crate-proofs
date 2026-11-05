@@ -1,0 +1,69 @@
+85: fn extend_sign(val: u64, nbytes: usize) -> i64 {
+86:     let shift = (8 - nbytes) * 8;
+87:     (val << shift) as i64 >> shift
+88: }
+89: 
+90: #[inline]
+91: fn extend_sign128(val: u128, nbytes: usize) -> i128 {
+92:     let shift = (16 - nbytes) * 8;
+93:     (val << shift) as i128 >> shift
+94: }
+95: 
+96: #[inline]
+97: fn unextend_sign(val: i64, nbytes: usize) -> u64 {
+98:     let shift = (8 - nbytes) * 8;
+99:     (val << shift) as u64 >> shift
+100: }
+101: 
+102: #[inline]
+103: fn unextend_sign128(val: i128, nbytes: usize) -> u128 {
+104:     let shift = (16 - nbytes) * 8;
+105:     (val << shift) as u128 >> shift
+722: 
+723:     /// Writes a signed 24 bit integer `n` to `buf`, stored in i32.
+724:     ///
+725:     /// # Panics
+726:     ///
+727:     /// Panics when `buf.len() < 3`.
+728:     ///
+729:     /// # Examples
+730:     ///
+731:     /// Write and read 24 bit `i32` numbers in little endian order:
+732:     ///
+733:     /// ```rust
+734:     /// use byteorder_lite::{ByteOrder, LittleEndian};
+735:     ///
+736:     /// let mut buf = [0; 3];
+737:     /// LittleEndian::write_i24(&mut buf, -1_000_000);
+738:     /// assert_eq!(-1_000_000, LittleEndian::read_i24(&buf));
+739:     /// ```
+740:     #[inline]
+741:     fn write_i24(buf: &mut [u8], n: i32) {
+742:         Self::write_int(buf, n as i64, 3)
+743:     }
+744: 
+831:     }
+832: 
+833:     /// Writes a signed integer `n` to `buf` using only `nbytes`.
+834:     ///
+835:     /// # Panics
+836:     ///
+837:     /// If `n` is not representable in `nbytes`, or if `nbytes` is `> 8`, then
+838:     /// this method panics.
+839:     ///
+840:     /// # Examples
+841:     ///
+842:     /// Write and read an n-byte number in little endian order:
+843:     ///
+844:     /// ```rust
+845:     /// use byteorder_lite::{ByteOrder, LittleEndian};
+846:     ///
+847:     /// let mut buf = [0; 3];
+848:     /// LittleEndian::write_int(&mut buf, -1_000, 3);
+849:     /// assert_eq!(-1_000, LittleEndian::read_int(&buf, 3));
+850:     /// ```
+851:     #[inline]
+852:     fn write_int(buf: &mut [u8], n: i64, nbytes: usize) {
+853:         Self::write_uint(buf, unextend_sign(n, nbytes), nbytes)
+854:     }
+855: 

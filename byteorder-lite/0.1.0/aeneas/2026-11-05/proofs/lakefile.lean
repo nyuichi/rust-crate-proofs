@@ -13,3 +13,30 @@ lean_lib VariableGenerated
 
 lean_lib FloatProofs
 lean_lib ByteorderLiteFloatRoots
+
+lean_lib ReadVariableProofs
+lean_lib ReadVariableGenerated
+
+lean_lib ByteorderLiteU24Roots
+lean_lib U24ReadSupport
+lean_lib U24WrapperProofs
+lean_lib U24Decode24
+lean_lib U24Exact24
+lean_lib U24WriteSupport
+lean_lib U24Write24
+
+lean_lib SignedVariableRoots
+lean_lib SignedVariableWriteSupport
+lean_lib SignedVariableProofs
+lean_lib SignedVariableNormal
+lean_lib SignedVariableFailure
+lean_lib SignedVariableI24
+lean_lib SignedVariableContracts
+
+lean_lib SignedReadRoots
+lean_lib SignedReadSupport
+lean_lib SignedDecodeMath
+lean_lib SignedReadProofs
+
+lean_lib ByteorderLite
+lean_lib NativeIdentityProofs

@@ -159,9 +159,153 @@ module = "FloatProofs"
 theorem = "FloatProofs.le_write_f64_contract"
 precondition = "Arbitrary f64 bit representation and byte slice on x86_64 with default features, under the explicit bit-pattern type and std to_bits models. Sufficient-buffer success and short-buffer panic are both specified; no floating arithmetic is modeled."
 
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::read_uint"
+module = "ReadVariableProofs"
+theorem = "ReadVariableProofs.be_read_uint_contract"
+precondition = "Arbitrary byte slice and byte count on x86_64 with default features. Normal return exactly when 1 <= nbytes <= 8 and nbytes <= input length; return is the unsigned selected-endian decoding of the first nbytes bytes, zero-padded to 8 bytes. Otherwise assertionFailure."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::read_uint128"
+module = "ReadVariableProofs"
+theorem = "ReadVariableProofs.be_read_uint128_contract"
+precondition = "Arbitrary byte slice and byte count on x86_64 with default features. Normal return exactly when 1 <= nbytes <= 16 and nbytes <= input length; return is the unsigned selected-endian decoding of the first nbytes bytes, zero-padded to 16 bytes. Otherwise assertionFailure."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::read_uint"
+module = "ReadVariableProofs"
+theorem = "ReadVariableProofs.le_read_uint_contract"
+precondition = "Arbitrary byte slice and byte count on x86_64 with default features. Normal return exactly when 1 <= nbytes <= 8 and nbytes <= input length; return is the unsigned selected-endian decoding of the first nbytes bytes, zero-padded to 8 bytes. Otherwise assertionFailure."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::read_uint128"
+module = "ReadVariableProofs"
+theorem = "ReadVariableProofs.le_read_uint128_contract"
+precondition = "Arbitrary byte slice and byte count on x86_64 with default features. Normal return exactly when 1 <= nbytes <= 16 and nbytes <= input length; return is the unsigned selected-endian decoding of the first nbytes bytes, zero-padded to 16 bytes. Otherwise assertionFailure."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::read_u24"
+module = "U24Exact24"
+theorem = "U24Proofs.be_read_u24_contract"
+precondition = "Every input byte slice: length >= 3 returns the exact unsigned 24-bit endian decoding of the first three bytes, with result < 2^24; shorter input asserts. Original concrete default body and concrete callees; x86_64/default features."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_u24"
+module = "U24Write24"
+theorem = "U24Writes.be_write_u24_contract"
+precondition = "Every u32 and output byte slice: value < 2^24 and length >= 3 writes exactly three endian bytes and preserves the suffix; any other input asserts. Original concrete default body and concrete callees; x86_64/default features."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::read_u24"
+module = "U24Exact24"
+theorem = "U24Proofs.le_read_u24_contract"
+precondition = "Every input byte slice: length >= 3 returns the exact unsigned 24-bit endian decoding of the first three bytes, with result < 2^24; shorter input asserts. Original concrete default body and concrete callees; x86_64/default features."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_u24"
+module = "U24Write24"
+theorem = "U24Writes.le_write_u24_contract"
+precondition = "Every u32 and output byte slice: value < 2^24 and length >= 3 writes exactly three endian bytes and preserves the suffix; any other input asserts. Original concrete default body and concrete callees; x86_64/default features."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_int"
+module = "SignedVariableContracts"
+theorem = "SignedWrites.be_write_int_contract"
+precondition = "All i64 values with no representability precondition and every byte count/buffer. Count 1..8 and enough space serializes the low 8*count bits and preserves suffix; count zero/>8 produces integerOverflow, and valid-count insufficient space assertionFailure. Original concrete default/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::write_i24"
+module = "SignedVariableContracts"
+theorem = "SignedWrites.be_write_i24_contract"
+precondition = "All i32 values, including values outside signed 24-bit range. Buffer length >=3 serializes the low 24 bits and preserves suffix; shorter buffers produce assertionFailure. The unsigned reference word equals the original 32-bit pattern modulo 2^24. Original concrete default/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_int"
+module = "SignedVariableContracts"
+theorem = "SignedWrites.le_write_int_contract"
+precondition = "All i64 values with no representability precondition and every byte count/buffer. Count 1..8 and enough space serializes the low 8*count bits and preserves suffix; count zero/>8 produces integerOverflow, and valid-count insufficient space assertionFailure. Original concrete default/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::write_i24"
+module = "SignedVariableContracts"
+theorem = "SignedWrites.le_write_i24_contract"
+precondition = "All i32 values, including values outside signed 24-bit range. Buffer length >=3 serializes the low 24 bits and preserves suffix; shorter buffers produce assertionFailure. The unsigned reference word equals the original 32-bit pattern modulo 2^24. Original concrete default/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::read_int"
+module = "SignedReadProofs"
+theorem = "SignedReadProofs.be_read_int_contract"
+precondition = "All byte slices and byte counts. Count1..8 and sufficient input returns the exact selected-prefix two-complement signed decode at width8*count; invalid count or insufficient input produces assertionFailure before sign extension. Original concrete default/helper/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::BigEndian as byteorder_lite::ByteOrder>::read_i24"
+module = "SignedReadProofs"
+theorem = "SignedReadProofs.be_read_i24_contract"
+precondition = "All byte slices. At least3 bytes returns the exact signed24 two-complement decode of the selected-endian prefix, without loss in i32; shorter input produces assertionFailure. Original concrete default/helper/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::read_int"
+module = "SignedReadProofs"
+theorem = "SignedReadProofs.le_read_int_contract"
+precondition = "All byte slices and byte counts. Count1..8 and sufficient input returns the exact selected-prefix two-complement signed decode at width8*count; invalid count or insufficient input produces assertionFailure before sign extension. Original concrete default/helper/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::read_i24"
+module = "SignedReadProofs"
+theorem = "SignedReadProofs.le_read_i24_contract"
+precondition = "All byte slices. At least3 bytes returns the exact signed24 two-complement decode of the selected-endian prefix, without loss in i32; shorter input produces assertionFailure. Original concrete default/helper/callee bodies; x86_64 default features/debug extraction."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_u16"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_u16_identity"
+precondition = "Every well-typed mutable u16 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_u32"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_u32_identity"
+precondition = "Every well-typed mutable u32 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_u64"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_u64_identity"
+precondition = "Every well-typed mutable u64 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_u128"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_u128_identity"
+precondition = "Every well-typed mutable u128 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_i16"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_i16_identity"
+precondition = "Every well-typed mutable i16 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_i32"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_i32_identity"
+precondition = "Every well-typed mutable i32 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_i64"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_i64_identity"
+precondition = "Every well-typed mutable i64 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
+[[tool.proofs]]
+api = "<byteorder_lite::LittleEndian as byteorder_lite::ByteOrder>::from_slice_i128"
+module = "NativeIdentityProofs"
+theorem = "NativeIdentityProofs.le_from_slice_i128_identity"
+precondition = "Every well-typed mutable i128 slice, including empty slices and arbitrary elements, on x86_64 little-endian/default features/debug extraction. The original method leaves the entire slice unchanged and returns normally. The opposite-endian and other-target paths are not covered; no external model is supplied because generated original bodies make zero external calls."
+
 [report]
 title = "Exact integer and floating bit serialization, with explicit failure conditions"
-explanation = "byteorder-lite 0.1.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endian order and preserve trailing bytes when the output is long enough; shorter buffers panic before writing. Float proofs quantify over every 32/64-bit representation, including NaN payloads and signed zeros, under explicit bit-pattern and std to_bits models. No floating arithmetic is modeled. The two handwritten Default methods always panic. The four variable-width unsigned writers additionally have exact byte-count/space guards, selected-byte output on success and assertion failure otherwise."
-limitations = "This covers 24 selected writer methods and two handwritten Default methods, not all public APIs. Reads, remaining signed variable-width wrappers, bulk and in-place conversions, I/O extensions, other targets and release extraction remain unproved. The float result establishes bit serialization only: floating arithmetic, comparisons, rounding, numeric accuracy, NaN arithmetic and signaling behavior are not modeled. Kani public-writer buffer lengths are fixed at 6 and 10; arbitrary valid slice lengths are quantified separately by the Lean theorems. Panic messages and unwinding side effects are not specified."
-trusted_assumptions = "F32/F64 are explicit 32/64-bit logical patterns; two executable std to_bits models preserve those patterns as unsigned words, with checked Lean value-preservation lemmas. Guards require original writer bodies and allow no other float operation. Kani checks std bit identity for every pattern and actual released writers with 6/10-byte buffers. Connecting these Rust checks to the Lean representation is reviewed, not mechanized; Rust nightlies differ. Official translation/standard integer and slice models, Lean, and Kani/CBMC are trusted. Mapped audits permit only propext, Classical.choice and Quot.sound."
+explanation = "byteorder-lite 0.1.0: fixed-width unsigned and signed integer writes, plus BE/LE write_f32/write_f64, write their exact bit representations in the selected endian order and preserve trailing bytes when the output is long enough; shorter buffers panic before writing. Float proofs quantify over every 32/64-bit representation, including NaN payloads and signed zeros, under explicit bit-pattern and std to_bits models. No floating arithmetic is modeled. Signed write_i24 and write_int additionally serialize the low 24 or 8*nbytes bits for every signed input value, preserving suffix bytes; no signed representability condition is required. Invalid byte counts or short buffers panic as specified. Signed read_int/read_i24 additionally return the exact two-complement prefix decode at the selected width; all invalid counts and short inputs assert before sign extension. LittleEndian from_slice_u16/u32/u64/u128 and from_slice_i16/i32/i64/i128 additionally leave every slice unchanged on the verified little-endian target, including empty slices and all element values. The two handwritten Default methods always panic. The four variable-width unsigned writers additionally have exact byte-count/space guards, selected-byte output on success and assertion failure otherwise. Unsigned 24-bit readers/writers additionally have exact 3-byte decoding/serialization, a 24-bit value domain and complete short-buffer/value-overflow failures. Four unsigned variable-width readers decode the exact selected prefix under their complete byte-count/input-length guard, and assert otherwise."
+limitations = "This covers 30 selected writer methods, ten scoped integer readers, eight native-target identity conversions, and two handwritten Default methods, not all public APIs. Fixed-width 16/32/64/128-bit reads, remaining signed 128-bit variable-width wrappers, other bulk and in-place conversions, I/O extensions, other targets and release extraction remain unproved. The float result establishes bit serialization only: floating arithmetic, comparisons, rounding, numeric accuracy, NaN arithmetic and signaling behavior are not modeled. Kani public-writer buffer lengths are fixed at 6 and 10; arbitrary valid slice lengths are quantified separately by the Lean theorems. The write_int documentation says nonrepresentable values panic, while original-body theorems establish truncation for all i64 inputs when count/space guards hold; 176 finite native observations corroborate selected boundaries. This is a documentation/behavior mismatch, not a memory-safety finding. write_i24 documents only short-buffer panic and is not classified as a documentation problem. Other signed reads remain unproved. Opposite-endian conversion methods and other target configurations are not covered by the identity results. Panic messages and unwinding side effects are not specified."
+trusted_assumptions = "F32/F64 are explicit 32/64-bit logical patterns; two executable std to_bits models preserve those patterns as unsigned words, with checked Lean value-preservation lemmas. Guards require original writer bodies and allow no other float operation. Kani checks std bit identity for every pattern and actual released writers with 6/10-byte buffers. Connecting these Rust checks to the Lean representation is reviewed, not mechanized; Rust nightlies differ. Official translation/standard integer and slice models, Lean, and Kani/CBMC are trusted. The eight native conversion bodies make no external calls after official target-branch translation. Nine unused declarations remain in the unchanged, unimported external template; the provider supplies zero definitions and no semantics are assumed for those unused symbols. Guards require exactly the original identity bodies and zero external use. Mapped audits permit only propext, Classical.choice and Quot.sound."
 environment = "Archive-identical Rust/Cargo.toml; x86_64 default features, debug extraction. Rust nightly-2026-09-17, Charon08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean4.35.0. Kani0.68.0/CBMC6.11.0/Rust nightly-2026-08-21: six harnesses, 276 checks, no failures per crate."

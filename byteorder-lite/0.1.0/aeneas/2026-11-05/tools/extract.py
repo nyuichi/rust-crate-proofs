@@ -46,3 +46,60 @@ cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-
 with (p/'evidence/float/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
 subprocess.run(['python3','tools/provide-float-models.py'],cwd=p,check=True)
 subprocess.run(['python3','tools/check-float-selector.py'],cwd=p,check=True)
+
+(p/'evidence/read-variable').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence/read-variable']
+for endian in ['BigEndian','LittleEndian']:
+ for method in ['read_uint','read_uint128']:cmd+=['--start-from',f'{{impl crate::ByteOrder for crate::{endian}}}::{method}']
+(p/'evidence/read-variable/charon-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/read-variable/charon.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-abort-on-error','-dest','proofs/ReadVariableGenerated','evidence/read-variable/byteorder_lite.llbc']
+(p/'evidence/read-variable/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/read-variable/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-read-variable.py'],cwd=p,check=True)
+
+(p/'evidence/u24').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder_lite','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/u24')]
+(p/'evidence/u24/charon-command.json').write_text(json.dumps(cmd,indent=2))
+u24_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/u24/rustflags.json').write_text(json.dumps({'RUSTFLAGS':u24_flags}))
+with (p/'evidence/u24/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/u24-selector',env=dict(os.environ,RUSTFLAGS=u24_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/ByteorderLiteU24Roots'),str(p/'evidence/u24/byteorder_lite_u24_roots.llbc')]
+(p/'evidence/u24/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/u24/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-u24.py'],cwd=p,check=True)
+
+(p/'evidence/signed-variable').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder_lite','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/signed-variable')]
+(p/'evidence/signed-variable/charon-command.json').write_text(json.dumps(cmd,indent=2))
+signed_variable_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/signed-variable/rustflags.json').write_text(json.dumps({'RUSTFLAGS':signed_variable_flags}))
+with (p/'evidence/signed-variable/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/signed-variable-selector',env=dict(os.environ,RUSTFLAGS=signed_variable_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/SignedVariableRoots'),str(p/'evidence/signed-variable/signed_variable_roots.llbc')]
+(p/'evidence/signed-variable/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/signed-variable/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-signed-variable.py'],cwd=p,check=True)
+
+(p/'evidence/signed-read').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--include','byteorder_lite','--duplicate-defaulted-methods','--remove-unused-self-clauses','--dest',str(p/'evidence/signed-read')]
+(p/'evidence/signed-read/charon-command.json').write_text(json.dumps(cmd,indent=2))
+signed_read_flags='--remap-path-prefix='+str(p)+'/'+'='
+(p/'evidence/signed-read/rustflags.json').write_text(json.dumps({'RUSTFLAGS':signed_read_flags}))
+with (p/'evidence/signed-read/charon.log').open('w') as out:subprocess.run(cmd,cwd=p/'tools/signed-read-selector',env=dict(os.environ,RUSTFLAGS=signed_read_flags),check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest',str(p/'proofs/SignedReadRoots'),str(p/'evidence/signed-read/signed_read_roots.llbc')]
+(p/'evidence/signed-read/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/signed-read/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/check-signed-read.py'],cwd=p,check=True)
+
+(p/'evidence/native-identity').mkdir(exist_ok=True)
+cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence/native-identity']
+for sign in ['u','i']:
+ for bits in [16,32,64,128]:cmd+=['--start-from',f'{{impl crate::ByteOrder for crate::LittleEndian}}::from_slice_{sign}{bits}']
+(p/'evidence/native-identity/charon-command.json').write_text(json.dumps(cmd,indent=2))
+native_env=dict(os.environ,CARGO_BUILD_TARGET='x86_64-unknown-linux-gnu')
+(p/'evidence/native-identity/target-env.json').write_text(json.dumps({'CARGO_BUILD_TARGET':native_env['CARGO_BUILD_TARGET'],'target_endian':'little'}))
+with (p/'evidence/native-identity/charon.log').open('w') as out:subprocess.run(cmd,cwd=p,env=native_env,check=True,stdout=out,stderr=subprocess.STDOUT)
+cmd=['aeneas','-backend','lean','-emit-json','-split-files','-abort-on-error','-dest','proofs/ByteorderLite','evidence/native-identity/byteorder_lite.llbc']
+(p/'evidence/native-identity/aeneas-command.json').write_text(json.dumps(cmd,indent=2))
+with (p/'evidence/native-identity/aeneas.log').open('w') as out:subprocess.run(cmd,cwd=p,check=True,stdout=out,stderr=subprocess.STDOUT)
+subprocess.run(['python3','tools/provide-native-no-model.py'],cwd=p,check=True)

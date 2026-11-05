@@ -4,25 +4,29 @@ The requested scope is all public APIs of thirteen exact crate versions, excludi
 
 The previous reports contain **56 actual mapped body-contract proofs in their stated configurations and input/model domains**. Those guarantees are retained verbatim in `current-coverage-audit.json` and the original `proofs.toml` files. Their existence is distinct from whether they cover every success/error/panic case of an API, every feature/target configuration, external trait dependencies, and the entire crate. Configuration applicability is not inferred merely from matching a method name. The normalize-line-endings guarantee is explicitly for adapted source with the documented Kani bridge.
 
-## Latest integrated results
+## Current public results
 
-The counts below are explicitly mapped contracts, not a claim that the crate or all configurations are complete. Immutable source/run/SARIF hashes are in `proof-updates.json`. Independent Kani and Lean supplemental checks retain their separate tool/domain status.
+**Thirteen reports contain 288 mapped model contracts in their stated configurations and domains. This is not full public API completion.** The supported non-monomorphic BitField extraction supersedes the historical unsupported-option run; twelve primitive layouts remain explicitly modeled within the frozen ground-use closure. Generic slice contracts retain their callback premises.
 
-| Crate | Mapped contracts | Latest state |
-|---|---:|---|
-| either | 14 | report 27 revision 2, read back |
-| oorandom | 12 | report 25 revision 2, read back |
-| nohash-hasher | 14 | report 23 revision 2, four configurations, read back |
-| rand_xorshift | 1 | report 24 revision 2; separate Kani seed/nonzero and independent Lean nonzero evidence, read back |
-| bit_field | 27 | fresh record passed; quota hold and signed range finding retained |
-| rand_pcg | 21 | fresh record passed; catalogue quota hold |
-| byteorder | 22 | fresh record passed; catalogue quota hold |
-| byteorder-lite | 26 | fresh record passed; catalogue quota hold |
-| rand_xoshiro | 30 candidate / 29 fresh | local-source candidate integrated; additional 25 external blanket body proofs archived separately with discovery blocker; catalogue quota hold |
-| ascii | 24 | latest candidate integrated; previous 21 fresh; catalogue quota hold |
-| base16ct | 3 | fresh record passed; catalogue quota hold |
+| Crate | Report / revision | Current mapped contracts |
+|---|---:|---:|
+| ascii 1.1.0 | [28 / 2](https://proofs.rs/report/28) | 35 |
+| base16ct 1.0.0 | [31 / 1](https://proofs.rs/report/31) | 3 |
+| bit_field 0.10.3 | [34 / 3](https://proofs.rs/report/34) | 27 |
+| byteorder 1.5.0 | [32 / 1](https://proofs.rs/report/32) | 22 |
+| byteorder-lite 0.1.0 | [33 / 1](https://proofs.rs/report/33) | 26 |
+| either 1.19.0 | [27 / 3](https://proofs.rs/report/27) | 26 |
+| endian-type 0.2.0 | [26 / 2](https://proofs.rs/report/26) | 66 |
+| nohash-hasher 0.2.0 | [23 / 3](https://proofs.rs/report/23) | 14 |
+| normalize-line-endings 0.3.0 | [21 / 3](https://proofs.rs/report/21) | 1 |
+| oorandom 11.1.5 | [25 / 3](https://proofs.rs/report/25) | 12 |
+| rand_pcg 0.10.2 | [29 / 2](https://proofs.rs/report/29) | 25 |
+| rand_xorshift 0.5.0 | [24 / 2](https://proofs.rs/report/24) | 1 |
+| rand_xoshiro 0.8.1 | [30 / 1](https://proofs.rs/report/30) | 30 |
 
-endian-type report 26 revision 2 publicly contains 66 exact typed source claims (six retained generic bitwise contracts and sixty modeled integer From bodies), with successful immutable-run/source/claim/precondition readback. Its separate Kani byte/slice specializations remain distinct from those Aeneas claims. normalize-line-endings retains its prior one adapted-source contract and documented Kani bridge. Neither row is a full-API completion claim. The signed bit_field range diagnostic is not generalized to its already-proved single-bit contracts.
+`current-public-reports.json` records exact immutable run/source and Sheet readbacks. `proof-updates.json` distinguishes these published counts from newer candidates and failed or pending fresh runs. The count includes the adapted normalization model and separately described manual standard-operation models; independent Kani packets do not inflate the Aeneas claim count. Per-report limitations remain authoritative.
+
+The original inventory observations below retain their baseline 56 prior scoped guarantees and configuration-specific counting axis. Newer mathematical guarantees do not automatically close every configuration, unsafe-memory obligation, inherited/default/blanket dependency or downstream implementation.
 
 ## Counting axes
 
@@ -56,7 +60,7 @@ Default/no-default/all-features and additional observed configurations are recor
 
 `worker_coverage` preserves the original collector label. `known_body_contract_evidence` retains proved prior contracts, while `api_full_domain_coverage` and `strict_api_obligation_complete` remain separately unassessed until the full obligation is reviewed. An unassessed closure is not a retraction of an existing theorem. Structural and dependency obligations are never silently dropped from the denominator.
 
-No automatic report or Sheet edit is performed by rebuilding this dashboard. The prior three newly published reports and seven catalogue-quota-held results remain exactly as recorded in `../2026-11-05-aeneas-ten/`. New proofs require new immutable source/run evidence; old run IDs must not be used to support extended guarantees.
+No automatic report or Sheet edit is performed by rebuilding this dashboard. The historical three newly published reports and seven then-quota-held results remain archived in `../2026-11-05-aeneas-ten/`; all seven now have public reports under the current official SARIF-first protocol. New proofs require new immutable source/run evidence; old run IDs must not be used to support extended guarantees.
 
 ## Proposed report and spreadsheet presentation
 
@@ -68,7 +72,7 @@ Rebuild locally with `python3 build-dashboard.py --source-root /workspace/full-a
 
 ## Explicit publication resumption
 
-The new seven crates remain held after the observed service `429 daily_limit`. No additional import request was made for these extended records. Published server source specifies five new imports per user per UTC day; matching the deployed revision and an actual quota reset remain unconfirmed. Existing-report revisions use their existing catalogues.
+The historical `429 daily_limit` hold was lifted after the user increased the limit; all seven waiting crates are now published. The old error evidence is retained. The current official protocol uses validated recorded-source SARIF bindings rather than requiring a successful rustdoc import. Published server source specifies five new imports per user per UTC day; matching the deployed revision and an actual quota reset remain unconfirmed. Existing-report revisions use their existing catalogues.
 
 Use this directory's latest `proof-updates.json` and `resume.py`, rather than the earlier ten-crate batch's configurations and run IDs. Preserve the exact SARIF hashes and source commits. With the documented CLI compatibility patches, authenticated cargo-proofs configuration and toolchain available, a plan performs no network writes:
 
