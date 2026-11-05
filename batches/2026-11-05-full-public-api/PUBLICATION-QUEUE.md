@@ -1,25 +1,19 @@
-# Next verified-source publication queue
+# Current publication queue
 
-Current public total423 is unchanged; report22 is excluded. All next fresh runs are single-heavy and require exact source/config pinning, necessary review, successful proof/audit, official publication and readback. Producer success, local source identity and server registration are separate gates.
+Thirteen public reports contain424 scoped model contracts. This is not full API completion. Exact current revisions, sources, runs and SARIF/readback hashes are in current-public-reports.json. Report22 is excluded from all work.
 
-1. PCG supplement source can combine MCGserde592, PCG32 public next64 relation81 and external Rng word relations77+81 in one later fresh25, retaining all existing seed/Debug/serde evidence. The seed SSA conversion error is unverified.
-2. ASCII30 Kani scalar contracts are frozen as one aggregate, plus a distinct unchecked5 safety-domain packet; integrate beside existing51, without adding machine mappings or mixing customreference53.
-3. NoHash nightly length-prefix900 is a separate ten-integer/four-configuration supplement; it is not an all-custom-T proof.
-4. Either four reference methods have six supplemental Lean theorems and reviewed standalone package; exact shared/mut machine source identity remains blocked. A separate next_back proof is not yet a frozen union. No nominal-alias collapse or new machine count is allowed.
-5. ASCII customreference53 remains held on its distinct typed source/card/tool gates; installed generic20 CLI includes the known ASCII51 baseline, not53.
+| Completed update | Primary mapped contracts | Supplemental scope |
+|---|---:|---|
+| ASCII report28 rev9 |51|Original scalar35 plus Error2/staticDefault1 Kani evidence; earlier evidence retained|
+| PCG report29 rev6 |25|MCGserde592, PCG32composition81, externalRng158+393; constructor-image domains distinct from arbitrary serde wire states|
+| Either report27 rev8 |41|next_back adds1 beyond old40; reference4 remains six conditional model theorems in an independent library environment|
+| BitField report34 rev6 |27|RangeFull24 closed specializations,1284checks; arbitrary RangeBounds completion remains unproved and signed small-range counterexample remains|
+| NoHash report23 rev5 |14|Four compiler-inlined caller API families across four configurations: prior13 declarations plus newwrite_str4 equals17 unique audits; Kani900 remains separate/narrower|
 
-See PUBLICATION-QUEUE.json for exact frozen producer paths and manifest hashes. Other current crates remain open for new formal handoffs; absence of an entry is not a claim of completion. Unsafe Oorandom arbitrary-destination clone still requires independent memory/provenance semantics, intrinsic refinement and source/IR bridge, as recorded in the linked diagnostics.
+NoHash actual recorded run a2c0ecdb/source9db263d0 succeeded in1827jobs and contains all17 unique supplemental axiom markers. Newwrite_str4 does not add the prior13 again. The source103 manifest is immutable; its inaccurate zero-sidecar flag has an exact16-file erratum and the public subset contains87 source/evidence files. The earlier122 manifest has its own20-file erratum. No generated bodies or original Rust were edited. Inline/DCE trust, non-direct-default-card scope and unrun consolidated portable regeneration remain explicit.
 
-ASCII package scope is runtime src9 plus Cargo archive matching, not original root tests.rs execution/full-package restoration. The unchecked5 packet covers only documented safety values0..127.
+Rngfill delegation is Git-published as diagnostics only (e5bfbda4): four kernel results retain a live official Formatter type axiom, so they are not standard3-only. Minimal Lake/consolidated portable proof replay and actual generator/source-card bridges are not claimed. It adds zero machine contracts.
 
-ASCII scalar30 and documented-safe unchecked5 are now published as supplemental Kani evidence in report28 revision8, run `9f261af8-bee6-4142-b934-997995b3027e`, source `6142b4105f93bed130c921550ad814c0c039b461`. Primary51 and the global423 remain unchanged. Earlier queue statuses above describe the producer handoff checkpoint.
+Pending: ASCII custom-reference53 remains behind separate tool/source/card gates. BitFieldu8 range work is a prototype, not part of the published RangeFull packet. Xorshiftseed_from_u64 newZ3 attempt has only finite8seed native sanity and an internal CBMC SMT SSA map::at/status6 failure; no new verified contract or counterexample follows. Earlier successful supplements remain unchanged.
 
-PCG four supplemental packets (MCGserde592, PCG32composition81, external PCG32 Rng158 and wide Rng393) are published in report29 revision6, source `3b2722d98fcb09ef58d010abf5a42361a4d094c5`, run `b9ea1201-210e-45eb-9f69-219799a517da`. Machine25/global423 stay unchanged. Earlier producer-only statuses are historical.
-
-Current global count is424 following report27 revision8: primary next_back adds1 beyond old40; reference4 remains a separate six-theorem supplement with no four-machine increment. Recorded run06dc9cf1 includes the six supplemental audits through an explicit Lake leanArts dependency. Primary-only preliminary run4618632e was not used for publication.
-
-NoHash inherited-family supplements are published in report23 revision4: three actual compiler-inlined caller APIs across four configurations plus one helper (13 audit declarations), with separate Kani900 evidence. Source `febb64d951fae5cf240ac2951aa5821f68da2511`, run `ab9062bb-e262-4810-949c-bdb307676a8e`, recorded1819-job build contains all13 axiom markers. Primary14/global424 are unchanged. Direct default-declaration binding and compiler correctness are not claimed; consolidated regeneration was not rerun. The immutable122-file manifest has a zero-sidecar flag erratum; public source excludes its twenty listed compiled sidecars.
-
-ASCII Error2/staticDefault1 supplements are published in report28 revision9, source64144e62 and runfe43b01f;55checks, old51 and scalar35 preserved, global424 unchanged. BitField RangeFull24 is the next independently reviewed scoped supplement, not arbitrary RangeBounds completion. Rngfill diagnostics are Git-published with a live Formatter type axiom and no machine count increment.
-
-BitField RangeFull24 supplements are published in report34 revision6, source d5937b4c/run70816560:1284 checks, old27 and signed small-range counterexample preserved. Arbitrary RangeBounds family completion remains unproved; global424 is unchanged. The later u8 range prototype is not included.
+Use one heavy formal fresh job at a time. Verify the exact immutable source/config and actual CLI build target; a default Lake target alone is insufficient if the publisher selects modules explicitly. Preserve raw source/LLBC/generated/proofs/logs/frozen manifests and installed/rollback tools; exclude every target/.lake/*.olean*/*.ilean*/*.ir sidecar from public source. Only owner-approved inactive build caches may be removed.

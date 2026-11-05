@@ -1,0 +1,344 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #23 — Exact integer writes and misuse checks in NoHashHasher · proofs.rs</title><meta name="description" content="For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stor"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Exact integer writes and misuse checks in NoHashHasher · nohash-hasher 0.2.0 · proofs.rs"><meta property="og:description" content="For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stor"><meta property="og:url" content="https://proofs.rs/report/23?v=5"><meta property="og:image" content="https://proofs.rs/og/report/23/5.png"><meta property="og:image:alt" content="Exact integer writes and misuse checks in NoHashHasher · nohash-hasher 0.2.0"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Exact integer writes and misuse checks in NoHashHasher · nohash-hasher 0.2.0 · proofs.rs"><meta name="twitter:description" content="For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stor"><meta name="twitter:image" content="https://proofs.rs/og/report/23/5.png"><meta name="twitter:image:alt" content="Exact integer writes and misuse checks in NoHashHasher · nohash-hasher 0.2.0"><link rel="canonical" href="https://proofs.rs/report/23"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F23">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/nohash-hasher?version=0.2.0">nohash-hasher 0.2.0</a> <span aria-hidden="true">/</span> <a href="/crate/nohash-hasher?version=0.2.0#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #23 — Exact integer writes and misuse checks in NoHashHasher</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">14 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 00:24 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Exact%20integer%20writes%20and%20misuse%20checks%20in%20NoHashHasher%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F23%3Fv%3D5"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Exact%20integer%20writes%20and%20misuse%20checks%20in%20NoHashHasher%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F23%3Fv%3D5"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/23?v=5" aria-current="page">v5</a> · <a href="/report/23?v=4">v4</a> · <a href="/report/23?v=3">v3</a> · <a href="/report/23?v=2">v2</a> · <a href="/report/23?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For nohash-hasher 0.2.0 on x86_64 with std enabled or disabled, Default initializes the stored value to zero, Clone preserves state, and finish returns the stored integer. Each of the ten integer write methods stores the Rust conversion of its input to u64: unsigned values are widened and signed values are converted modulo 2^64. With debug assertions enabled, the first integer write succeeds and a later write fails its assertion. With debug assertions disabled, each integer write replaces the stored value. The generic byte-slice write always panics in both configurations. These are exact per-method state and result contracts over all inputs, proved from unchanged published Rust bodies. Separate original-body Kani evidence checks handwritten Debug::fmt for NoHashHasher&lt;u8&gt; after Default or one arbitrary write_u8, using default {:?} formatting into a fixed 64-byte writer. Successful output has exact tuple delimiters, canonical decimal state and, in debug mode, the correct written flag. A writer that errors on its first call propagates Err and leaves its buffer unchanged. All std/no_std dependency and debug/release combinations pass separately: 2175 debug and 2143 release checks in each feature configuration; the verification harness itself uses std. This is a bounded formatter/input-domain supplement, not another Aeneas API claim or a proof for arbitrary stored u64 values, writers, formatting options or partial-write failures. A separate Kani supplement executes the actual standard Clone::clone_from default body and original manual Clone for NoHashHasher&lt;u64&gt;, in all four configurations. Source and destination independently begin at Default or one arbitrary write_u64. Public finish checks destination replacement and source preservation; a distinct full-original-prefix fixture with read-only getters also checks the debug written flag. The eight jobs succeed (public-value stage 47 debug or 28 release checks, flag-observer stage 104 or 81 checks per feature configuration). This concrete reachable-state Rust-body guarantee is separate from the generic Lean composition through the official default model; arbitrary T, other std revisions and other state histories remain unproved. Separate generic Lean contracts cover actual public Hasher::write_length_prefix, write_u128 and write_i128 calls through compiler-inlined UFCS callers in std/no_std with debug assertions enabled/disabled. For every represented T under the original IsEnabled bound and every receiver state, debug length-prefix stores the usize-to-u64 cast and marks written when previously unwritten, or fails assertionFailure when already written. Without debug assertions it always overwrites the stored word. Both wide integer calls fail panic for every input and receiver state because their original standard defaults reach NoHashHasher::write. The separate900-check Kani evidence covers the ten original integer T instantiations: debug initial states and release default-or-once-written public states. Four further generic compiler-inlined caller contracts cover original Hasher::write_str in std/no_std with debug assertions enabled/disabled. For every represented T under IsEnabled, receiver state and string, including empty strings, the call fails panic: the original default first calls NoHashHasher::write on the string bytes, which unconditionally panics, so the trailing write_u8(0xff) is unreachable. There is no fixed string-length/content restriction.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (14)</h2><section class="api-category"><h3>Trait implementations</h3><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">core::clone::Clone</span><span class="api-keyword"> for </span><span class="kind-type">NoHashHasher&lt;T&gt;</span></code></h4><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Clone&gt;::clone" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/b2355d2b773aed7f26224fba93f8a5648f21f45ca96f7bff521d439483812431">clone</a>(self: &amp;Self) -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/61d8c830-a353-4b2f-b1b9-20ab972482c0?report_revision=5">Claim #2</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">core::default::Default</span><span class="api-keyword"> for </span><span class="kind-type">NoHashHasher&lt;T&gt;</span></code></h4><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Default&gt;::default" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/dd589625cb657fef621345be2454dc9c22e7a6b38390aca87b1abfbe523c0ccc">default</a>() -&gt; Self</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0530747c-e82d-4326-85ad-517a62294885?report_revision=5">Claim #1</a></span></div></div></section><section class="api-impl"><h4><code><span class="api-keyword">impl </span><span class="kind-trait">core::hash::Hasher</span><span class="api-keyword"> for </span><span class="kind-type">NoHashHasher&lt;T&gt;</span></code></h4><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::finish" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/e5a0b4a30ff4f9cef9cc34875b0b57545313d98246514f0398b0842fb2cf8953">finish</a>(self: &amp;Self) -&gt; u64</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a46a0fb6-cb00-4a92-bfde-4c408ef946ce?report_revision=5">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/c29ea09cb30bc0bffd3b4d651ae36338ca8b9c4c40e01f800325ab6ad7b3c04f">write</a>(self: &amp;mut Self, _: &amp;[u8])</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3633ecd1-1f80-44ec-b499-437512e5d46a?report_revision=5">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_i16" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/c08688db5dedd7576b99a5ec6ea84abdb93f3271e044c04c72350add02ced01e">write_i16</a>(self: &amp;mut Self, n: i16)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/38129300-0eb0-4463-9043-e3ea6fc24f10?report_revision=5">Claim #11</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_i32" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/ede19944c7fea2f5a88f15b0de37f908a56ad901811fa5c4e56af580802063e1">write_i32</a>(self: &amp;mut Self, n: i32)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ffb865f6-6527-44db-b44f-4435b29d55ce?report_revision=5">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_i64" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/0cea480e8356b901175ebc76e4873ade6b2a95fa386b8368cd4cd8c84aaad82b">write_i64</a>(self: &amp;mut Self, n: i64)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/328c5667-41a5-4fd7-8fee-3f57eccfe498?report_revision=5">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_i8" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/c24789e13cba4235272dda56583f69d14998c06c6e933437747911b840a69ceb">write_i8</a>(self: &amp;mut Self, n: i8)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/edc41107-cda8-4619-bf3e-f8d6220178fe?report_revision=5">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_isize" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/bb79f4925081b6e72107f9179c590a1f420810469a508484f18ab88217231382">write_isize</a>(self: &amp;mut Self, n: isize)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/883227a6-90c3-4aac-a18e-e89aa56d2fc3?report_revision=5">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_u16" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/b2e01c38ea5cd245957437928c2e3f37e8b5a8b2c5f16afe9d34af65cc07a18e">write_u16</a>(self: &amp;mut Self, n: u16)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1cf78710-0697-4a33-9434-7fd9f7de3998?report_revision=5">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_u32" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/5e29a411c54f675573b435a5bac3833e78092dc882e8258c42479f812a2e999c">write_u32</a>(self: &amp;mut Self, n: u32)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/472f24df-75f4-4531-9ecf-c1ce1004dbee?report_revision=5">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_u64" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/de318afdc518a1226eec5c6804d0c07e19e3cbd74803f0bc79b9996887b78242">write_u64</a>(self: &amp;mut Self, n: u64)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/62c8d249-f2bf-4a40-a26e-a01388d097c8?report_revision=5">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_u8" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/cc730055f85ce49816bcd08331e78779d3b6f433104bd8697dc9f01caad47191">write_u8</a>(self: &amp;mut Self, n: u8)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9d9144e7-978b-49e8-8ef2-947a686d5c37?report_revision=5">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="&lt;nohash_hasher::NoHashHasher as Hasher&gt;::write_usize" data-claims="1"><span><code class="api-signature">pub fn <a class="api-name" href="/api/fafe7b391947f3b29d2502fea8847e68da1fdf14754cc9ab792d59b6c5627912">write_usize</a>(self: &amp;mut Self, n: usize)</code></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/eafe7083-ae7b-4232-87bd-70c6492b2f01?report_revision=5">Claim #9</a></span></div></div></section></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/9db263d0e4a64a25b8d39b54837ad0e64b827ce3" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/9db263d0e4a64a25b8d39b54837ad0e64b827ce3</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-23-source-1
+git -C report-23-source-1 checkout --detach 9db263d0e4a64a25b8d39b54837ad0e64b827ce3
+git -C report-23-source-1 submodule update --init --recursive --checkout
+cd report-23-source-1/nohash-hasher/0.2.0/aeneas/2026-11-05/proofs
+
+lake build +Proofs
+
+printf &#39;%s&#39; &#39;import Lean
+import Proofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.default_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.default_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.default_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.default_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.clone_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.clone_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.clone_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.clone_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.finish_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.finish_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.finish_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.finish_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_u8_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_u8_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_u8_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_u8_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_i8_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_i8_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_i8_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_i8_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.write_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.write_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.write_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.write_isize_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/9db263d0e4a64a25b8d39b54837ad0e64b827ce3">Source on GitHub</a> · <a href="/api/v1/runs/a2c0ecdb-0fee-409e-8f45-0eea3045f341/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 14 checks passed · 0 failed</p><p class="meta">2026-11-05T17:46:04.238167911+00:00 · 116.9 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e64656661756c745f73706563"><td>Lean checked theorem Proofs.default_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.default_spec</code></div></td><td>Passed</td><td><a href="/claim/0530747c-e82d-4326-85ad-517a62294885?report_revision=5">Claim #1</a></td></tr><tr id="check-50726f6f66732e636c6f6e655f73706563"><td>Lean checked theorem Proofs.clone_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.clone_spec</code></div></td><td>Passed</td><td><a href="/claim/61d8c830-a353-4b2f-b1b9-20ab972482c0?report_revision=5">Claim #2</a></td></tr><tr id="check-50726f6f66732e77726974655f73706563"><td>Lean checked theorem Proofs.write_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_spec</code></div></td><td>Passed</td><td><a href="/claim/3633ecd1-1f80-44ec-b499-437512e5d46a?report_revision=5">Claim #3</a></td></tr><tr id="check-50726f6f66732e66696e6973685f73706563"><td>Lean checked theorem Proofs.finish_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.finish_spec</code></div></td><td>Passed</td><td><a href="/claim/a46a0fb6-cb00-4a92-bfde-4c408ef946ce?report_revision=5">Claim #4</a></td></tr><tr id="check-50726f6f66732e77726974655f75385f73706563"><td>Lean checked theorem Proofs.write_u8_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_u8_spec</code></div></td><td>Passed</td><td><a href="/claim/9d9144e7-978b-49e8-8ef2-947a686d5c37?report_revision=5">Claim #5</a></td></tr><tr id="check-50726f6f66732e77726974655f7531365f73706563"><td>Lean checked theorem Proofs.write_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/1cf78710-0697-4a33-9434-7fd9f7de3998?report_revision=5">Claim #6</a></td></tr><tr id="check-50726f6f66732e77726974655f7533325f73706563"><td>Lean checked theorem Proofs.write_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/472f24df-75f4-4531-9ecf-c1ce1004dbee?report_revision=5">Claim #7</a></td></tr><tr id="check-50726f6f66732e77726974655f7536345f73706563"><td>Lean checked theorem Proofs.write_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/62c8d249-f2bf-4a40-a26e-a01388d097c8?report_revision=5">Claim #8</a></td></tr><tr id="check-50726f6f66732e77726974655f7573697a655f73706563"><td>Lean checked theorem Proofs.write_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/eafe7083-ae7b-4232-87bd-70c6492b2f01?report_revision=5">Claim #9</a></td></tr><tr id="check-50726f6f66732e77726974655f69385f73706563"><td>Lean checked theorem Proofs.write_i8_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_i8_spec</code></div></td><td>Passed</td><td><a href="/claim/edc41107-cda8-4619-bf3e-f8d6220178fe?report_revision=5">Claim #10</a></td></tr><tr id="check-50726f6f66732e77726974655f6931365f73706563"><td>Lean checked theorem Proofs.write_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/38129300-0eb0-4463-9043-e3ea6fc24f10?report_revision=5">Claim #11</a></td></tr><tr id="check-50726f6f66732e77726974655f6933325f73706563"><td>Lean checked theorem Proofs.write_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/ffb865f6-6527-44db-b44f-4435b29d55ce?report_revision=5">Claim #12</a></td></tr><tr id="check-50726f6f66732e77726974655f6936345f73706563"><td>Lean checked theorem Proofs.write_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/328c5667-41a5-4fd7-8fee-3f57eccfe498?report_revision=5">Claim #13</a></td></tr><tr id="check-50726f6f66732e77726974655f6973697a655f73706563"><td>Lean checked theorem Proofs.write_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.write_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/883227a6-90c3-4aac-a18e-e89aa56d2fc3?report_revision=5">Claim #14</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T17:46:04.238167911+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T17:48:01.134043320+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">nohash-hasher/0.2.0/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">9db263d0e4a64a25b8d39b54837ad0e64b827ce3</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+⚠ [2/57] Ran aeneas:extraDep
+warning: building from source; failed to fetch GitHub release (run with &#39;-v&#39; for details)
+✔ [3/109] Built AeneasMeta.Simp.RegisterCommand (41s)
+✔ [222/603] Built Aeneas.Std.Global (41s)
+✔ [223/603] Built AeneasMeta.UtilsCore (41s)
+✔ [250/603] Built AeneasMeta.BvEnumToBitVec (41s)
+✔ [1575/1827] Built AeneasMeta.OptionConfig (42s)
+✔ [1797/1827] Built NohashStdReleaseAll (2.6s)
+✔ [1798/1827] Built NoStdGenerated.NohashHasher (2.7s)
+✔ [1799/1827] Built ReleaseGenerated.NohashHasher (2.8s)
+✔ [1800/1827] Built NoStdReleaseGenerated.NohashHasher (2.8s)
+✔ [1801/1827] Built NohashNostdRelease (2.9s)
+✔ [1802/1827] Built NohashStringStdRelease (2.4s)
+✔ [1803/1827] Built NohashPrefixInline (2.4s)
+✔ [1804/1827] Built NohashWidePanicInline (2.5s)
+✔ [1805/1827] Built NohashNostdDebug (2.6s)
+✔ [1806/1827] Built NohashStringNostdRelease (2.5s)
+✔ [1807/1827] Built NohashStringInline (2.4s)
+✔ [1808/1827] Built NohashStringNostdDebug (2.4s)
+✔ [1809/1827] Built Generated.NohashHasher (2.4s)
+ℹ [1810/1827] Built PrefixStdRelease (3.2s)
+info: PrefixStdRelease.lean:11:0: &#39;PrefixStdRelease.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: PrefixStdRelease.lean:12:0: &#39;PrefixStdRelease.wide_unsigned_panic&#39; depends on axioms: [propext, Quot.sound]
+info: PrefixStdRelease.lean:13:0: &#39;PrefixStdRelease.wide_signed_panic&#39; depends on axioms: [propext, Quot.sound]
+✔ [1811/1827] Built NoStdDebugProofs (3.1s)
+ℹ [1812/1827] Built PrefixNoStdRelease (2.9s)
+info: PrefixNoStdRelease.lean:11:0: &#39;PrefixNoStdRelease.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: PrefixNoStdRelease.lean:12:0: &#39;PrefixNoStdRelease.wide_unsigned_panic&#39; depends on axioms: [propext, Quot.sound]
+info: PrefixNoStdRelease.lean:13:0: &#39;PrefixNoStdRelease.wide_signed_panic&#39; depends on axioms: [propext, Quot.sound]
+✔ [1813/1827] Built ReleaseProofs (3.1s)
+✔ [1814/1827] Built NoStdReleaseProofs (3.2s)
+ℹ [1815/1827] Built WriteStrStdRelease (2.9s)
+info: WriteStrStdRelease.lean:8:0: &#39;WriteStrStdRelease.always_panics&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1816/1827] Built WidePanicProofs (2.8s)
+info: WidePanicProofs.lean:11:0: &#39;WidePanicProofs.unsigned_always_panics&#39; depends on axioms: [propext, Quot.sound]
+info: WidePanicProofs.lean:12:0: &#39;WidePanicProofs.signed_always_panics&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1817/1827] Built PrefixProofs (3.1s)
+info: PrefixProofs.lean:15:0: &#39;PrefixProofs.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: PrefixProofs.lean:16:0: &#39;PrefixProofs.already_written_panics&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1818/1827] Built WriteStrNoStdRelease (2.9s)
+info: WriteStrNoStdRelease.lean:8:0: &#39;WriteStrNoStdRelease.always_panics&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1819/1827] Built PrefixNoStdDebug (3.2s)
+info: PrefixNoStdDebug.lean:12:0: &#39;PrefixNoStdDebug.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: PrefixNoStdDebug.lean:13:0: &#39;PrefixNoStdDebug.wide_unsigned_panic&#39; depends on axioms: [propext, Quot.sound]
+info: PrefixNoStdDebug.lean:14:0: &#39;PrefixNoStdDebug.wide_signed_panic&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1820/1827] Built WriteStrNoStdDebug (2.9s)
+info: WriteStrNoStdDebug.lean:8:0: &#39;WriteStrNoStdDebug.always_panics&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1821/1827] Built WriteStrProofs (3.0s)
+info: WriteStrProofs.lean:8:0: &#39;WriteStrProofs.always_panics&#39; depends on axioms: [propext, Quot.sound]
+✔ [1822/1827] Built DebugProofs (2.5s)
+ℹ [1823/1827] Built NoStdProofs (2.5s)
+info: NoStdProofs.lean:161:0: &#39;NoStdProofs.default_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:162:0: &#39;NoStdProofs.clone_spec&#39; depends on axioms: [propext, Quot.sound]
+info: NoStdProofs.lean:163:0: &#39;NoStdProofs.finish_spec&#39; depends on axioms: [propext, Quot.sound]
+info: NoStdProofs.lean:164:0: &#39;NoStdProofs.write_spec&#39; depends on axioms: [propext, Quot.sound]
+info: NoStdProofs.lean:165:0: &#39;NoStdProofs.write_u8_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:166:0: &#39;NoStdProofs.write_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:167:0: &#39;NoStdProofs.write_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:168:0: &#39;NoStdProofs.write_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:169:0: &#39;NoStdProofs.write_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:170:0: &#39;NoStdProofs.write_i8_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:171:0: &#39;NoStdProofs.write_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:172:0: &#39;NoStdProofs.write_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:173:0: &#39;NoStdProofs.write_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: NoStdProofs.lean:174:0: &#39;NoStdProofs.write_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1824/1827] Built HasherFamilyAudit (2.1s)
+info: HasherFamilyAudit.lean:10:0: &#39;PrefixProofs.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: HasherFamilyAudit.lean:11:0: &#39;PrefixProofs.already_written_panics&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: HasherFamilyAudit.lean:12:0: &#39;WidePanicProofs.unsigned_always_panics&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:13:0: &#39;WidePanicProofs.signed_always_panics&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:14:0: &#39;PrefixNoStdDebug.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: HasherFamilyAudit.lean:15:0: &#39;PrefixNoStdDebug.wide_unsigned_panic&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:16:0: &#39;PrefixNoStdDebug.wide_signed_panic&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:17:0: &#39;PrefixNoStdRelease.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: HasherFamilyAudit.lean:18:0: &#39;PrefixNoStdRelease.wide_unsigned_panic&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:19:0: &#39;PrefixNoStdRelease.wide_signed_panic&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:20:0: &#39;PrefixStdRelease.exact_transition&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: HasherFamilyAudit.lean:21:0: &#39;PrefixStdRelease.wide_unsigned_panic&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:22:0: &#39;PrefixStdRelease.wide_signed_panic&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:24:0: &#39;WriteStrProofs.always_panics&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:25:0: &#39;WriteStrNoStdDebug.always_panics&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:26:0: &#39;WriteStrNoStdRelease.always_panics&#39; depends on axioms: [propext, Quot.sound]
+info: HasherFamilyAudit.lean:27:0: &#39;WriteStrStdRelease.always_panics&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1825/1827] Built StdProofs (2.2s)
+info: StdProofs.lean:161:0: &#39;StdProofs.default_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:162:0: &#39;StdProofs.clone_spec&#39; depends on axioms: [propext, Quot.sound]
+info: StdProofs.lean:163:0: &#39;StdProofs.finish_spec&#39; depends on axioms: [propext, Quot.sound]
+info: StdProofs.lean:164:0: &#39;StdProofs.write_spec&#39; depends on axioms: [propext, Quot.sound]
+info: StdProofs.lean:165:0: &#39;StdProofs.write_u8_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:166:0: &#39;StdProofs.write_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:167:0: &#39;StdProofs.write_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:168:0: &#39;StdProofs.write_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:169:0: &#39;StdProofs.write_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:170:0: &#39;StdProofs.write_i8_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:171:0: &#39;StdProofs.write_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:172:0: &#39;StdProofs.write_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:173:0: &#39;StdProofs.write_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: StdProofs.lean:174:0: &#39;StdProofs.write_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1826/1827] Built SupplementalProofs (2.1s)
+info: SupplementalProofs.lean:27:0: &#39;SupplementalProofs.clone_from_spec&#39; depends on axioms: [propext, Quot.sound]
+ℹ [1827/1827] Built Proofs (2.3s)
+info: Proofs.lean:256:0: &#39;Proofs.default_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:257:0: &#39;Proofs.clone_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:258:0: &#39;Proofs.finish_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:259:0: &#39;Proofs.write_spec&#39; depends on axioms: [propext, Quot.sound]
+info: Proofs.lean:260:0: &#39;Proofs.write_u8_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:261:0: &#39;Proofs.write_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:262:0: &#39;Proofs.write_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:263:0: &#39;Proofs.write_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:264:0: &#39;Proofs.write_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:265:0: &#39;Proofs.write_i8_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:266:0: &#39;Proofs.write_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:267:0: &#39;Proofs.write_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:268:0: &#39;Proofs.write_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:269:0: &#39;Proofs.write_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1827 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.default_spec
+proofs.rs:checked:Proofs.clone_spec
+proofs.rs:checked:Proofs.write_spec
+proofs.rs:checked:Proofs.finish_spec
+proofs.rs:checked:Proofs.write_u8_spec
+proofs.rs:checked:Proofs.write_u16_spec
+proofs.rs:checked:Proofs.write_u32_spec
+proofs.rs:checked:Proofs.write_u64_spec
+proofs.rs:checked:Proofs.write_usize_spec
+proofs.rs:checked:Proofs.write_i8_spec
+proofs.rs:checked:Proofs.write_i16_spec
+proofs.rs:checked:Proofs.write_i32_spec
+proofs.rs:checked:Proofs.write_i64_spec
+proofs.rs:checked:Proofs.write_isize_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Unmodified crates.io nohash-hasher 0.2.0; x86_64-unknown-linux-gnu, std enabled and disabled; debug_assertions true and false. Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Rust nightly-2026-09-17, Lean 4.35.0. Official start-from roots select the actual method bodies; the official namespace option separates debug/release translations. Fourteen public theorems each conjoin all four std/no-std and debug/release configurations. The supplementary clone_from composition is included in the fresh Lean build without adding an API mapping. cargo-proofs 0.4.1 has the documented TLS-CA and upstream audit-variable compatibility fixes; the allowed-axiom policy is unchanged. Added evidence/hasher-inherited-family preserves generic3API across four configurations (twelve contracts plus one helper), and separate900 Kani checks with zero failures. Generic extraction uses pinned September compiler/official frontend with Inline/DCE; Kani uses its separately pinned August compiler. Import-only integration connects HasherFamilyAudit to the configured primary Proofs module, so the actual CLI targets must print all13 supplemental axiom audits. All old14 mappings and preconditions remain unchanged. evidence/write-str-inline4 preserves the new103-file frozen packet and source/type/evidence reviews. Existing HasherFamilyAudit imports the four new proof modules and audits17 unique supplementary declarations (old13 plus new4); the actual +Proofs CLI target must include all17 markers. Original14 mappings and all prior13/900 evidence remain preserved.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, Charon/Aeneas translation, their standard-library models, and the Lean kernel are trusted. The checked theorems use no extra local axioms; their transitive dependencies are limited to Lean's propext, Classical.choice, and Quot.sound. Generic inherited-call proofs additionally trust the pinned Rust optimized MIR compiler Inline pass and, for wide calls, SimplifyLocals-final dead-code elimination before official Charon/Aeneas extraction. The caller/stdlib/original-method source guards and configuration layouts are retained. This is not a compiler-correctness or direct default-declaration source-card proof; no source/LLBC/generated edits, new model or panic stub is introduced. write_str additionally uses the pinned official rustc Inline, RemoveStorageMarkers, ReferencePropagation, DeadStoreElimination-final and SimplifyLocals-final passes through optimized MIR/official Charon and unchanged Aeneas. Source/IR guards connect the actual UFCS caller, standard default and original panic source spans. The final generated body does not read the string or call another function. This trusts compiler inlining/cleanup, not a compiler-correctness proof, panic stub or direct default-method API-card binding.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Coverage consists of Default, Clone, ten integer writers, write, and finish in the stated debug/release configurations. General Debug behavior beyond the separate u8/default-format/fixed-writer Kani domain, other inherited Hasher default methods beyond the four supplemental actual-caller API families described here, full trait-instance integration, custom Hash implementations, BuildHasherDefault, and HashMap/HashSet behavior are not verified. In particular, this does not establish that a custom IsEnabled type obeys the required single-integer-write Hash protocol. Other targets were not checked. The upstream no-std IsEnabled doctest refers to the std-only IntMap alias and does not compile; the no-std unit tests and proved method bodies pass. A supplementary clone_from theorem composes the actual clone body with the official standard-library default model and proves exact replacement by source; it is not an independent std-body proof or a separate published API claim. write_length_prefix is the pinned nightly hasher_prefixfree_extras API, not a stable-interface guarantee. The new inherited-family results are supplemental actual-caller contracts, not new registered machine API claims; primary coverage stays14. The generic contracts distinguish debug and release receiver layouts and retain IsEnabled/trait correspondence assumptions. Panic messages, unwinding, global effects, other targets/profiles and const evaluation are not established. Kani900 has narrower concrete-T/reachable-state domains and is not a premise of the generic Lean proofs. The producer consolidated regeneration script was not rerun; earlier successful individual extractions/source guards and complete kernel audits are retained, and the formal recorded build recompiles all13 supplemental declarations. The producer READY compiled_sidecars0 flag was inaccurate; twenty listed compiler sidecars are excluded from this public source subset, with an exact erratum list. write_str is also a pinned nightly hasher_prefixfree_extras API, not a stable-interface guarantee. Its producer READY zero-sidecar flag was inaccurate: sixteen listed compiler sidecars are excluded from this public87-file source subset, with exact hashes and an erratum retained. The write_str results remain supplemental actual-caller contracts with no new registered API claims. Modeled fail panic does not specify panic hooks, messages/locations, unwind/global effects or independent physical memory/alias/lifetime guarantees. Other targets/compiler settings and const evaluation are outside scope. Initial dead TwoPhaseMut-copy translation failures remain historical; the intermediate failing LLBC was not separately frozen before official re-extraction. No source, LLBC or generated body was hand edited. Consolidated portable regeneration/replay has not been run; individual generation, proof and coimport successes are retained.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (0)</h2><p>No direct dependencies.</p></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F23">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>
