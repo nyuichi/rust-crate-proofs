@@ -1,0 +1,327 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+warning: /workspace/prng-bitfield/Cargo.toml: `package.edition` is unspecified, defaulting to `2015` while the latest is `2024`
+warning: `bit_field` (manifest) generated 1 warning
+warning: /workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/Cargo.toml: `package.edition` is unspecified, defaulting to `2015` while the latest is `2024`
+warning: `bit_field` (manifest) generated 1 warning
+   Compiling bit_field v0.10.3 (/workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling bitfield-kani-checks v0.1.0 (/workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/evidence/kani-model)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.19s
+Checking harness checks::original_u8_get_and_set...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/evidence/kani-model/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-kani-checks/8153d7d5dbb9d8c7/out/bitfield_kani_checks-8153d7d5dbb9d8c7__RNvNtCsjoUPRIUKhLf_20bitfield_kani_checks6checks23original_u8_get_and_set.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+aborting path on assume(false) at file /workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/src/lib.rs line 282 column 1 function <u8 as bit_field::BitField>::get_bit thread 0
+aborting path on assume(false) at file /workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/src/lib.rs line 282 column 1 function <u8 as bit_field::BitField>::set_bit thread 0
+aborting path on assume(false) at file /workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/src/lib.rs line 282 column 1 function <u8 as bit_field::BitField>::get_bit thread 0
+Runtime Symex: 0.00844882s
+size of program expression: 742 steps
+slicing removed 326 assignments
+Generated 59 VCC(s), 23 remaining after simplification
+Runtime Postprocess Equation: 0.00011956s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 0.00291695s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 5.488e-06s
+Solving with CaDiCaL 3.0.0
+3406 variables, 9216 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.0003513s
+Runtime decision procedure: 0.00340772s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3407 variables, 9217 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 0.000260964s
+Runtime decision procedure: 0.000441486s
+Running propositional reduction
+Solving with CaDiCaL 3.0.0
+3408 variables, 9218 clauses
+SAT checker: instance is UNSATISFIABLE
+Runtime Solver: 0.00292394s
+Runtime decision procedure: 0.00295669s
+
+RESULTS:
+Check 1: <u8 as bit_field::BitField>::get_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../src/lib.rs:219:26 in function <u8 as bit_field::BitField>::get_bit
+
+Check 2: <u8 as bit_field::BitField>::get_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../../src/lib.rs:282:1 in function <u8 as bit_field::BitField>::get_bit
+
+Check 3: checks::original_u8_get_and_set.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: src/lib.rs:15:37 in function checks::original_u8_get_and_set
+
+Check 4: checks::original_u8_get_and_set.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x.get_bit(bit) == ((x >> bit) & 1) == 1"
+	 - Location: src/lib.rs:15:9 in function checks::original_u8_get_and_set
+
+Check 5: checks::original_u8_get_and_set.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: src/lib.rs:16:20 in function checks::original_u8_get_and_set
+
+Check 6: checks::original_u8_get_and_set.assertion.4
+	 - Status: SUCCESS
+	 - Description: "assertion failed: *returned == expected"
+	 - Location: src/lib.rs:20:9 in function checks::original_u8_get_and_set
+
+Check 7: checks::original_u8_get_and_set.assertion.5
+	 - Status: SUCCESS
+	 - Description: "assertion failed: returned.get_bit(bit) == value"
+	 - Location: src/lib.rs:21:9 in function checks::original_u8_get_and_set
+
+Check 8: checks::original_u8_get_and_set.assertion.6
+	 - Status: SUCCESS
+	 - Description: "assertion failed: y == replacement"
+	 - Location: src/lib.rs:24:9 in function checks::original_u8_get_and_set
+
+Check 9: <u8 as bit_field::BitField>::set_bit.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../src/lib.rs:248:30 in function <u8 as bit_field::BitField>::set_bit
+
+Check 10: <u8 as bit_field::BitField>::set_bit.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: ../../src/lib.rs:250:31 in function <u8 as bit_field::BitField>::set_bit
+
+Check 11: <u8 as bit_field::BitField>::set_bit.assertion.3
+	 - Status: SUCCESS
+	 - Description: "assertion failed: bit < Self::BIT_LENGTH"
+	 - Location: ../../src/lib.rs:282:1 in function <u8 as bit_field::BitField>::set_bit
+
+Check 12: checks::original_u8_get_and_set.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:20:20 in function checks::original_u8_get_and_set
+
+Check 13: checks::original_u8_get_and_set.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:20:20 in function checks::original_u8_get_and_set
+
+Check 14: checks::original_u8_get_and_set.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:20:20 in function checks::original_u8_get_and_set
+
+Check 15: checks::original_u8_get_and_set.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:20:20 in function checks::original_u8_get_and_set
+
+Check 16: checks::original_u8_get_and_set.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:20:20 in function checks::original_u8_get_and_set
+
+Check 17: checks::original_u8_get_and_set.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:20:20 in function checks::original_u8_get_and_set
+
+Check 18: checks::original_u8_get_and_set.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: src/lib.rs:23:9 in function checks::original_u8_get_and_set
+
+Check 19: checks::original_u8_get_and_set.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: src/lib.rs:23:9 in function checks::original_u8_get_and_set
+
+Check 20: checks::original_u8_get_and_set.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: src/lib.rs:23:9 in function checks::original_u8_get_and_set
+
+Check 21: checks::original_u8_get_and_set.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: src/lib.rs:23:9 in function checks::original_u8_get_and_set
+
+Check 22: checks::original_u8_get_and_set.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: src/lib.rs:23:9 in function checks::original_u8_get_and_set
+
+Check 23: checks::original_u8_get_and_set.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: src/lib.rs:23:9 in function checks::original_u8_get_and_set
+
+Check 24: <u8 as bit_field::BitField>::get_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 25: <u8 as bit_field::BitField>::get_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 26: <u8 as bit_field::BitField>::get_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 27: <u8 as bit_field::BitField>::get_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 28: <u8 as bit_field::BitField>::get_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 29: <u8 as bit_field::BitField>::get_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../src/lib.rs:219:18 in function <u8 as bit_field::BitField>::get_bit
+
+Check 30: <u8 as bit_field::BitField>::set_bit.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 31: <u8 as bit_field::BitField>::set_bit.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 32: <u8 as bit_field::BitField>::set_bit.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 33: <u8 as bit_field::BitField>::set_bit.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 34: <u8 as bit_field::BitField>::set_bit.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 35: <u8 as bit_field::BitField>::set_bit.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../src/lib.rs:248:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 36: <u8 as bit_field::BitField>::set_bit.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: ../../src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 37: <u8 as bit_field::BitField>::set_bit.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: ../../src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 38: <u8 as bit_field::BitField>::set_bit.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: ../../src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 39: <u8 as bit_field::BitField>::set_bit.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: ../../src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 40: <u8 as bit_field::BitField>::set_bit.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: ../../src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+Check 41: <u8 as bit_field::BitField>::set_bit.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: ../../src/lib.rs:250:21 in function <u8 as bit_field::BitField>::set_bit
+
+
+SUMMARY:
+ ** 0 of 41 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.061332922s
+
+Checking harness checks::u8_layout_model...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/prng-bitfield/artifacts/bit_field/0.10.3/aeneas/2026-11-05/evidence/kani-model/target/kani/x86_64-unknown-linux-gnu/debug/build/bitfield-kani-checks/8153d7d5dbb9d8c7/out/bitfield_kani_checks-8153d7d5dbb9d8c7__RNvNtCsjoUPRIUKhLf_20bitfield_kani_checks6checks15u8_layout_model.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.00178273s
+size of program expression: 207 steps
+slicing removed 108 assignments
+Generated 4 VCC(s), 2 remaining after simplification
+Runtime Postprocess Equation: 2.2233e-05s
+Passing problem to propositional reduction
+converting SSA
+Runtime Convert SSA: 8.0241e-05s
+Running propositional reduction
+Post-processing
+Runtime Post-process: 7.601e-06s
+Solving with CaDiCaL 3.0.0
+1 variables, 0 clauses
+SAT checker: instance is SATISFIABLE
+Runtime Solver: 9.7727e-05s
+Runtime decision procedure: 0.000211069s
+
+RESULTS:
+Check 1: checks::u8_layout_model.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: core::mem::size_of::<u8>() == 1"
+	 - Location: src/lib.rs:6:9 in function checks::u8_layout_model
+
+Check 2: checks::u8_layout_model.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: u8::BIT_LENGTH == 8"
+	 - Location: src/lib.rs:7:9 in function checks::u8_layout_model
+
+
+SUMMARY:
+ ** 0 of 2 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.02146917s
+
+Manual Harness Summary:
+Complete - 2 successfully verified harnesses, 0 failures, 2 total.
