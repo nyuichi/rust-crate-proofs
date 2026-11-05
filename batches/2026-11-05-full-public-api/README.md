@@ -18,7 +18,7 @@ The previous reports contain **56 actual mapped body-contract proofs in their st
 | either 1.19.0 | [27 / 6](https://proofs.rs/report/27) | 39 |
 | endian-type 0.2.0 | [26 / 2](https://proofs.rs/report/26) | 66 |
 | nohash-hasher 0.2.0 | [23 / 3](https://proofs.rs/report/23) | 14 |
-| normalize-line-endings 0.3.0 | [21 / 4](https://proofs.rs/report/21) | 1 |
+| normalize-line-endings 0.3.0 | [21 / 5](https://proofs.rs/report/21) | 1 |
 | oorandom 11.1.5 | [25 / 3](https://proofs.rs/report/25) | 12 |
 | rand_pcg 0.10.2 | [29 / 3](https://proofs.rs/report/29) | 25 |
 | rand_xorshift 0.5.0 | [24 / 5](https://proofs.rs/report/24) | 1 |
