@@ -1,0 +1,33 @@
+{
+  "status": "PASS source/log/hash independent read-only review; no build or solver rerun",
+  "checks": {
+    "kani-pcg32-rng-blanket": {
+      "freeze_files": 9,
+      "hash_mismatches": 0,
+      "rawlogs_success": 2,
+      "source_hashes_checked": 27
+    },
+    "kani-pcg-wide-rng-blanket": {
+      "freeze_files": 13,
+      "hash_mismatches": 0,
+      "rawlogs_success": 6,
+      "source_hashes_checked": 27
+    }
+  },
+  "check_totals": [
+    158,
+    393
+  ],
+  "current25_overlap": 0,
+  "actual_calls": "fully qualified original Rng vs corresponding original TryRng; exact returned integer and full derivedEq poststate",
+  "domains": "PCG32 and two128 LCG: all public from_state state/stream inputs, arbitrary internal state and odd increment. MCG128: all new128 inputs -> every odd nonzero state. Not all private Rust-valid raw states.",
+  "source_origin": "external rand_core0.10.0 blanket R:TryRng<Error=Infallible>+?Sized; not local declaration",
+  "observation": "public Clone/derivedEq complete fields; no private observer/stub/model",
+  "limits": [
+    "serde even increment LCG and raw zero/even MCG excluded",
+    "not general generic blanket proof",
+    "not fill_bytes",
+    "not machineAPI registration",
+    "source/archive digests observed from producer status and actual original source files; no new solver execution"
+  ]
+}

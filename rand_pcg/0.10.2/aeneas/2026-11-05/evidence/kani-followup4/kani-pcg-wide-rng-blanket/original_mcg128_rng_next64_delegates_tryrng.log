@@ -1,0 +1,310 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling pcg-wide-rng-blanket-relations v0.1.0 (/workspace/full-api/prng/kani-pcg-wide-rng-blanket)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+Checking harness checks::original_mcg128_rng_next64_delegates_tryrng...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/prng/kani-xorshift-rng-init/target/kani/x86_64-unknown-linux-gnu/debug/build/pcg-wide-rng-blanket-relations/cd02069b61b713d3/out/pcg_wide_rng_blanket_relations-cd02069b61b713d3__RNvNtCs1XQzjH9oxQo_30pcg_wide_rng_blanket_relations6checks43original_mcg128_rng_next64_delegates_tryrng.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0169165s
+size of program expression: 612 steps
+slicing removed 264 assignments
+Generated 90 VCC(s), 24 remaining after simplification
+Runtime Postprocess Equation: 0.000192821s
+Passing problem to SMT2 QF_AUFBV using Z3
+converting SSA
+Runtime Convert SSA: 0.00248275s
+Running SMT2 QF_AUFBV using Z3
+Runtime Solver: 0.0326775s
+Runtime decision procedure: 0.0354839s
+Running SMT2 QF_AUFBV using Z3
+Runtime Solver: 0.14265s
+Runtime decision procedure: 0.142775s
+
+RESULTS:
+Check 1: rand_pcg::pcg128::output_xsl_rr.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:278:15 in function rand_pcg::pcg128::output_xsl_rr
+
+Check 2: rand_pcg::pcg128::output_xsl_rr.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:279:16 in function rand_pcg::pcg128::output_xsl_rr
+
+Check 3: <u64 as std::intrinsics::fallback::DisjointBitOr>::disjoint_bitor.assume.1
+	 - Status: SUCCESS
+	 - Description: "Rust intrinsic assumption failed"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:138:26 in function <u64 as std::intrinsics::fallback::DisjointBitOr>::disjoint_bitor
+
+Check 4: <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.assume.1
+	 - Status: SUCCESS
+	 - Description: "Rust intrinsic assumption failed"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:195:26 in function <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 5: <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to subtract with overflow"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:208:56 in function <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 6: <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:208:29 in function <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 7: <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr.arithmetic_overflow.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift by excessive shift distance"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/fallback.rs:209:29 in function <u64 as std::intrinsics::fallback::FunnelShift>::unchecked_funnel_shr
+
+Check 8: std::intrinsics::rotate_right::<u64>.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to multiply with overflow"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:49 in function std::intrinsics::rotate_right::<u64>
+
+Check 9: std::intrinsics::rotate_right::<u64>.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:41 in function std::intrinsics::rotate_right::<u64>
+
+Check 10: std::intrinsics::rotate_right::<u64>.arithmetic_overflow.1
+	 - Status: SUCCESS
+	 - Description: "attempt to calculate the remainder with a divisor of zero"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:41 in function std::intrinsics::rotate_right::<u64>
+
+Check 11: checks::original_mcg128_rng_next64_delegates_tryrng.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: src/lib.rs:7:181 in function checks::original_mcg128_rng_next64_delegates_tryrng
+
+Check 12: checks::original_mcg128_rng_next64_delegates_tryrng.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x == y"
+	 - Location: src/lib.rs:7:255 in function checks::original_mcg128_rng_next64_delegates_tryrng
+
+Check 13: checks::original_mcg128_rng_next64_delegates_tryrng.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: a==b"
+	 - Location: src/lib.rs:7:271 in function checks::original_mcg128_rng_next64_delegates_tryrng
+
+Check 14: <rand_pcg::Mcg128Xsl64 as rand_core::Rng>::next_u64.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.0/src/lib.rs:78:15 in function <rand_pcg::Mcg128Xsl64 as rand_core::Rng>::next_u64
+
+Check 15: std::intrinsics::rotate_right::<u64>.division-by-zero.1
+	 - Status: SUCCESS
+	 - Description: "division by zero"
+	 - Location: ../home/runner/.rustup/toolchains/nightly-2026-08-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:2242:41 in function std::intrinsics::rotate_right::<u64>
+
+Check 16: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:22 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 17: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:22 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 18: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:22 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 19: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:22 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 20: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:22 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 21: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:22 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 22: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:9 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 23: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:9 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 24: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:9 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 25: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:9 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 26: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:9 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 27: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:261:9 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 28: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:262:26 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 29: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:262:26 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 30: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:262:26 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 31: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:262:26 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 32: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:262:26 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 33: <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:262:26 in function <rand_pcg::Mcg128Xsl64 as rand_core::TryRng>::try_next_u64
+
+Check 34: <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone
+
+Check 35: <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone
+
+Check 36: <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone
+
+Check 37: <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone
+
+Check 38: <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone
+
+Check 39: <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::clone::Clone>::clone
+
+Check 40: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 41: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 42: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 43: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 44: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 45: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 46: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 47: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 48: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 49: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 50: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+Check 51: <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128.rs:174:5 in function <rand_pcg::Mcg128Xsl64 as std::cmp::PartialEq>::eq
+
+
+SUMMARY:
+ ** 0 of 51 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.24072084s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.

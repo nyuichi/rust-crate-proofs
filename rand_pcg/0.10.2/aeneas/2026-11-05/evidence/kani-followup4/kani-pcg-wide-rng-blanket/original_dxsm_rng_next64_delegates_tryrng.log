@@ -1,0 +1,395 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling pcg-wide-rng-blanket-relations v0.1.0 (/workspace/full-api/prng/kani-pcg-wide-rng-blanket)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s
+Checking harness checks::original_dxsm_rng_next64_delegates_tryrng...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/prng/kani-xorshift-rng-init/target/kani/x86_64-unknown-linux-gnu/debug/build/pcg-wide-rng-blanket-relations/64a3b2ffeeb62261/out/pcg_wide_rng_blanket_relations-64a3b2ffeeb62261__RNvNtCs1XQzjH9oxQo_30pcg_wide_rng_blanket_relations6checks41original_dxsm_rng_next64_delegates_tryrng.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Runtime Symex: 0.0136485s
+size of program expression: 516 steps
+slicing removed 223 assignments
+Generated 102 VCC(s), 11 remaining after simplification
+Runtime Postprocess Equation: 0.000153441s
+Passing problem to SMT2 QF_AUFBV using Z3
+converting SSA
+Runtime Convert SSA: 0.00110319s
+Running SMT2 QF_AUFBV using Z3
+Runtime Solver: 0.0132375s
+Runtime decision procedure: 0.0145051s
+Running SMT2 QF_AUFBV using Z3
+Runtime Solver: 0.0112639s
+Runtime decision procedure: 0.0113937s
+
+RESULTS:
+Check 1: <rand_pcg::Lcg128CmDxsm64 as rand_core::Rng>::next_u64.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.0/src/lib.rs:78:15 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::Rng>::next_u64
+
+Check 2: rand_pcg::Lcg128CmDxsm64::from_state.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift left with overflow"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/lib.rs:129:37 in function rand_pcg::Lcg128CmDxsm64::from_state
+
+Check 3: checks::original_dxsm_rng_next64_delegates_tryrng.unreachable.1
+	 - Status: SUCCESS
+	 - Description: "unreachable code"
+	 - Location: src/lib.rs:5:204 in function checks::original_dxsm_rng_next64_delegates_tryrng
+
+Check 4: checks::original_dxsm_rng_next64_delegates_tryrng.assertion.1
+	 - Status: SUCCESS
+	 - Description: "assertion failed: x == y"
+	 - Location: src/lib.rs:5:281 in function checks::original_dxsm_rng_next64_delegates_tryrng
+
+Check 5: checks::original_dxsm_rng_next64_delegates_tryrng.assertion.2
+	 - Status: SUCCESS
+	 - Description: "assertion failed: a==b"
+	 - Location: src/lib.rs:5:297 in function checks::original_dxsm_rng_next64_delegates_tryrng
+
+Check 6: rand_pcg::pcg128cm::output_dxsm.assertion.1
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:170:18 in function rand_pcg::pcg128cm::output_dxsm
+
+Check 7: rand_pcg::pcg128cm::output_dxsm.assertion.2
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:174:11 in function rand_pcg::pcg128cm::output_dxsm
+
+Check 8: rand_pcg::pcg128cm::output_dxsm.assertion.3
+	 - Status: SUCCESS
+	 - Description: "attempt to shift right with overflow"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:176:11 in function rand_pcg::pcg128cm::output_dxsm
+
+Check 9: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:22 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 10: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:22 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 11: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:22 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 12: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:22 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 13: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:22 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 14: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:22 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 15: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:117:27 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 16: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:117:27 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 17: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:117:27 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 18: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:117:27 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 19: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:117:27 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 20: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:117:27 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 21: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:9 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 22: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:9 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 23: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:9 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 24: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:9 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 25: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:9 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 26: rand_pcg::Lcg128CmDxsm64::step.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:114:9 in function rand_pcg::Lcg128CmDxsm64::step
+
+Check 27: <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:155:31 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64
+
+Check 28: <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:155:31 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64
+
+Check 29: <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:155:31 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64
+
+Check 30: <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:155:31 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64
+
+Check 31: <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:155:31 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64
+
+Check 32: <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:155:31 in function <rand_pcg::Lcg128CmDxsm64 as rand_core::TryRng>::try_next_u64
+
+Check 33: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 34: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 35: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 36: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 37: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 38: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 39: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 40: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 41: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 42: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 43: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 44: <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::clone::Clone>::clone
+
+Check 45: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.1
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 46: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.2
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 47: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.3
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 48: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.4
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 49: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.5
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 50: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.6
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 51: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.7
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 52: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.8
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 53: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.9
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 54: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.10
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 55: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.11
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 56: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.12
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:42:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 57: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.13
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 58: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.14
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 59: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.15
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 60: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.16
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 61: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.17
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 62: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.18
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 63: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.19
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer NULL"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 64: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.20
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer invalid"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 65: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.21
+	 - Status: SUCCESS
+	 - Description: "dereference failure: deallocated dynamic object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 66: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.22
+	 - Status: SUCCESS
+	 - Description: "dereference failure: dead object"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 67: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.23
+	 - Status: SUCCESS
+	 - Description: "dereference failure: pointer outside object bounds"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+Check 68: <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq.pointer_dereference.24
+	 - Status: SUCCESS
+	 - Description: "dereference failure: invalid integer address"
+	 - Location: full-api/prng/sources/rand_pcg-0.10.2/src/pcg128cm.rs:43:5 in function <rand_pcg::Lcg128CmDxsm64 as std::cmp::PartialEq>::eq
+
+
+SUMMARY:
+ ** 0 of 68 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.08421017s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.

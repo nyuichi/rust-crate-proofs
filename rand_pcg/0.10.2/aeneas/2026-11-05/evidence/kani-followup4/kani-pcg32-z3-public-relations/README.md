@@ -1,0 +1,5 @@
+# PCG32 Z3 public API relations
+
+Actualpublictry_next_u64 composition SUCCESS:81checks0fail0.297s. All64bitstate/64bitstream publicfrom_state inputs, therefore arbitraryinternalstate with oddincrement. Onecloneactualnext64 vs anothercloneactualnext32 twice; output lowword|(highword<<32), fullstate derivedEq. Defaultconfiguration/core0.10.0, originalpathdependency. No independentnumericPCGoutput contract, no evenincrementserde/allprivatevalidstate claim. Existing Aeneasnext32 is separate complementaryproof. No new machineAeneasclaim.
+
+Seedrelation attempt remains unverified: SMT SSAconversion throws map::at /CBMCstatus6 (Kani exit1), before solverpropertyverdict. It also warns caller_location/foreignfunction support, reachabilityunresolved. Not a cratecounterexample or successfulseedproof. Source/assertions preserved from priorCadicaltimeout packet except module/packagingpaths, and oldtimeouts remain immutable. No same-settingretry. Sourcehashes checked before/after, no model/observer/originaledit. Z3version/hash/fullcommands/RSSsample in runs.json.

@@ -1,0 +1,30 @@
+   Compiling rand_core v0.10.0
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+   Compiling rand_pcg v0.10.2 (/workspace/full-api/prng/sources/rand_pcg-0.10.2)
+   Compiling pcg64mcg-serde-protocol-checks v0.1.0 (/workspace/full-api/prng/kani-pcg64mcg-serde)
+warning: unexpected `cfg` condition name: `kani`
+  --> src/lib.rs:74:7
+   |
+74 | #[cfg(kani)]
+   |       ^^^^
+   |
+   = help: expected names are: `docsrs`, `feature`, and `test` and 31 more
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(kani)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: `pcg64mcg-serde-protocol-checks` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.14s
+     Running unittests src/lib.rs (full-api/prng/rustdoc/rand_pcg/all-features/debug/deps/pcg64mcg_serde_protocol_checks-f24e156b975e04c3)
+
+running 1 test
+default+serde Mcg128Xsl64: actual public Deserialize seq[0u128] -> public state()=0; Serialize wire allzero16
+test native::public_deserialize_zero_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

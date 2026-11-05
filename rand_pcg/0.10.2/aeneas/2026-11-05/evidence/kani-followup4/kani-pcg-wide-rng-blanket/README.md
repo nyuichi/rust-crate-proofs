@@ -1,0 +1,5 @@
+# WidePCG external Rng6 typed supplementary proofs
+
+All6 actualFQ Rngnext32/64 vs actualTryRng calls succeeded with Z3; fulloutput and derivedEqcompletepoststate, each60slimit runonce. Lcg128Xsl64/Lcg128CmDxsm64 domain allpublicfrom_state state128/stream128 inputs→oddincrement/arbitrarystate. Mcg128Xsl64 allpublicnew128inputs→alloddnonzero state. Defaultconfiguration/core0.10.0. Exactperharnesschecks/time in status.json, fullcommands/rawlogs retained.
+
+Sourceorigin is externalconditionalrand_core::Rng blanket R:TryRng<Error=Infallible>+?Sized, not a localdeclaration. Current25localTryRng mappings independentlychecked and notcountedagain. These six externaltypedfamilies are supplementary, not machineAPIregistration. No evenincrementserdeLCG, zero/evenMCGprivatevalidstate or genericallimpl/otherconfiguration guarantee. Originalsource/model/privateobserver unchanged, derivedEq/Clone are observations not extra stdderiveclaims. MCGserde592packet independentlycovers rawzero/evenserde roundtrip but does not extend these generationdomains.

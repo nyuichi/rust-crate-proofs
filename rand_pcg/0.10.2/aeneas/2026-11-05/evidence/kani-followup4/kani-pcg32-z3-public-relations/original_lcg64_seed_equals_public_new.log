@@ -1,0 +1,54 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling pcg32-z3-public-relations v0.1.0 (/workspace/full-api/prng/kani-pcg32-z3-public-relations)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.49s
+Checking harness seed_checks::original_lcg64_seed_equals_public_new...
+CBMC 6.11.0 (cbmc-6.11.0)
+CBMC version 6.11.0 (cbmc-6.11.0) 64-bit x86_64 linux
+Reading GOTO program from file /workspace/full-api/prng/kani-xorshift-rng-init/target/kani/x86_64-unknown-linux-gnu/debug/build/pcg32-z3-public-relations/08ca721aed3214dd/out/pcg32_z3_public_relations-08ca721aed3214dd__RNvNtCsiVEZ8CBYuv9_25pcg32_z3_public_relations11seed_checks37original_lcg64_seed_equals_public_new.out
+Generating GOTO Program
+Adding CPROVER library (x86_64)
+Removal of function pointers and virtual functions
+Generic Property Instrumentation
+Running with 16 object bits, 48 offset bits (user-specified)
+Starting Bounded Model Checking
+Unwinding loop _RINvNtCsi3M39lnc4sm_9rand_core5utils10read_wordsyKj2_ECsiVEZ8CBYuv9_25pcg32_z3_public_relations.0 iteration 1 file /workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.0/src/utils.rs line 145 column 5 function rand_pcg::rand_core::utils::read_words::<u64, 2> thread 0
+Unwinding loop _RINvNtCsi3M39lnc4sm_9rand_core5utils10read_wordsyKj2_ECsiVEZ8CBYuv9_25pcg32_z3_public_relations.0 iteration 2 file /workspace/proof-tools/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.10.0/src/utils.rs line 145 column 5 function rand_pcg::rand_core::utils::read_words::<u64, 2> thread 0
+Runtime Symex: 0.191897s
+size of program expression: 7709 steps
+slicing removed 4833 assignments
+Generated 498 VCC(s), 71 remaining after simplification
+Runtime Postprocess Equation: 0.00432435s
+Passing problem to SMT2 QF_AUFBV using Z3
+converting SSA
+map::at
+
+CBMC failed with status 6
+VERIFICATION:- FAILED
+
+Manual Harness Summary:
+Verification failed for - seed_checks::original_lcg64_seed_equals_public_new
+Complete - 0 successfully verified harnesses, 1 failures, 1 total.
