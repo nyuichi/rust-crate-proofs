@@ -1,0 +1,3 @@
+# PCG64 concrete serde attempt — incomplete
+
+Single authorized60s Kani run completed after7.377s with exit1: one memcmp loop0 unwinding assertion failure,621 checks undetermined (622total). The harness retained #[kani::unwind(20)] from the16byte predecessor while its final wire equality now compares32bytes. This bound was insufficient. It is a harness completeness failure, not a demonstrated original API counterexample and not a successful proof. No retry was performed, as instructed. Raw log/exit/source/lock remain unchanged. Original source hashes verified unchanged after attempt; no models/observers. A future separately authorized revision would need an adequate finite bound, but current evidence remains unverified. Disk after293MB.
