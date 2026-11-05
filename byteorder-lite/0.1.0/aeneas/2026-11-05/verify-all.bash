@@ -11,5 +11,5 @@ python3 tools/extract.py
 sha256sum --check evidence/generated-before.sha256
 if rg -n '\bsorry\b|\baxiom\b' proofs --glob '*.lean' --glob '!**/.lake/**' --glob '!**/FunsExternal_Template.lean'; then exit 1; fi
 python3 tools/write-union-audit.py
-(cd proofs; for proof_module in Proofs SignedProofs FloatProofs VariableProofs ReadVariableProofs U24Exact24 U24Write24 SignedVariableContracts SignedReadProofs NativeIdentityProofs; do lake build +"$proof_module"; done; lake env lean ../evidence/UnionAudit.lean) 2>&1 | tee evidence/verification.log
+(cd proofs; for proof_module in Proofs SignedProofs FloatProofs VariableProofs ReadVariableProofs U24Exact24 U24Write24 SignedVariableContracts SignedReadProofs NativeIdentityProofs NativeFloatIdentityProofs; do lake build +"$proof_module"; done; lake env lean ../evidence/UnionAudit.lean) 2>&1 | tee evidence/verification.log
 python3 tools/check-audits.py evidence/verification.log

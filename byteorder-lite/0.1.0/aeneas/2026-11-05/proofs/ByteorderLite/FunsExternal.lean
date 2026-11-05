@@ -1,5 +1,6 @@
 module
 public import Aeneas
 public import ByteorderLite.Types
-/- No external symbols are supplied. All original native-endian bodies return their input unchanged.
-   The unchanged official external template records unused declarations from discarded target branches. -/
+public import ByteorderLiteFloatRoots.FunsExternal
+/- Only the existing bit-pattern type representations are reused.
+   No new external function definitions are supplied; the native bodies make no external call. -/

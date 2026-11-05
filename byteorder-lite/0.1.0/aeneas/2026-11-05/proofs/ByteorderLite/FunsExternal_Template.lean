@@ -21,6 +21,34 @@ set_option maxHeartbeats 1000000
 set_option maxRecDepth 2048
 open byteorder_lite
 
+/-- [core::f32::{f32}::to_bits]:
+    Source: '/rustc/library/core/src/num/f32.rs', lines 1341:4-1341:37
+    Name pattern: [core::f32::{f32}::to_bits]
+    Visibility: public -/
+@[rust_fun "core::f32::{f32}::to_bits"]
+axiom core.f32.F32.to_bits : F32 → Result Std.U32
+
+/-- [core::f32::{f32}::from_bits]:
+    Source: '/rustc/library/core/src/num/f32.rs', lines 1387:4-1387:42
+    Name pattern: [core::f32::{f32}::from_bits]
+    Visibility: public -/
+@[rust_fun "core::f32::{f32}::from_bits"]
+axiom core.f32.F32.from_bits : Std.U32 → Result F32
+
+/-- [core::f64::{f64}::to_bits]:
+    Source: '/rustc/library/core/src/num/f64.rs', lines 1319:4-1319:37
+    Name pattern: [core::f64::{f64}::to_bits]
+    Visibility: public -/
+@[rust_fun "core::f64::{f64}::to_bits"]
+axiom core.f64.F64.to_bits : F64 → Result Std.U64
+
+/-- [core::f64::{f64}::from_bits]:
+    Source: '/rustc/library/core/src/num/f64.rs', lines 1365:4-1365:42
+    Name pattern: [core::f64::{f64}::from_bits]
+    Visibility: public -/
+@[rust_fun "core::f64::{f64}::from_bits"]
+axiom core.f64.F64.from_bits : Std.U64 → Result F64
+
 /-- [core::num::{i16}::to_le]:
     Source: '/rustc/library/core/src/num/int_macros.rs', lines 573:8-573:40; this code is generated from a macro invocation at: '/rustc/library/core/src/num/mod.rs', lines 405:4-424:5
     Name pattern: [core::num::{i16}::to_le]

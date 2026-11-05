@@ -95,6 +95,7 @@ subprocess.run(['python3','tools/check-signed-read.py'],cwd=p,check=True)
 cmd=['charon','cargo','--preset','aeneas','--sysroot','default','--dest','evidence/native-identity']
 for sign in ['u','i']:
  for bits in [16,32,64,128]:cmd+=['--start-from',f'{{impl crate::ByteOrder for crate::LittleEndian}}::from_slice_{sign}{bits}']
+for bits in [32,64]:cmd+=['--start-from',f'{{impl crate::ByteOrder for crate::LittleEndian}}::from_slice_f{bits}']
 (p/'evidence/native-identity/charon-command.json').write_text(json.dumps(cmd,indent=2))
 native_env=dict(os.environ,CARGO_BUILD_TARGET='x86_64-unknown-linux-gnu')
 (p/'evidence/native-identity/target-env.json').write_text(json.dumps({'CARGO_BUILD_TARGET':native_env['CARGO_BUILD_TARGET'],'target_endian':'little'}))

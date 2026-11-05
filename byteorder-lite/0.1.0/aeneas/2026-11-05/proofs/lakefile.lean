@@ -40,3 +40,5 @@ lean_lib SignedReadProofs
 
 lean_lib ByteorderLite
 lean_lib NativeIdentityProofs
+
+lean_lib NativeFloatIdentityProofs

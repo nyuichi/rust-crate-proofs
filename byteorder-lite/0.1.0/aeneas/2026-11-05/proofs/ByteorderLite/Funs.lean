@@ -81,4 +81,18 @@ def LittleEndian.Insts.Byteorder_liteByteOrder.from_slice_i128
   (numbers : Slice Std.I128) : Result (Slice Std.I128) := do
   ok numbers
 
+/-- [byteorder_lite::{impl byteorder_lite::ByteOrder for byteorder_lite::LittleEndian}::from_slice_f32]:
+    Source: 'src/lib.rs', lines 2303:4-2309:5
+    Visibility: public -/
+def LittleEndian.Insts.Byteorder_liteByteOrder.from_slice_f32
+  (numbers : Slice F32) : Result (Slice F32) := do
+  ok numbers
+
+/-- [byteorder_lite::{impl byteorder_lite::ByteOrder for byteorder_lite::LittleEndian}::from_slice_f64]:
+    Source: 'src/lib.rs', lines 2312:4-2318:5
+    Visibility: public -/
+def LittleEndian.Insts.Byteorder_liteByteOrder.from_slice_f64
+  (numbers : Slice F64) : Result (Slice F64) := do
+  ok numbers
+
 end byteorder_lite
