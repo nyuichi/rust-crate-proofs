@@ -1,0 +1,53 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "Either::is_left"
+module = "Proofs"
+theorem = "Proofs.is_left_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[[tool.proofs]]
+api = "Either::is_right"
+module = "Proofs"
+theorem = "Proofs.is_right_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[[tool.proofs]]
+api = "Either::left"
+module = "Proofs"
+theorem = "Proofs.left_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[[tool.proofs]]
+api = "Either::right"
+module = "Proofs"
+theorem = "Proofs.right_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[[tool.proofs]]
+api = "Either::flip"
+module = "Proofs"
+theorem = "Proofs.flip_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[[tool.proofs]]
+api = "Either::left_or"
+module = "Proofs"
+theorem = "Proofs.left_or_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[[tool.proofs]]
+api = "Either::right_or"
+module = "Proofs"
+theorem = "Proofs.right_or_spec"
+precondition = "All well-typed Either<L,R> inputs, for arbitrary payload types and values; default features on x86_64."
+
+[report]
+title = "Exact branch tests, payload projections and swapping in Either"
+explanation = "For either 1.19.0, is_left and is_right report the actual variant for every Either value. left and right return Some of exactly the corresponding payload or None for the opposite branch. left_or and right_or return the matching payload or the supplied default. flip swaps Left and Right while preserving the payload; a separate composition theorem proves that flipping twice returns the original value. These seven original method bodies terminate normally in the Aeneas model for arbitrary payload types and values, without inspecting or modifying payloads."
+trusted_assumptions = "The Rust compiler, official Charon/Aeneas translation, standard-library models and Lean kernel are trusted. Transitive theorem axioms are limited to propext, Classical.choice and Quot.sound; no local trusted helper contracts or custom models are used."
+limitations = "Coverage is limited to the seven named methods and the two-flip composition. Closure-taking maps, iterators, pinning, borrowed mutable projections, formatting, serde and other trait implementations are not verified. Rust destructor behavior and resource consumption are outside the pure value model. Other targets and feature configurations were not checked."
+environment = "Original crates.io either 1.19.0 Rust sources and Cargo.toml, byte-compared with the archived release; default features on x86_64-unknown-linux-gnu. Rust nightly-2026-09-17, Charon 08d7c9d50144bd84848212c24701253585e90d1f, Aeneas be86ab0f1989d04944292b345b24c435be3ad10a, Lean 4.35.0. Official start-from selection extracts the actual methods without source changes."
