@@ -1,0 +1,21 @@
+[tool]
+name = "aeneas"
+version = "be86ab0f1989d04944292b345b24c435be3ad10a"
+lean_dir = "proofs"
+
+[[tool.proofs]]
+api = "Rand32::rand_range"
+module = "EstablishedRange"
+theorem = "EstablishedRange.rand32_contract"
+precondition = "Partial coverage only: all represented states with start >= end give assertion failure in debug-assertion extraction; public from_state((0,0)) followed by range 0..3 diverges. Other valid inputs, general return bounds, termination and uniformity remain unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
+
+[[tool.proofs]]
+api = "Rand64::rand_range"
+module = "EstablishedRange"
+theorem = "EstablishedRange.rand64_contract"
+precondition = "Partial coverage only: all represented states with start >= end give assertion failure in debug-assertion extraction; public from_state((0,0)) followed by range 0..3 diverges. Other valid inputs, general return bounds, termination and uniformity remain unproved. Original crate and original std wrapping_neg bodies; official pinned nonmonomorphic extraction; no new provider/model."
+
+[report]
+summary = "Both range methods reject invalid ranges in the extracted debug configuration and provably diverge after restoring state/increment (0,0) and sampling 0..3."
+guarantees = "Direct original-method proofs cover all start >= end inputs and the public restored-zero-state 0..3 divergence case. The latter is a formal nontermination result, supported separately by bounded native observations."
+limitations = "Partial API coverage: other valid ranges/states, normal-return bounds, termination, uniformity, release configurations and Rust panic/unwinding behavior are not established. The zero pair is accepted by from_state, but reachability from constructors is not asserted. Original std wrapping_neg bodies are transparent; no new provider/model."
