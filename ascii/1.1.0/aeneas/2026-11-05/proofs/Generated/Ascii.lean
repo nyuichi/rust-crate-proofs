@@ -500,6 +500,15 @@ def ascii_char.AsciiChar.is_ascii_uppercase
   (self : ascii_char.AsciiChar) : Result Bool := do
   ascii_char.AsciiChar.is_uppercase self
 
+/-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_punctuation]:
+    Source: 'src/ascii_char.rs', lines 626:4-628:5
+    Visibility: public -/
+def ascii_char.AsciiChar.is_ascii_punctuation
+  (self : ascii_char.AsciiChar) : Result Bool := do
+  let b ← ascii_char.AsciiChar.is_ascii_graphic self
+  let b1 ← ascii_char.AsciiChar.is_alphanumeric self
+  ok (b && (¬ b1))
+
 /-- [ascii::ascii_char::{ascii::ascii_char::AsciiChar}::is_ascii_hexdigit]:
     Source: 'src/ascii_char.rs', lines 643:4-645:5
     Visibility: public -/
@@ -526,6 +535,13 @@ def ascii_char.AsciiChar.eq_ignore_ascii_case
   let i3 ← ascii_char.AsciiChar.to_not_upper other
   ok ((i = i1) || (b && (i2 = i3)))
 
+/-- [ascii::ascii_char::{impl core::default::Default for ascii::ascii_char::AsciiChar}::default]:
+    Source: 'src/ascii_char.rs', lines 750:4-752:5
+    Visibility: public -/
+def ascii_char.AsciiChar.Insts.CoreDefaultDefault.default
+  : Result ascii_char.AsciiChar := do
+  ok ascii_char.AsciiChar.Null
+
 /-- [ascii::ascii_char::ToAsciiCharError]
     Source: 'src/ascii_char.rs', lines 794:0-794:32
     Visibility: public -/
@@ -547,6 +563,19 @@ def ascii_char.AsciiChar.Insts.AsciiAscii_charToAsciiChar.to_ascii_char
 def
   ascii_char.AsciiChar.Insts.AsciiAscii_charToAsciiChar.to_ascii_char_unchecked
   (self : ascii_char.AsciiChar) : Result ascii_char.AsciiChar := do
+  ok self
+
+/-- [ascii::ascii_str::AsAsciiStrError]
+    Source: 'src/ascii_str.rs', lines 807:0-807:34
+    Visibility: public -/
+@[reducible]
+def ascii_str.AsAsciiStrError := Std.Usize
+
+/-- [ascii::ascii_str::{ascii::ascii_str::AsAsciiStrError}::valid_up_to]:
+    Source: 'src/ascii_str.rs', lines 817:4-819:5
+    Visibility: public -/
+def ascii_str.AsAsciiStrError.valid_up_to
+  (self : ascii_str.AsAsciiStrError) : Result Std.Usize := do
   ok self
 
 end ascii

@@ -21,3 +21,7 @@ Seven additional direct original-body checks establish uppercase/lowercase mappi
 ## Six additional public predicate/radix APIs
 
 The union now includes is_alphabetic/is_alphanumeric/is_lowercase/is_uppercase, is_whitespace (including VT) and is_digit for all 128 characters and all u32 radix values. The digit theorem partitions the whole input domain: radix 0–36 returns exact digit-value comparison; radix >36 is a model failure corresponding to the original Rust panic. It does not claim a panic message payload. Radix 0 always returns false and radix 1 accepts only the character '0'. DigitProofs normalizes scalar representations through proved unsigned-value lemmas; it introduces no axiom or Rust adaptation. The current machine mappings are twenty-one Aeneas APIs; separate Kani evidence remains separately labeled.
+
+## Additional original API bodies
+
+All 24 original roots are extracted together. is_ascii_punctuation returns exactly the four standard punctuation intervals; handwritten Default returns NUL. valid_up_to returns the stored usize field for every representable index; the theorem is a getter specification, not a proof that error constructors identify the first bad byte. Existing separate Kani checks remain distinct.

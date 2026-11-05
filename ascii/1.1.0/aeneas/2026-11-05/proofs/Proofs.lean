@@ -205,6 +205,20 @@ theorem is_digit_spec (c : AsciiChar) (r : U32) :
  · exact DigitProofs.is_digit_success_spec c r (by assumption)
  · apply DigitProofs.is_digit_panic_spec c r
    omega
+theorem is_ascii_punctuation_spec (c : AsciiChar) :
+ c.is_ascii_punctuation ⦃ b => b = decide ((33 ≤ asciiCode c ∧ asciiCode c ≤ 47) ∨
+ (58 ≤ asciiCode c ∧ asciiCode c ≤ 64) ∨ (91 ≤ asciiCode c ∧ asciiCode c ≤ 96) ∨
+ (123 ≤ asciiCode c ∧ asciiCode c ≤ 126)) ⦄ := by
+ unfold AsciiChar.is_ascii_punctuation
+ apply WP.spec_bind (is_ascii_graphic_spec c)
+ intro b hb
+ subst b
+ simp only [is_alphanumeric_spec]
+ cases c <;> simp [asciiCode]
+
+theorem default_spec : AsciiChar.Insts.CoreDefaultDefault.default = .ok AsciiChar.Null := by rfl
+
+theorem valid_up_to_spec (index : Usize) : ascii.ascii_str.AsAsciiStrError.valid_up_to index = .ok index := by rfl
 end Proofs
 
 
@@ -231,3 +245,7 @@ end Proofs
 #print axioms Proofs.is_whitespace_spec
 
 #print axioms Proofs.is_digit_spec
+
+#print axioms Proofs.is_ascii_punctuation_spec
+#print axioms Proofs.default_spec
+#print axioms Proofs.valid_up_to_spec

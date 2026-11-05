@@ -1,0 +1,1145 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report #26 — Integer From conversions and generic bitwise result preservation · proofs.rs</title><meta name="description" content="For endian-type 0.2.0, six generic BigEndian/ LittleEndian bitwise methods preserve the underlying operator result. Sixty integer From method bodies additionall"><meta property="og:type" content="article"><meta property="og:site_name" content="proofs.rs"><meta property="og:title" content="Integer From conversions and generic bitwise result preservation · endian-type 0.2.0 · proofs.rs"><meta property="og:description" content="For endian-type 0.2.0, six generic BigEndian/ LittleEndian bitwise methods preserve the underlying operator result. Sixty integer From method bodies additionall"><meta property="og:url" content="https://proofs.rs/report/26?v=2"><meta property="og:image" content="https://proofs.rs/og/report/26/2.png"><meta property="og:image:alt" content="Integer From conversions and generic bitwise result preservation · endian-type 0.2.0"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Integer From conversions and generic bitwise result preservation · endian-type 0.2.0 · proofs.rs"><meta name="twitter:description" content="For endian-type 0.2.0, six generic BigEndian/ LittleEndian bitwise methods preserve the underlying operator result. Sixty integer From method bodies additionall"><meta name="twitter:image" content="https://proofs.rs/og/report/26/2.png"><meta name="twitter:image:alt" content="Integer From conversions and generic bitwise result preservation · endian-type 0.2.0"><link rel="canonical" href="https://proofs.rs/report/26"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/theme-a.css"><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/theme-header.css"><link rel="icon" href="/favicon.svg"><script src="/site.js" defer></script></head><body><header class="proofs-site-header"><a class="brand" href="/">proofs.rs</a><nav aria-label="Main navigation"><a href="/crates">Crates</a><a href="/reports">Reports</a><a href="/tools">Tools</a><a href="/book/">Docs</a><a href="https://proofs-rs.hashnode.dev" class="external">Blog<span class="external-mark" aria-hidden="true">↗</span></a><a href="https://proofs-rs.zulipchat.com/" class="external">Zulip<span class="external-mark" aria-hidden="true">↗</span></a></nav><div id="account-nav"><div class="signin"><a href="/auth/github?return_to=%2Freport%2F26">Sign in with GitHub</a></div></div></header><main id="app"><div class="breadcrumbs" role="navigation" aria-label="Breadcrumb"><a href="/crates">crates</a> <span aria-hidden="true">/</span> <a href="/crate/endian-type?version=0.2.0">endian-type 0.2.0</a> <span aria-hidden="true">/</span> <a href="/crate/endian-type?version=0.2.0#reports">reports</a> <span aria-hidden="true">/</span></div><div class="title-row"><h1>Report #26 — Integer From conversions and generic bitwise result preservation</h1></div><p class="report-tool"><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a</a></p><p class="report-outcome">66 verified claims · 0 findings</p><p class="report-provenance meta">Recorded by the author; proofs.rs has not re-run it. <a href="/book/read-a-report.html">How to read a report</a></p><p class="meta"><a class="user-link" href="/user/bb88769c-aca8-49e3-97e0-c956965902b8">nyuichi</a> · 2026-11-05 01:21 UTC</p><nav class="report-share" aria-label="Share report"><a target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=Integer%20From%20conversions%20and%20generic%20bitwise%20result%20preservation%20%C2%B7%20proofs.rs&amp;url=https%3A%2F%2Fproofs.rs%2Freport%2F26%3Fv%3D2"><img src="/social/x.svg" alt="" aria-hidden="true">X</a><a target="_blank" rel="noopener noreferrer" href="https://bsky.app/intent/compose?text=Integer%20From%20conversions%20and%20generic%20bitwise%20result%20preservation%20%C2%B7%20proofs.rs%0Ahttps%3A%2F%2Fproofs.rs%2Freport%2F26%3Fv%3D2"><img src="/social/bluesky.svg" alt="" aria-hidden="true">Bluesky</a></nav><div class="meta" id="revision-history">Revision <a href="/report/26?v=2" aria-current="page">v2</a> · <a href="/report/26?v=1">v1</a></div><div class="report-actions"></div><nav class="report-outline" aria-label="On this page"><a href="#overview">Overview</a> · <a href="#findings">Findings</a> · <a href="#apis">APIs</a> · <a href="#evidence">Evidence</a> · <a href="#trusted">What is trusted</a> · <a href="#limitations">Limitations</a> · <a href="#dependencies">Dependencies</a> · <a href="#discussion">Discussion · 0 comments</a></nav><section class="report-section report-explanation" id="overview"><h2>Overview</h2><div class="markdown-body"><p>For endian-type 0.2.0, six generic BigEndian/ LittleEndian bitwise methods preserve the underlying operator result. Sixty integer From method bodies additionally implement exact identity or byte reversal under explicitly supplied x86_64 little-endian scalar-operation models. LittleEndian construction and conversion to an integer preserve the stored word; BigEndian construction and conversion to an integer reverse its bytes; cross-wrapper conversion reverses the stored word. These contracts cover every bit pattern of u16/u32/u64/u128/usize and i16/i32/i64/i128/isize. Pointer-sized Lean theorems explicitly require System.Platform.numBits=64. Original source and Cargo.toml are unchanged. Fifty executable external-operation models compose official byte primitives and are proved against independent bitvector specifications; Kani separately checks native Rust operations against explicit reversed-byte references for all inputs. Separate ordinary Kani harnesses directly check forty concrete integer byte APIs (ten harnesses, 220 checks) and sixty integer instantiations of six slice methods (1030 checks, including 180 specification assertions and 20 unsupported-path guards). The slice checks are limited to initialized, correctly aligned exact-length repr(C) leading-field buffers with arbitrary contents and replacement values; they do not establish arbitrary-T, arbitrary allocation-context, invalid/short/misaligned-buffer, or Rust aliasing guarantees. These supplemental Kani checks are not among the 66 Aeneas machine claims.</p></div></section>
+    <section id="findings" class="report-section"><h2>Findings (0)</h2><p>No findings reported.</p></section>
+    <section class="report-apis" id="apis"><h2>APIs (66)</h2><section class="api-category"><h3>Recorded callables</h3><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;T&gt; as core::ops::BitAnd&gt;::bitand" data-claims="1"><span><a class="api-name" href="/api/3d54e0f8da7117fe791ecc8184c941d93b8e087b2eebdbbfa381fa1de87ec7d9">&lt;endian_type::BigEndian&lt;T&gt; as core::ops::BitAnd&gt;::bitand</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e73d4192-b918-4dfb-b59c-edd67798a6d0?report_revision=2">Claim #1</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;T&gt; as core::ops::BitOr&gt;::bitor" data-claims="1"><span><a class="api-name" href="/api/d717c15551f63f6b59685436794d16cad7d3fe212c5b043ebc575cfadbc06b03">&lt;endian_type::BigEndian&lt;T&gt; as core::ops::BitOr&gt;::bitor</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/5f47c59a-2b32-42f9-801c-d169ac38e035?report_revision=2">Claim #2</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;T&gt; as core::ops::BitXor&gt;::bitxor" data-claims="1"><span><a class="api-name" href="/api/7f577813515de757b1d2d7e54fe7a058d3708aab4699bdffadf057448cd09ac7">&lt;endian_type::BigEndian&lt;T&gt; as core::ops::BitXor&gt;::bitxor</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/72c386cd-9378-4d61-82fb-3ce07ad61898?report_revision=2">Claim #3</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i128&gt; as From&lt;endian_type::LittleEndian&lt;i128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/72837ee920de2ae6efc2762f4bbf779cc84fe798985a4f567a94d7d43b4aed7e">&lt;endian_type::BigEndian&lt;i128&gt; as From&lt;endian_type::LittleEndian&lt;i128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f848a7cb-eaac-4c26-97ce-7fbd5e96a000?report_revision=2">Claim #59</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i128&gt; as From&lt;i128&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/6820a2f86472f97ee05cecd7a3fc3882d60461a2eb70c33ca092c7fd164799d0">&lt;endian_type::BigEndian&lt;i128&gt; as From&lt;i128&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/b29fecec-deb4-4e8f-9fd1-f94daa9e9237?report_revision=2">Claim #55</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i16&gt; as From&lt;endian_type::LittleEndian&lt;i16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/31555265ffc1c7770815623dc65f63803537eae2cb26645f4269ac777413ea05">&lt;endian_type::BigEndian&lt;i16&gt; as From&lt;endian_type::LittleEndian&lt;i16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/5360f96d-feed-4182-b7a7-9716c318e60b?report_revision=2">Claim #41</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i16&gt; as From&lt;i16&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/5a251650b95c45012a8317baf1d81f7a9361f78d9e0be7f5ce6a3386eb8703cd">&lt;endian_type::BigEndian&lt;i16&gt; as From&lt;i16&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/75dbf61c-da9c-471d-84b9-3967c7017434?report_revision=2">Claim #37</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i32&gt; as From&lt;endian_type::LittleEndian&lt;i32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/c4763cd481396e9f839bae20f45a5e53c61692321b5d986eb1c4f16ffc8546e6">&lt;endian_type::BigEndian&lt;i32&gt; as From&lt;endian_type::LittleEndian&lt;i32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ac068865-e1f9-4f17-9411-8a447add3b28?report_revision=2">Claim #47</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i32&gt; as From&lt;i32&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/317f2d3f5aeecdd4ccfa7af3ebb15ab7f3a6a53398be33e7e0ce07ae31846cd0">&lt;endian_type::BigEndian&lt;i32&gt; as From&lt;i32&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/88096451-5a25-43db-8f43-d164ba20ca19?report_revision=2">Claim #43</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i64&gt; as From&lt;endian_type::LittleEndian&lt;i64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/f08975438eaba97513526d53ecad2ad0d78365b266ef4c8ada0151d9be2728a0">&lt;endian_type::BigEndian&lt;i64&gt; as From&lt;endian_type::LittleEndian&lt;i64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/32fb59cf-e399-4706-bd65-832ab31ac800?report_revision=2">Claim #53</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;i64&gt; as From&lt;i64&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/8493ad4ff162d8badfb0bb67cc777938304b6c12c00a762b384c212d851643ce">&lt;endian_type::BigEndian&lt;i64&gt; as From&lt;i64&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e938965d-c661-437f-a71d-d0aa2cf28722?report_revision=2">Claim #49</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;isize&gt; as From&lt;endian_type::LittleEndian&lt;isize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/c3f9642c97effdc01ee00ca6d8c9b4a24c3b70e7d0882ba05750bb4407bb82e3">&lt;endian_type::BigEndian&lt;isize&gt; as From&lt;endian_type::LittleEndian&lt;isize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/fd0e3e5c-7165-4aa2-9d17-04a6265eedd3?report_revision=2">Claim #65</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;isize&gt; as From&lt;isize&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/07d6f79cf7663d9ede089c878fb75f638482f5610e06964280c250fc4c7550af">&lt;endian_type::BigEndian&lt;isize&gt; as From&lt;isize&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/16fe995c-59d1-4d31-b275-3c81eae8c596?report_revision=2">Claim #61</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u128&gt; as From&lt;endian_type::LittleEndian&lt;u128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/463a749055df1c251d70aa06dbf15e3e8d2ed98b65cb9ca26a14cf46dc738138">&lt;endian_type::BigEndian&lt;u128&gt; as From&lt;endian_type::LittleEndian&lt;u128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9456410d-3f74-4500-ad28-f98285544433?report_revision=2">Claim #29</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u128&gt; as From&lt;u128&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/4dbed7e7cc3949de40aab56ec4a2f2766fb5bab489b35853dd9dc445a62dc54b">&lt;endian_type::BigEndian&lt;u128&gt; as From&lt;u128&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e649f077-c099-4a68-a851-f0ec1a3960d4?report_revision=2">Claim #25</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u16&gt; as From&lt;endian_type::LittleEndian&lt;u16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/894b2e1b2e8bd05e5a2ba4eb120dfc4912c9a31cb7d7ef3b5d7609628f20dc3f">&lt;endian_type::BigEndian&lt;u16&gt; as From&lt;endian_type::LittleEndian&lt;u16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/38588884-fe65-45cc-9ceb-8c11676da135?report_revision=2">Claim #11</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u16&gt; as From&lt;u16&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/37211122b4f382b48c56ea758b4abc15c3222548a7e06c149459d7bf58bd7adb">&lt;endian_type::BigEndian&lt;u16&gt; as From&lt;u16&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/742751d9-1a7e-4a97-92f3-58e22a72e3fc?report_revision=2">Claim #7</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u32&gt; as From&lt;endian_type::LittleEndian&lt;u32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/0788ab462c0c90122baeb044275c9f77f95d95c2acd8529f39f760a8130c0e63">&lt;endian_type::BigEndian&lt;u32&gt; as From&lt;endian_type::LittleEndian&lt;u32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/9c838ea2-8b00-4bda-b60b-12d25c976299?report_revision=2">Claim #17</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u32&gt; as From&lt;u32&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/6a23073f73f3242abc263e04bc08e55a862a26b291f48a4ee177d284ae5036dc">&lt;endian_type::BigEndian&lt;u32&gt; as From&lt;u32&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7ec3d054-2536-4420-aafb-c96c472c044c?report_revision=2">Claim #13</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u64&gt; as From&lt;endian_type::LittleEndian&lt;u64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/efbc7d9d30fb0c496eb0adf9a88d0fffe74b051bbfb9fc88c74b9235a5dff8c5">&lt;endian_type::BigEndian&lt;u64&gt; as From&lt;endian_type::LittleEndian&lt;u64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/bb922628-289d-453a-b9a5-d0405b0f7e9a?report_revision=2">Claim #23</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;u64&gt; as From&lt;u64&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/ee849d2ff7a0aaafd4860b7fc85bff519b4f2132a62d187fa8fe691c487c15d2">&lt;endian_type::BigEndian&lt;u64&gt; as From&lt;u64&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/5c8044af-139d-4a04-9440-ee4eafe18d71?report_revision=2">Claim #19</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;usize&gt; as From&lt;endian_type::LittleEndian&lt;usize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/0478c83bc9a355fc4d7ea514560cdb9dd0b3ff9fdf03a4316d5e71f0c47863f6">&lt;endian_type::BigEndian&lt;usize&gt; as From&lt;endian_type::LittleEndian&lt;usize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/a2cd3909-d53c-44a6-81f9-2ef3b5394166?report_revision=2">Claim #35</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::BigEndian&lt;usize&gt; as From&lt;usize&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/d67385052c1cfd37e355641a202ce0366d7a768980cebd0b1659f054d835a281">&lt;endian_type::BigEndian&lt;usize&gt; as From&lt;usize&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e421c0cd-c228-482d-ae18-933a8e6a855c?report_revision=2">Claim #31</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;T&gt; as core::ops::BitAnd&gt;::bitand" data-claims="1"><span><a class="api-name" href="/api/5442a4e3cd6572ce566298b4c8196907b6b39ebccf516163aef1ccecfb9ebea4">&lt;endian_type::LittleEndian&lt;T&gt; as core::ops::BitAnd&gt;::bitand</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1b85506f-836d-4562-9ed8-b72d6db7caca?report_revision=2">Claim #4</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;T&gt; as core::ops::BitOr&gt;::bitor" data-claims="1"><span><a class="api-name" href="/api/75ecad62167d8036cf24c57f75aa233d27ecf3df4c430864c6cc7a44e8a9bdfd">&lt;endian_type::LittleEndian&lt;T&gt; as core::ops::BitOr&gt;::bitor</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1ef7a101-88b2-40b4-ab12-6e301b8cfd14?report_revision=2">Claim #5</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;T&gt; as core::ops::BitXor&gt;::bitxor" data-claims="1"><span><a class="api-name" href="/api/f2536e2462ef6f58eee0e3a5bebd40b7dfb01aba59cb3bcc423476b139ad0c3f">&lt;endian_type::LittleEndian&lt;T&gt; as core::ops::BitXor&gt;::bitxor</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/de9f55e7-eaf7-4d3f-abb4-8e8f780fbc43?report_revision=2">Claim #6</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i128&gt; as From&lt;endian_type::BigEndian&lt;i128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/b7dbd5e611c83dd938ef194d0ed1b20ffd1ed28a9ccdef9e09bc4a34b806abfa">&lt;endian_type::LittleEndian&lt;i128&gt; as From&lt;endian_type::BigEndian&lt;i128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f8530b98-bd00-4d25-a6bb-1eca1eeebb21?report_revision=2">Claim #60</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i128&gt; as From&lt;i128&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/910fa6fd0cb83d3328fdb8fd919ba5754a7d52b029b3f3f78c9a7b8556cb024c">&lt;endian_type::LittleEndian&lt;i128&gt; as From&lt;i128&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/54b24e3f-04b9-4156-a78a-5fffa1c946f9?report_revision=2">Claim #56</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i16&gt; as From&lt;endian_type::BigEndian&lt;i16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/138a2f3f462fb303165687c32e8ff2210e2e8d0f41b20e74a86f83b1fef090ea">&lt;endian_type::LittleEndian&lt;i16&gt; as From&lt;endian_type::BigEndian&lt;i16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/dfb6a32f-6724-4b66-815b-c503e77cad74?report_revision=2">Claim #42</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i16&gt; as From&lt;i16&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/97877813a13472a2f3107fda93e442ff5d384f0080b002bf6729a43e8792d156">&lt;endian_type::LittleEndian&lt;i16&gt; as From&lt;i16&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8d29eb4b-06f5-473a-b492-f16f909aa973?report_revision=2">Claim #38</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i32&gt; as From&lt;endian_type::BigEndian&lt;i32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/3c003f3115ec574cd754f04fc0267d874472b64f29ac320933e570c28568c9b5">&lt;endian_type::LittleEndian&lt;i32&gt; as From&lt;endian_type::BigEndian&lt;i32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/23928b83-bb25-4c45-b71a-2b28729e3efa?report_revision=2">Claim #48</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i32&gt; as From&lt;i32&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/c9b5dfe69bb623589ccb3196b53d335c70825522a09ea472990124a56c41031b">&lt;endian_type::LittleEndian&lt;i32&gt; as From&lt;i32&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6e808838-d6fd-4f91-bcf2-027667ba179e?report_revision=2">Claim #44</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i64&gt; as From&lt;endian_type::BigEndian&lt;i64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/cabd3a6ad9b1789338d101eae9983192eaf8511b29d749e3f4946710614442e5">&lt;endian_type::LittleEndian&lt;i64&gt; as From&lt;endian_type::BigEndian&lt;i64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/f09cc0ca-8f9a-44fb-8d14-0aa0613287ee?report_revision=2">Claim #54</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;i64&gt; as From&lt;i64&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/97deba446f3850fb8fd95b373d2646994f6e8a0c93ca83f4e5396e7640feb5a3">&lt;endian_type::LittleEndian&lt;i64&gt; as From&lt;i64&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/fde3d918-d7ee-4ce5-9ed6-c72611302238?report_revision=2">Claim #50</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;isize&gt; as From&lt;endian_type::BigEndian&lt;isize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/8e3a45c5c206d9a0952d359881242efb032775387ff010a120e4889f28b5c706">&lt;endian_type::LittleEndian&lt;isize&gt; as From&lt;endian_type::BigEndian&lt;isize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/47208fe1-40e9-4e69-8730-aadbc9b3a7f1?report_revision=2">Claim #66</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;isize&gt; as From&lt;isize&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/5e32178ae4fc194a753074bc09555d5a045c8fac3e037cc6aac37a6ad59d37bb">&lt;endian_type::LittleEndian&lt;isize&gt; as From&lt;isize&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/120d11d0-7305-4755-8e2e-61b181d72d75?report_revision=2">Claim #62</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u128&gt; as From&lt;endian_type::BigEndian&lt;u128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/91dd16539620e22b47eb09fcb51fda8fbfdbc6f32ad17d45570f936fc0add271">&lt;endian_type::LittleEndian&lt;u128&gt; as From&lt;endian_type::BigEndian&lt;u128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/15b37d32-5b7d-483f-b7dd-cd730832541f?report_revision=2">Claim #30</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u128&gt; as From&lt;u128&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/f6417705d69ca4c2bb12608457806aa52d86c868b5f22c6899cb6fcd1992da08">&lt;endian_type::LittleEndian&lt;u128&gt; as From&lt;u128&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/57e4f40f-87ca-484e-9c3f-b61b67b7072d?report_revision=2">Claim #26</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u16&gt; as From&lt;endian_type::BigEndian&lt;u16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/e8afa214a1a07ab46723a2ebcc07baa989f3f95650730c35340796664d263b80">&lt;endian_type::LittleEndian&lt;u16&gt; as From&lt;endian_type::BigEndian&lt;u16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/86cc84d2-6363-472b-8c30-564917f68bec?report_revision=2">Claim #12</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u16&gt; as From&lt;u16&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/594bb5dc5e643bbbf75c46105245da7512e578bbced7a2ebbaf4f9a849f29410">&lt;endian_type::LittleEndian&lt;u16&gt; as From&lt;u16&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4555c28e-374f-4a39-99f2-fa683f2ab896?report_revision=2">Claim #8</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u32&gt; as From&lt;endian_type::BigEndian&lt;u32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/a9c27c9bc71f35f3a5b1e5ac6c53e4e0d14292c9210a10987b7efaf6287c0aaa">&lt;endian_type::LittleEndian&lt;u32&gt; as From&lt;endian_type::BigEndian&lt;u32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/33f44c4b-258a-4e55-bd7c-ed1b46ca766d?report_revision=2">Claim #18</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u32&gt; as From&lt;u32&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/3afc312c6d0584373d311c874b923b5b5b9594afcd53a61d583a5f0b796ee43d">&lt;endian_type::LittleEndian&lt;u32&gt; as From&lt;u32&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/cfe9cda6-dd0e-41f1-bcde-b851c5898da2?report_revision=2">Claim #14</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u64&gt; as From&lt;endian_type::BigEndian&lt;u64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/ec69fb2e5cfbc027db47bce55ce9d6edcfa3a3fadf347066f5ee0f8cbbcd5280">&lt;endian_type::LittleEndian&lt;u64&gt; as From&lt;endian_type::BigEndian&lt;u64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/11b312f9-7b24-4f3a-9392-e846bf1fbe8e?report_revision=2">Claim #24</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;u64&gt; as From&lt;u64&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/b4f42e79afee2e0b167f35457e640859a2b938297b66285bddc09d97aa26139d">&lt;endian_type::LittleEndian&lt;u64&gt; as From&lt;u64&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ef2bc2e6-66d7-4439-a88e-bed468391d94?report_revision=2">Claim #20</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;usize&gt; as From&lt;endian_type::BigEndian&lt;usize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/3170651b37b8ea6c95ef9798cb9a5d7ae84a6e4d27426ba74e0e08249548d927">&lt;endian_type::LittleEndian&lt;usize&gt; as From&lt;endian_type::BigEndian&lt;usize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/0959980f-56e8-4e12-9326-61299b200647?report_revision=2">Claim #36</a></span></div></div><div class="catalog-row" data-api-path="&lt;endian_type::LittleEndian&lt;usize&gt; as From&lt;usize&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/752055b8038d00494d9b674b73173f3126d343d61e235b28ebda4d3933b0e19e">&lt;endian_type::LittleEndian&lt;usize&gt; as From&lt;usize&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e31a8b12-7562-4ca5-a5ef-1a08882de3c4?report_revision=2">Claim #32</a></span></div></div><div class="catalog-row" data-api-path="&lt;i128 as From&lt;endian_type::BigEndian&lt;i128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/1a89aaf3d648d87ed0483c3cf8f62f328f79d414db9ba9c4fb0d8bd96ec25502">&lt;i128 as From&lt;endian_type::BigEndian&lt;i128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/4452dcd7-bdff-4cb6-8098-17bebd358e61?report_revision=2">Claim #57</a></span></div></div><div class="catalog-row" data-api-path="&lt;i128 as From&lt;endian_type::LittleEndian&lt;i128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/ff8280c83c57e74e86b71cfeb7cb3c155662d46fe0b209595bbe98d8ec16353c">&lt;i128 as From&lt;endian_type::LittleEndian&lt;i128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/6847a610-6cb3-4c5c-9b5f-f53f407ff944?report_revision=2">Claim #58</a></span></div></div><div class="catalog-row" data-api-path="&lt;i16 as From&lt;endian_type::BigEndian&lt;i16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/fc3f263c97f9a3bb3e62a48ffb20da74a553e7f2211f1cfeabd8b13f948e7ae5">&lt;i16 as From&lt;endian_type::BigEndian&lt;i16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/72da27fa-ed74-4066-8a53-b68c4b399bb1?report_revision=2">Claim #39</a></span></div></div><div class="catalog-row" data-api-path="&lt;i16 as From&lt;endian_type::LittleEndian&lt;i16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/9e2650790bf3aba2666fd674b797043a055629785ff7dc95f17d9d20bd50d0a4">&lt;i16 as From&lt;endian_type::LittleEndian&lt;i16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/44a712c9-5c4a-4309-9021-dbeead10e91f?report_revision=2">Claim #40</a></span></div></div><div class="catalog-row" data-api-path="&lt;i32 as From&lt;endian_type::BigEndian&lt;i32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/cf88ba8f2c5bc901f41441357967fe4f4d83d99517a5f8f501a97834dc11f593">&lt;i32 as From&lt;endian_type::BigEndian&lt;i32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1c7972e1-ecc5-4610-9b59-1cca7fbd381c?report_revision=2">Claim #45</a></span></div></div><div class="catalog-row" data-api-path="&lt;i32 as From&lt;endian_type::LittleEndian&lt;i32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/4200d7c7d2858a21fbd4f825b1aef7420a7506169701b97089f0e84ddabe2472">&lt;i32 as From&lt;endian_type::LittleEndian&lt;i32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/7622daf6-cdc7-489d-9de7-d00394eccfcd?report_revision=2">Claim #46</a></span></div></div><div class="catalog-row" data-api-path="&lt;i64 as From&lt;endian_type::BigEndian&lt;i64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/cc8ae6e99ed7a2cd467ff6546ff59b8110251d8eebf9c54a1558c09dc27c858b">&lt;i64 as From&lt;endian_type::BigEndian&lt;i64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3093b573-58de-4df9-926e-6aa6ba56d156?report_revision=2">Claim #51</a></span></div></div><div class="catalog-row" data-api-path="&lt;i64 as From&lt;endian_type::LittleEndian&lt;i64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/77d978d9ab3c41afbf9fcc635371c7afdd63f5249bad8e63a8f413debfcd52ff">&lt;i64 as From&lt;endian_type::LittleEndian&lt;i64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/e83eb1c2-7457-41c9-b732-0b92d6add356?report_revision=2">Claim #52</a></span></div></div><div class="catalog-row" data-api-path="&lt;isize as From&lt;endian_type::BigEndian&lt;isize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/0fa4b0f76107731cbcf5db12f848f4ada6b4368a8e803282af3ae92a0f728eea">&lt;isize as From&lt;endian_type::BigEndian&lt;isize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/2e65045b-0348-4c0d-a316-06f6ea6b8f66?report_revision=2">Claim #63</a></span></div></div><div class="catalog-row" data-api-path="&lt;isize as From&lt;endian_type::LittleEndian&lt;isize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/b1957a3df2001650c2ee5f9c62e9a20d8701ab69b968cb0d043e3cc47735aa77">&lt;isize as From&lt;endian_type::LittleEndian&lt;isize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/1c84de41-7218-4d73-97c6-eb85f840344d?report_revision=2">Claim #64</a></span></div></div><div class="catalog-row" data-api-path="&lt;u128 as From&lt;endian_type::BigEndian&lt;u128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/08468fb1745327165faa7ad606a3cabd63243c05977d8918acafbe21f60d8da1">&lt;u128 as From&lt;endian_type::BigEndian&lt;u128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ebe9054c-1899-4ce8-a709-bf9477cd0be6?report_revision=2">Claim #27</a></span></div></div><div class="catalog-row" data-api-path="&lt;u128 as From&lt;endian_type::LittleEndian&lt;u128&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/23bd08e26d36f820c611c26b1d02a663f0bbfd977815c38e4f866e2083402bd4">&lt;u128 as From&lt;endian_type::LittleEndian&lt;u128&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/556e819a-2193-4e28-8e50-318a424cb6ad?report_revision=2">Claim #28</a></span></div></div><div class="catalog-row" data-api-path="&lt;u16 as From&lt;endian_type::BigEndian&lt;u16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/e442177eb9a857b84d4f49751638474707ccea53362c9e135f3fec9746345282">&lt;u16 as From&lt;endian_type::BigEndian&lt;u16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3a28d8df-bea7-4a98-aa84-107aa3e97207?report_revision=2">Claim #9</a></span></div></div><div class="catalog-row" data-api-path="&lt;u16 as From&lt;endian_type::LittleEndian&lt;u16&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/2653ee268f0a6ea8e17a934688a6141ea92d195d5b9359c8d1320dcf7b952a81">&lt;u16 as From&lt;endian_type::LittleEndian&lt;u16&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/ba2395ab-4f23-4247-8fe9-a17cec3d4ca3?report_revision=2">Claim #10</a></span></div></div><div class="catalog-row" data-api-path="&lt;u32 as From&lt;endian_type::BigEndian&lt;u32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/fac7d2b26e546e2f95e66ca729cbab8d6dead48c5288ea1b0cc84556a7bf2bb2">&lt;u32 as From&lt;endian_type::BigEndian&lt;u32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/8caf5a46-5cf4-4151-b127-c95d5e503b8b?report_revision=2">Claim #15</a></span></div></div><div class="catalog-row" data-api-path="&lt;u32 as From&lt;endian_type::LittleEndian&lt;u32&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/e56b0b6fe9f8d45d54d91a048fea3b50b9668e8d417d35ae117de4d81a031099">&lt;u32 as From&lt;endian_type::LittleEndian&lt;u32&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/b90ab34c-a54c-4d0f-a84e-a152af364ebf?report_revision=2">Claim #16</a></span></div></div><div class="catalog-row" data-api-path="&lt;u64 as From&lt;endian_type::BigEndian&lt;u64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/53143759221e7cfb46f6ac169a92c9e736754094e046e1f50ac8efb9e55f5941">&lt;u64 as From&lt;endian_type::BigEndian&lt;u64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/3b08e16c-32da-4feb-8ed8-4e95572e3f03?report_revision=2">Claim #21</a></span></div></div><div class="catalog-row" data-api-path="&lt;u64 as From&lt;endian_type::LittleEndian&lt;u64&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/390048583649ae3c84440bdcdf03c91afa45041932bbbfe813341c94e2516b8b">&lt;u64 as From&lt;endian_type::LittleEndian&lt;u64&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/11fd6beb-5019-4445-a612-10357acae4de?report_revision=2">Claim #22</a></span></div></div><div class="catalog-row" data-api-path="&lt;usize as From&lt;endian_type::BigEndian&lt;usize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/e1d02818e8e7222db564c614705f6dbe7a1e62c9b9131b0bfb5014a89aa750e8">&lt;usize as From&lt;endian_type::BigEndian&lt;usize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/62da3d98-637b-4985-9d68-f9bdba7a75b1?report_revision=2">Claim #33</a></span></div></div><div class="catalog-row" data-api-path="&lt;usize as From&lt;endian_type::LittleEndian&lt;usize&gt;&gt;&gt;::from" data-claims="1"><span><a class="api-name" href="/api/3982f465d9341616a7c4a7e9ade0f54c11fbbbe691aab35ebe46068a5f72a29f">&lt;usize as From&lt;endian_type::LittleEndian&lt;usize&gt;&gt;&gt;::from</a> <span class="meta">recorded callable · signature and safety not recorded</span></span><div class="report-api-claims"><span class="claim-links"><a href="/claim/c09a72fb-cdf2-4923-a43c-c21594567889?report_revision=2">Claim #34</a></span></div></div></section></section>
+    <section class="report-section report-evidence" id="evidence"><h2>Evidence</h2><p><a href="https://github.com/nyuichi/rust-crate-proofs/tree/e030b7f56f12a473c15376f01bb53e7920892b20" target="_blank" rel="noopener noreferrer">https://github.com/nyuichi/rust-crate-proofs/tree/e030b7f56f12a473c15376f01bb53e7920892b20</a></p><details class="reproduce" id="reproduce"><summary>Reproduce</summary><div class="reproduce-body"><article class="recorded-run"><p class="meta">Toolchain source metadata: not recorded.</p><h3>Run locally</h3><pre><code>git clone -- https://github.com/nyuichi/rust-crate-proofs report-26-source-1
+git -C report-26-source-1 checkout --detach e030b7f56f12a473c15376f01bb53e7920892b20
+git -C report-26-source-1 submodule update --init --recursive --checkout
+cd report-26-source-1/endian-type/0.2.0/aeneas/2026-11-05/proofs
+
+lake build +FromProofs +Proofs
+
+printf &#39;%s&#39; &#39;import Lean
+import FromProofs
+import Proofs
+open Lean Elab Command
+
+run_cmd do
+  let theorem_name := `Proofs.bigendian_bitand_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.bigendian_bitand_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.bigendian_bitand_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.bigendian_bitand_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.bigendian_bitor_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.bigendian_bitor_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.bigendian_bitor_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.bigendian_bitor_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.bigendian_bitxor_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.bigendian_bitxor_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.bigendian_bitxor_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.bigendian_bitxor_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.littleendian_bitand_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.littleendian_bitand_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.littleendian_bitand_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.littleendian_bitand_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.littleendian_bitor_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.littleendian_bitor_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.littleendian_bitor_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.littleendian_bitor_spec&quot;
+
+run_cmd do
+  let theorem_name := `Proofs.littleendian_bitxor_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: Proofs.littleendian_bitxor_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in Proofs.littleendian_bitxor_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:Proofs.littleendian_bitxor_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_u16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_u16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_u16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_u16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_u32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_u32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_u32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_u32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_u64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_u64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_u64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_u64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_u128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_u128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_u128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_u128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_u128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_u128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_u128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_u128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_u128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_u128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_u128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_u128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_u128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_u128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_u128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_u128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_u128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_u128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_u128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_u128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_u128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_u128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_u128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_u128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_usize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_usize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_usize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_usize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_i16_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_i16_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_i16_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_i16_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_i32_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_i32_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_i32_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_i32_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_i64_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_i64_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_i64_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_i64_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_i128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_i128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_i128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_i128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_i128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_i128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_i128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_i128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_i128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_i128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_i128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_i128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_i128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_i128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_i128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_i128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_i128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_i128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_i128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_i128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_i128_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_i128_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_i128_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_i128_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_from_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_from_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_from_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_from_isize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_from_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_from_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_from_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_from_isize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_into_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_into_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_into_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_into_isize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_into_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_into_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_into_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_into_isize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.le_to_be_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.le_to_be_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.le_to_be_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.le_to_be_isize_spec&quot;
+
+run_cmd do
+  let theorem_name := `FromProofs.be_to_le_isize_spec
+  match (← getEnv).find? theorem_name with
+  | some (.thmInfo _) =&gt; pure ()
+  | _ =&gt; throwError &quot;Expected a theorem: FromProofs.be_to_le_isize_spec&quot;
+  let axioms ← Lean.collectAxioms theorem_name
+  for ax in axioms do
+    unless [``propext, ``Classical.choice, ``Quot.sound].contains ax do
+      throwError &quot;Unapproved axiom in FromProofs.be_to_le_isize_spec: {ax}&quot;
+  liftIO &lt;| IO.println &quot;proofs.rs:checked:FromProofs.be_to_le_isize_spec&quot;
+&#39; | lake env lean --stdin</code></pre><p class="meta">Checks out the recorded source commit from GitHub. Install the report’s tool version before running.</p><p class="run-downloads"><a href="https://github.com/nyuichi/rust-crate-proofs/tree/e030b7f56f12a473c15376f01bb53e7920892b20">Source on GitHub</a> · <a href="/api/v1/runs/45fba944-37c1-4602-9434-11e4f137651d/sarif">SARIF with logs (.json)</a></p><h3>Recorded run</h3><p>Completed · 66 checks passed · 0 failed</p><p class="meta">2026-11-05T03:54:10.594723389+00:00 · 120.3 seconds · Exit code 0</p><p class="meta">Recorded on the author’s machine.</p><table><thead><tr><th>Check</th><th>Result</th><th>Claim</th></tr></thead><tbody><tr id="check-50726f6f66732e626967656e6469616e5f626974616e645f73706563"><td>Lean checked theorem Proofs.bigendian_bitand_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.bigendian_bitand_spec</code></div></td><td>Passed</td><td><a href="/claim/e73d4192-b918-4dfb-b59c-edd67798a6d0?report_revision=2">Claim #1</a></td></tr><tr id="check-50726f6f66732e626967656e6469616e5f6269746f725f73706563"><td>Lean checked theorem Proofs.bigendian_bitor_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.bigendian_bitor_spec</code></div></td><td>Passed</td><td><a href="/claim/5f47c59a-2b32-42f9-801c-d169ac38e035?report_revision=2">Claim #2</a></td></tr><tr id="check-50726f6f66732e626967656e6469616e5f626974786f725f73706563"><td>Lean checked theorem Proofs.bigendian_bitxor_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.bigendian_bitxor_spec</code></div></td><td>Passed</td><td><a href="/claim/72c386cd-9378-4d61-82fb-3ce07ad61898?report_revision=2">Claim #3</a></td></tr><tr id="check-50726f6f66732e6c6974746c65656e6469616e5f626974616e645f73706563"><td>Lean checked theorem Proofs.littleendian_bitand_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.littleendian_bitand_spec</code></div></td><td>Passed</td><td><a href="/claim/1b85506f-836d-4562-9ed8-b72d6db7caca?report_revision=2">Claim #4</a></td></tr><tr id="check-50726f6f66732e6c6974746c65656e6469616e5f6269746f725f73706563"><td>Lean checked theorem Proofs.littleendian_bitor_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.littleendian_bitor_spec</code></div></td><td>Passed</td><td><a href="/claim/1ef7a101-88b2-40b4-ab12-6e301b8cfd14?report_revision=2">Claim #5</a></td></tr><tr id="check-50726f6f66732e6c6974746c65656e6469616e5f626974786f725f73706563"><td>Lean checked theorem Proofs.littleendian_bitxor_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>Proofs.littleendian_bitxor_spec</code></div></td><td>Passed</td><td><a href="/claim/de9f55e7-eaf7-4d3f-abb4-8e8f780fbc43?report_revision=2">Claim #6</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f7531365f73706563"><td>Lean checked theorem FromProofs.be_from_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/742751d9-1a7e-4a97-92f3-58e22a72e3fc?report_revision=2">Claim #7</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f7531365f73706563"><td>Lean checked theorem FromProofs.le_from_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/4555c28e-374f-4a39-99f2-fa683f2ab896?report_revision=2">Claim #8</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f7531365f73706563"><td>Lean checked theorem FromProofs.be_into_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/3a28d8df-bea7-4a98-aa84-107aa3e97207?report_revision=2">Claim #9</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f7531365f73706563"><td>Lean checked theorem FromProofs.le_into_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/ba2395ab-4f23-4247-8fe9-a17cec3d4ca3?report_revision=2">Claim #10</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f7531365f73706563"><td>Lean checked theorem FromProofs.le_to_be_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/38588884-fe65-45cc-9ceb-8c11676da135?report_revision=2">Claim #11</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f7531365f73706563"><td>Lean checked theorem FromProofs.be_to_le_u16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_u16_spec</code></div></td><td>Passed</td><td><a href="/claim/86cc84d2-6363-472b-8c30-564917f68bec?report_revision=2">Claim #12</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f7533325f73706563"><td>Lean checked theorem FromProofs.be_from_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/7ec3d054-2536-4420-aafb-c96c472c044c?report_revision=2">Claim #13</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f7533325f73706563"><td>Lean checked theorem FromProofs.le_from_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/cfe9cda6-dd0e-41f1-bcde-b851c5898da2?report_revision=2">Claim #14</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f7533325f73706563"><td>Lean checked theorem FromProofs.be_into_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/8caf5a46-5cf4-4151-b127-c95d5e503b8b?report_revision=2">Claim #15</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f7533325f73706563"><td>Lean checked theorem FromProofs.le_into_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/b90ab34c-a54c-4d0f-a84e-a152af364ebf?report_revision=2">Claim #16</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f7533325f73706563"><td>Lean checked theorem FromProofs.le_to_be_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/9c838ea2-8b00-4bda-b60b-12d25c976299?report_revision=2">Claim #17</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f7533325f73706563"><td>Lean checked theorem FromProofs.be_to_le_u32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_u32_spec</code></div></td><td>Passed</td><td><a href="/claim/33f44c4b-258a-4e55-bd7c-ed1b46ca766d?report_revision=2">Claim #18</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f7536345f73706563"><td>Lean checked theorem FromProofs.be_from_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/5c8044af-139d-4a04-9440-ee4eafe18d71?report_revision=2">Claim #19</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f7536345f73706563"><td>Lean checked theorem FromProofs.le_from_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/ef2bc2e6-66d7-4439-a88e-bed468391d94?report_revision=2">Claim #20</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f7536345f73706563"><td>Lean checked theorem FromProofs.be_into_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/3b08e16c-32da-4feb-8ed8-4e95572e3f03?report_revision=2">Claim #21</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f7536345f73706563"><td>Lean checked theorem FromProofs.le_into_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/11fd6beb-5019-4445-a612-10357acae4de?report_revision=2">Claim #22</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f7536345f73706563"><td>Lean checked theorem FromProofs.le_to_be_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/bb922628-289d-453a-b9a5-d0405b0f7e9a?report_revision=2">Claim #23</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f7536345f73706563"><td>Lean checked theorem FromProofs.be_to_le_u64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_u64_spec</code></div></td><td>Passed</td><td><a href="/claim/11b312f9-7b24-4f3a-9392-e846bf1fbe8e?report_revision=2">Claim #24</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f753132385f73706563"><td>Lean checked theorem FromProofs.be_from_u128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_u128_spec</code></div></td><td>Passed</td><td><a href="/claim/e649f077-c099-4a68-a851-f0ec1a3960d4?report_revision=2">Claim #25</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f753132385f73706563"><td>Lean checked theorem FromProofs.le_from_u128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_u128_spec</code></div></td><td>Passed</td><td><a href="/claim/57e4f40f-87ca-484e-9c3f-b61b67b7072d?report_revision=2">Claim #26</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f753132385f73706563"><td>Lean checked theorem FromProofs.be_into_u128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_u128_spec</code></div></td><td>Passed</td><td><a href="/claim/ebe9054c-1899-4ce8-a709-bf9477cd0be6?report_revision=2">Claim #27</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f753132385f73706563"><td>Lean checked theorem FromProofs.le_into_u128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_u128_spec</code></div></td><td>Passed</td><td><a href="/claim/556e819a-2193-4e28-8e50-318a424cb6ad?report_revision=2">Claim #28</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f753132385f73706563"><td>Lean checked theorem FromProofs.le_to_be_u128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_u128_spec</code></div></td><td>Passed</td><td><a href="/claim/9456410d-3f74-4500-ad28-f98285544433?report_revision=2">Claim #29</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f753132385f73706563"><td>Lean checked theorem FromProofs.be_to_le_u128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_u128_spec</code></div></td><td>Passed</td><td><a href="/claim/15b37d32-5b7d-483f-b7dd-cd730832541f?report_revision=2">Claim #30</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f7573697a655f73706563"><td>Lean checked theorem FromProofs.be_from_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/e421c0cd-c228-482d-ae18-933a8e6a855c?report_revision=2">Claim #31</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f7573697a655f73706563"><td>Lean checked theorem FromProofs.le_from_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/e31a8b12-7562-4ca5-a5ef-1a08882de3c4?report_revision=2">Claim #32</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f7573697a655f73706563"><td>Lean checked theorem FromProofs.be_into_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/62da3d98-637b-4985-9d68-f9bdba7a75b1?report_revision=2">Claim #33</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f7573697a655f73706563"><td>Lean checked theorem FromProofs.le_into_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/c09a72fb-cdf2-4923-a43c-c21594567889?report_revision=2">Claim #34</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f7573697a655f73706563"><td>Lean checked theorem FromProofs.le_to_be_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/a2cd3909-d53c-44a6-81f9-2ef3b5394166?report_revision=2">Claim #35</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f7573697a655f73706563"><td>Lean checked theorem FromProofs.be_to_le_usize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_usize_spec</code></div></td><td>Passed</td><td><a href="/claim/0959980f-56e8-4e12-9326-61299b200647?report_revision=2">Claim #36</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f6931365f73706563"><td>Lean checked theorem FromProofs.be_from_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/75dbf61c-da9c-471d-84b9-3967c7017434?report_revision=2">Claim #37</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f6931365f73706563"><td>Lean checked theorem FromProofs.le_from_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/8d29eb4b-06f5-473a-b492-f16f909aa973?report_revision=2">Claim #38</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f6931365f73706563"><td>Lean checked theorem FromProofs.be_into_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/72da27fa-ed74-4066-8a53-b68c4b399bb1?report_revision=2">Claim #39</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f6931365f73706563"><td>Lean checked theorem FromProofs.le_into_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/44a712c9-5c4a-4309-9021-dbeead10e91f?report_revision=2">Claim #40</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f6931365f73706563"><td>Lean checked theorem FromProofs.le_to_be_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/5360f96d-feed-4182-b7a7-9716c318e60b?report_revision=2">Claim #41</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f6931365f73706563"><td>Lean checked theorem FromProofs.be_to_le_i16_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_i16_spec</code></div></td><td>Passed</td><td><a href="/claim/dfb6a32f-6724-4b66-815b-c503e77cad74?report_revision=2">Claim #42</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f6933325f73706563"><td>Lean checked theorem FromProofs.be_from_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/88096451-5a25-43db-8f43-d164ba20ca19?report_revision=2">Claim #43</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f6933325f73706563"><td>Lean checked theorem FromProofs.le_from_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/6e808838-d6fd-4f91-bcf2-027667ba179e?report_revision=2">Claim #44</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f6933325f73706563"><td>Lean checked theorem FromProofs.be_into_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/1c7972e1-ecc5-4610-9b59-1cca7fbd381c?report_revision=2">Claim #45</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f6933325f73706563"><td>Lean checked theorem FromProofs.le_into_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/7622daf6-cdc7-489d-9de7-d00394eccfcd?report_revision=2">Claim #46</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f6933325f73706563"><td>Lean checked theorem FromProofs.le_to_be_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/ac068865-e1f9-4f17-9411-8a447add3b28?report_revision=2">Claim #47</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f6933325f73706563"><td>Lean checked theorem FromProofs.be_to_le_i32_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_i32_spec</code></div></td><td>Passed</td><td><a href="/claim/23928b83-bb25-4c45-b71a-2b28729e3efa?report_revision=2">Claim #48</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f6936345f73706563"><td>Lean checked theorem FromProofs.be_from_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/e938965d-c661-437f-a71d-d0aa2cf28722?report_revision=2">Claim #49</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f6936345f73706563"><td>Lean checked theorem FromProofs.le_from_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/fde3d918-d7ee-4ce5-9ed6-c72611302238?report_revision=2">Claim #50</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f6936345f73706563"><td>Lean checked theorem FromProofs.be_into_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/3093b573-58de-4df9-926e-6aa6ba56d156?report_revision=2">Claim #51</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f6936345f73706563"><td>Lean checked theorem FromProofs.le_into_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/e83eb1c2-7457-41c9-b732-0b92d6add356?report_revision=2">Claim #52</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f6936345f73706563"><td>Lean checked theorem FromProofs.le_to_be_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/32fb59cf-e399-4706-bd65-832ab31ac800?report_revision=2">Claim #53</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f6936345f73706563"><td>Lean checked theorem FromProofs.be_to_le_i64_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_i64_spec</code></div></td><td>Passed</td><td><a href="/claim/f09cc0ca-8f9a-44fb-8d14-0aa0613287ee?report_revision=2">Claim #54</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f693132385f73706563"><td>Lean checked theorem FromProofs.be_from_i128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_i128_spec</code></div></td><td>Passed</td><td><a href="/claim/b29fecec-deb4-4e8f-9fd1-f94daa9e9237?report_revision=2">Claim #55</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f693132385f73706563"><td>Lean checked theorem FromProofs.le_from_i128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_i128_spec</code></div></td><td>Passed</td><td><a href="/claim/54b24e3f-04b9-4156-a78a-5fffa1c946f9?report_revision=2">Claim #56</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f693132385f73706563"><td>Lean checked theorem FromProofs.be_into_i128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_i128_spec</code></div></td><td>Passed</td><td><a href="/claim/4452dcd7-bdff-4cb6-8098-17bebd358e61?report_revision=2">Claim #57</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f693132385f73706563"><td>Lean checked theorem FromProofs.le_into_i128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_i128_spec</code></div></td><td>Passed</td><td><a href="/claim/6847a610-6cb3-4c5c-9b5f-f53f407ff944?report_revision=2">Claim #58</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f693132385f73706563"><td>Lean checked theorem FromProofs.le_to_be_i128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_i128_spec</code></div></td><td>Passed</td><td><a href="/claim/f848a7cb-eaac-4c26-97ce-7fbd5e96a000?report_revision=2">Claim #59</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f693132385f73706563"><td>Lean checked theorem FromProofs.be_to_le_i128_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_i128_spec</code></div></td><td>Passed</td><td><a href="/claim/f8530b98-bd00-4d25-a6bb-1eca1eeebb21?report_revision=2">Claim #60</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f66726f6d5f6973697a655f73706563"><td>Lean checked theorem FromProofs.be_from_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_from_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/16fe995c-59d1-4d31-b275-3c81eae8c596?report_revision=2">Claim #61</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f66726f6d5f6973697a655f73706563"><td>Lean checked theorem FromProofs.le_from_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_from_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/120d11d0-7305-4755-8e2e-61b181d72d75?report_revision=2">Claim #62</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f696e746f5f6973697a655f73706563"><td>Lean checked theorem FromProofs.be_into_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_into_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/2e65045b-0348-4c0d-a316-06f6ea6b8f66?report_revision=2">Claim #63</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f696e746f5f6973697a655f73706563"><td>Lean checked theorem FromProofs.le_into_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_into_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/1c84de41-7218-4d73-97c6-eb85f840344d?report_revision=2">Claim #64</a></td></tr><tr id="check-46726f6d50726f6f66732e6c655f746f5f62655f6973697a655f73706563"><td>Lean checked theorem FromProofs.le_to_be_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.le_to_be_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/fd0e3e5c-7165-4aa2-9d17-04a6265eedd3?report_revision=2">Claim #65</a></td></tr><tr id="check-46726f6d50726f6f66732e62655f746f5f6c655f6973697a655f73706563"><td>Lean checked theorem FromProofs.be_to_le_isize_spec; axioms limited to propext, Classical.choice, Quot.sound<div class="meta"><code>FromProofs.be_to_le_isize_spec</code></div></td><td>Passed</td><td><a href="/claim/47208fe1-40e9-4e69-8730-aadbc9b3a7f1?report_revision=2">Claim #66</a></td></tr></tbody></table><details><summary>Execution details</summary><dl><dt>Started</dt><dd class="plain-text">2026-11-05T03:54:10.594723389+00:00</dd><dt>Finished</dt><dd class="plain-text">2026-11-05T03:56:10.920008958+00:00</dd><dt>Platform</dt><dd class="plain-text">linux x86_64</dd><dt>Rust compiler</dt><dd class="plain-text">rustc 1.100.0-nightly (923c95cdf 2026-09-16)
+binary: rustc
+commit-hash: 923c95cdf5ba65cea505aa2ea829f578e1506ed8
+commit-date: 2026-09-16
+host: x86_64-unknown-linux-gnu
+release: 1.100.0-nightly
+LLVM version: 23.1.1</dd><dt>Working directory</dt><dd class="plain-text">endian-type/0.2.0/aeneas/2026-11-05/proofs</dd><dt>Environment overrides</dt><dd class="plain-text">None recorded</dd><dt>Git repository</dt><dd class="plain-text">https://github.com/nyuichi/rust-crate-proofs</dd><dt>Git commit</dt><dd class="plain-text">e030b7f56f12a473c15376f01bb53e7920892b20</dd></dl></details><details class="run-logs" id="logs"><summary>Diagnostics &amp; logs</summary><pre class="run-log-content">=== stdout ===
+✔ [1796/1802] Built EndianVerificationDriver.Types (1.5s)
+✔ [1797/1802] Built Generated.EndianType (1.6s)
+✔ [1798/1802] Built EndianVerificationDriver.FunsExternal (2.5s)
+✔ [1799/1802] Built EndianVerificationDriver.Funs (6.5s)
+ℹ [1800/1802] Built ModelProofs (7.3s)
+info: ModelProofs.lean:278:0: &#39;ModelProofs.u16_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:279:0: &#39;ModelProofs.u16_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:280:0: &#39;ModelProofs.u16_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:281:0: &#39;ModelProofs.u16_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:282:0: &#39;ModelProofs.u16_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:283:0: &#39;ModelProofs.u32_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:284:0: &#39;ModelProofs.u32_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:285:0: &#39;ModelProofs.u32_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:286:0: &#39;ModelProofs.u32_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:287:0: &#39;ModelProofs.u32_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:288:0: &#39;ModelProofs.u64_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:289:0: &#39;ModelProofs.u64_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:290:0: &#39;ModelProofs.u64_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:291:0: &#39;ModelProofs.u64_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:292:0: &#39;ModelProofs.u64_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:293:0: &#39;ModelProofs.u128_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:294:0: &#39;ModelProofs.u128_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:295:0: &#39;ModelProofs.u128_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:296:0: &#39;ModelProofs.u128_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:297:0: &#39;ModelProofs.u128_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:298:0: &#39;ModelProofs.i16_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:299:0: &#39;ModelProofs.i16_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:300:0: &#39;ModelProofs.i16_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:301:0: &#39;ModelProofs.i16_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:302:0: &#39;ModelProofs.i16_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:303:0: &#39;ModelProofs.i32_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:304:0: &#39;ModelProofs.i32_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:305:0: &#39;ModelProofs.i32_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:306:0: &#39;ModelProofs.i32_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:307:0: &#39;ModelProofs.i32_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:308:0: &#39;ModelProofs.i64_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:309:0: &#39;ModelProofs.i64_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:310:0: &#39;ModelProofs.i64_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:311:0: &#39;ModelProofs.i64_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:312:0: &#39;ModelProofs.i64_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:313:0: &#39;ModelProofs.i128_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:314:0: &#39;ModelProofs.i128_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:315:0: &#39;ModelProofs.i128_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:316:0: &#39;ModelProofs.i128_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:317:0: &#39;ModelProofs.i128_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:318:0: &#39;ModelProofs.usize_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:319:0: &#39;ModelProofs.usize_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:320:0: &#39;ModelProofs.usize_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:321:0: &#39;ModelProofs.usize_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:322:0: &#39;ModelProofs.usize_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:323:0: &#39;ModelProofs.isize_swap_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:324:0: &#39;ModelProofs.isize_to_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:325:0: &#39;ModelProofs.isize_from_be_model&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: ModelProofs.lean:326:0: &#39;ModelProofs.isize_to_le_model&#39; depends on axioms: [propext, Quot.sound]
+info: ModelProofs.lean:327:0: &#39;ModelProofs.isize_from_le_model&#39; depends on axioms: [propext, Quot.sound]
+⚠ [1801/1802] Built FromProofs (6.3s)
+warning: FromProofs.lean:18:105: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U16.Insts.CoreConvertFromBigEndianU16.from, u16_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:23:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U16.Insts.CoreConvertFromLittleEndianU16.from, u16_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:48:105: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U32.Insts.CoreConvertFromBigEndianU32.from, u32_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:53:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U32.Insts.CoreConvertFromLittleEndianU32.from, u32_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:78:105: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U64.Insts.CoreConvertFromBigEndianU64.from, u64_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:83:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U64.Insts.CoreConvertFromLittleEndianU64.from, u64_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:108:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U128.Insts.CoreConvertFromBigEndianU128.from, u128_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:113:111: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.U128.Insts.CoreConvertFromLittleEndianU128.from, u128_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:131:40: Variable name `h64` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h64
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: FromProofs.lean:138:115: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.Usize.Insts.CoreConvertFromBigEndianUsize.from,
+    usize_from_be_model x h64]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:141:40: Variable name `h64` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h64
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: FromProofs.lean:143:114: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.Usize.Insts.CoreConvertFromLittleEndianUsize.from,
+    usize_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:168:105: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I16.Insts.CoreConvertFromBigEndianI16.from, i16_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:173:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I16.Insts.CoreConvertFromLittleEndianI16.from, i16_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:198:105: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I32.Insts.CoreConvertFromBigEndianI32.from, i32_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:203:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I32.Insts.CoreConvertFromLittleEndianI32.from, i32_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:228:105: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I64.Insts.CoreConvertFromBigEndianI64.from, i64_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:233:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I64.Insts.CoreConvertFromLittleEndianI64.from, i64_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:258:108: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I128.Insts.CoreConvertFromBigEndianI128.from, i128_from_be_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:263:111: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.I128.Insts.CoreConvertFromLittleEndianI128.from, i128_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:281:40: Variable name `h64` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h64
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: FromProofs.lean:288:115: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.Isize.Insts.CoreConvertFromBigEndianIsize.from,
+    isize_from_be_model x h64]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: FromProofs.lean:291:40: Variable name `h64` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h64
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: FromProofs.lean:293:114: This simp argument is unused:
+  bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [endian_verification_driver.Isize.Insts.CoreConvertFromLittleEndianIsize.from,
+    isize_from_le_model x]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+info: FromProofs.lean:306:0: &#39;FromProofs.be_from_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:307:0: &#39;FromProofs.le_from_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:308:0: &#39;FromProofs.be_into_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:309:0: &#39;FromProofs.le_into_u16_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:310:0: &#39;FromProofs.le_to_be_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:311:0: &#39;FromProofs.be_to_le_u16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:312:0: &#39;FromProofs.be_from_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:313:0: &#39;FromProofs.le_from_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:314:0: &#39;FromProofs.be_into_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:315:0: &#39;FromProofs.le_into_u32_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:316:0: &#39;FromProofs.le_to_be_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:317:0: &#39;FromProofs.be_to_le_u32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:318:0: &#39;FromProofs.be_from_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:319:0: &#39;FromProofs.le_from_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:320:0: &#39;FromProofs.be_into_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:321:0: &#39;FromProofs.le_into_u64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:322:0: &#39;FromProofs.le_to_be_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:323:0: &#39;FromProofs.be_to_le_u64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:324:0: &#39;FromProofs.be_from_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:325:0: &#39;FromProofs.le_from_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:326:0: &#39;FromProofs.be_into_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:327:0: &#39;FromProofs.le_into_u128_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:328:0: &#39;FromProofs.le_to_be_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:329:0: &#39;FromProofs.be_to_le_u128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:330:0: &#39;FromProofs.be_from_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:331:0: &#39;FromProofs.le_from_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:332:0: &#39;FromProofs.be_into_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:333:0: &#39;FromProofs.le_into_usize_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:334:0: &#39;FromProofs.le_to_be_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:335:0: &#39;FromProofs.be_to_le_usize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:336:0: &#39;FromProofs.be_from_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:337:0: &#39;FromProofs.le_from_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:338:0: &#39;FromProofs.be_into_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:339:0: &#39;FromProofs.le_into_i16_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:340:0: &#39;FromProofs.le_to_be_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:341:0: &#39;FromProofs.be_to_le_i16_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:342:0: &#39;FromProofs.be_from_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:343:0: &#39;FromProofs.le_from_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:344:0: &#39;FromProofs.be_into_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:345:0: &#39;FromProofs.le_into_i32_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:346:0: &#39;FromProofs.le_to_be_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:347:0: &#39;FromProofs.be_to_le_i32_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:348:0: &#39;FromProofs.be_from_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:349:0: &#39;FromProofs.le_from_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:350:0: &#39;FromProofs.be_into_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:351:0: &#39;FromProofs.le_into_i64_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:352:0: &#39;FromProofs.le_to_be_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:353:0: &#39;FromProofs.be_to_le_i64_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:354:0: &#39;FromProofs.be_from_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:355:0: &#39;FromProofs.le_from_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:356:0: &#39;FromProofs.be_into_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:357:0: &#39;FromProofs.le_into_i128_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:358:0: &#39;FromProofs.le_to_be_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:359:0: &#39;FromProofs.be_to_le_i128_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:360:0: &#39;FromProofs.be_from_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:361:0: &#39;FromProofs.le_from_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:362:0: &#39;FromProofs.be_into_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:363:0: &#39;FromProofs.le_into_isize_spec&#39; depends on axioms: [propext, Quot.sound]
+info: FromProofs.lean:364:0: &#39;FromProofs.le_to_be_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: FromProofs.lean:365:0: &#39;FromProofs.be_to_le_isize_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+ℹ [1802/1802] Built Proofs (2.5s)
+info: Proofs.lean:25:0: &#39;Proofs.bigendian_bitand_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:26:0: &#39;Proofs.bigendian_bitor_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:27:0: &#39;Proofs.bigendian_bitxor_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:28:0: &#39;Proofs.littleendian_bitand_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:29:0: &#39;Proofs.littleendian_bitor_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Proofs.lean:30:0: &#39;Proofs.littleendian_bitxor_spec&#39; depends on axioms: [propext, Classical.choice, Quot.sound]
+Build completed successfully (1802 jobs).
+
+$ lake env lean --stdin (proofs.rs theorem/axiom audit)
+proofs.rs:checked:Proofs.bigendian_bitand_spec
+proofs.rs:checked:Proofs.bigendian_bitor_spec
+proofs.rs:checked:Proofs.bigendian_bitxor_spec
+proofs.rs:checked:Proofs.littleendian_bitand_spec
+proofs.rs:checked:Proofs.littleendian_bitor_spec
+proofs.rs:checked:Proofs.littleendian_bitxor_spec
+proofs.rs:checked:FromProofs.be_from_u16_spec
+proofs.rs:checked:FromProofs.le_from_u16_spec
+proofs.rs:checked:FromProofs.be_into_u16_spec
+proofs.rs:checked:FromProofs.le_into_u16_spec
+proofs.rs:checked:FromProofs.le_to_be_u16_spec
+proofs.rs:checked:FromProofs.be_to_le_u16_spec
+proofs.rs:checked:FromProofs.be_from_u32_spec
+proofs.rs:checked:FromProofs.le_from_u32_spec
+proofs.rs:checked:FromProofs.be_into_u32_spec
+proofs.rs:checked:FromProofs.le_into_u32_spec
+proofs.rs:checked:FromProofs.le_to_be_u32_spec
+proofs.rs:checked:FromProofs.be_to_le_u32_spec
+proofs.rs:checked:FromProofs.be_from_u64_spec
+proofs.rs:checked:FromProofs.le_from_u64_spec
+proofs.rs:checked:FromProofs.be_into_u64_spec
+proofs.rs:checked:FromProofs.le_into_u64_spec
+proofs.rs:checked:FromProofs.le_to_be_u64_spec
+proofs.rs:checked:FromProofs.be_to_le_u64_spec
+proofs.rs:checked:FromProofs.be_from_u128_spec
+proofs.rs:checked:FromProofs.le_from_u128_spec
+proofs.rs:checked:FromProofs.be_into_u128_spec
+proofs.rs:checked:FromProofs.le_into_u128_spec
+proofs.rs:checked:FromProofs.le_to_be_u128_spec
+proofs.rs:checked:FromProofs.be_to_le_u128_spec
+proofs.rs:checked:FromProofs.be_from_usize_spec
+proofs.rs:checked:FromProofs.le_from_usize_spec
+proofs.rs:checked:FromProofs.be_into_usize_spec
+proofs.rs:checked:FromProofs.le_into_usize_spec
+proofs.rs:checked:FromProofs.le_to_be_usize_spec
+proofs.rs:checked:FromProofs.be_to_le_usize_spec
+proofs.rs:checked:FromProofs.be_from_i16_spec
+proofs.rs:checked:FromProofs.le_from_i16_spec
+proofs.rs:checked:FromProofs.be_into_i16_spec
+proofs.rs:checked:FromProofs.le_into_i16_spec
+proofs.rs:checked:FromProofs.le_to_be_i16_spec
+proofs.rs:checked:FromProofs.be_to_le_i16_spec
+proofs.rs:checked:FromProofs.be_from_i32_spec
+proofs.rs:checked:FromProofs.le_from_i32_spec
+proofs.rs:checked:FromProofs.be_into_i32_spec
+proofs.rs:checked:FromProofs.le_into_i32_spec
+proofs.rs:checked:FromProofs.le_to_be_i32_spec
+proofs.rs:checked:FromProofs.be_to_le_i32_spec
+proofs.rs:checked:FromProofs.be_from_i64_spec
+proofs.rs:checked:FromProofs.le_from_i64_spec
+proofs.rs:checked:FromProofs.be_into_i64_spec
+proofs.rs:checked:FromProofs.le_into_i64_spec
+proofs.rs:checked:FromProofs.le_to_be_i64_spec
+proofs.rs:checked:FromProofs.be_to_le_i64_spec
+proofs.rs:checked:FromProofs.be_from_i128_spec
+proofs.rs:checked:FromProofs.le_from_i128_spec
+proofs.rs:checked:FromProofs.be_into_i128_spec
+proofs.rs:checked:FromProofs.le_into_i128_spec
+proofs.rs:checked:FromProofs.le_to_be_i128_spec
+proofs.rs:checked:FromProofs.be_to_le_i128_spec
+proofs.rs:checked:FromProofs.be_from_isize_spec
+proofs.rs:checked:FromProofs.le_from_isize_spec
+proofs.rs:checked:FromProofs.be_into_isize_spec
+proofs.rs:checked:FromProofs.le_into_isize_spec
+proofs.rs:checked:FromProofs.le_to_be_isize_spec
+proofs.rs:checked:FromProofs.be_to_le_isize_spec
+
+=== stderr ===
+info: aeneas: materializing new dependency
+info: aeneas: fetching revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39; from https://github.com/AeneasVerif/aeneas
+info: aeneas: checking out revision &#39;be86ab0f1989d04944292b345b24c435be3ad10a&#39;
+info: mathlib: materializing new dependency
+info: mathlib: fetching revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39; from https://github.com/leanprover-community/mathlib4.git
+info: mathlib: checking out revision &#39;56a005855ea17e0b0958f73ec801ae140b0a1679&#39;
+info: plausible: materializing new dependency
+info: plausible: fetching revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39; from https://github.com/leanprover-community/plausible
+info: plausible: checking out revision &#39;dfa4f38190d07c37e315953e08b90fe2d95b3c24&#39;
+info: LeanSearchClient: materializing new dependency
+info: LeanSearchClient: fetching revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39; from https://github.com/leanprover-community/LeanSearchClient
+info: LeanSearchClient: checking out revision &#39;d6b4c7be5be75ec4917c873ac50c756dc1436372&#39;
+info: importGraph: materializing new dependency
+info: importGraph: fetching revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39; from https://github.com/leanprover-community/import-graph
+info: importGraph: checking out revision &#39;a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93&#39;
+info: proofwidgets: materializing new dependency
+info: proofwidgets: fetching revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39; from https://github.com/leanprover-community/ProofWidgets4
+info: proofwidgets: checking out revision &#39;df72b022e558978a1c50264cfc4d7fec86fa8e04&#39;
+info: aesop: materializing new dependency
+info: aesop: fetching revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39; from https://github.com/leanprover-community/aesop
+info: aesop: checking out revision &#39;4a174c490d8707121c4a9290800489f105d85e07&#39;
+info: Qq: materializing new dependency
+info: Qq: fetching revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39; from https://github.com/leanprover-community/quote4
+info: Qq: checking out revision &#39;dce0ad79c486cb1fb504af04f953c3466b0c6db8&#39;
+info: batteries: materializing new dependency
+info: batteries: fetching revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39; from https://github.com/leanprover-community/batteries
+info: batteries: checking out revision &#39;66e469188fe07963e5cf666c7d4433f45b8131c5&#39;
+info: Cli: materializing new dependency
+info: Cli: fetching revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39; from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision &#39;c24fe6078c630e89b489bffe59b3e20ac30d12c8&#39;
+</pre></details></article></div><details class="report-environment"><summary>Environment</summary><div class="markdown-body"><p>Original crates.io endian-type 0.2.0; x86_64-unknown-linux-gnu little-endian. Rust nightly-2026-09-17; Charon 08d7c9d50144bd84848212c24701253585e90d1f; Aeneas/official library be86ab0f1989d04944292b345b24c435be3ad10a; Lean 4.35.0. Official method roots verify the six generic methods. A pure caller driver with --include endian_type extracts all sixty actual dependency bodies. Official compiler source-path remapping supports reproducible spans. Exact model/function/type/use guards and transitive axiom audits are retained. Kani 0.68.0/CBMC 6.11.0/Rust nightly-2026-08-21: ten symbolic std-model harnesses, 216 checks, zero failures.</p></div></details></details></section>
+    <section class="report-section" id="trusted"><h2>What is trusted</h2><div class="markdown-body"><p>The Rust compiler, Charon/Aeneas, official scalar/byte primitives, Lean kernel, Kani and CBMC are trusted. Fifty native-endian std-operation models are explicitly supplied. Their Rust byte formulas and official Lean byte primitives are connected by review, not a mechanically checked cross-language theorem; std operator bodies are not independently proved in Lean. Kani and extraction use different Rust nightlies. The six bitwise results quantify arbitrary underlying operator dictionaries without proving user callback bodies. All 66 API contracts and 50 model specifications use only propext, Classical.choice and Quot.sound as transitive axioms.</p></div></section>
+    <section class="report-section report-limitations" id="limitations"><h2>Technical limitations</h2><div class="markdown-body"><p>Coverage is limited to six bitwise methods and sixty concrete integer From implementations on the stated target/model domain. The forty-six byte/slice APIs and their unsafe layout/validity/aliasing obligations are not covered by these Aeneas claims. No generic arbitrary-T memory-safety, other target, endian, or pointer-width claim is established. Derived standard-trait methods are excluded. Remaining trait/default/blanket behavior is not verified. Type-specialized Rust identities and any erased server catalogue keys must be distinguished.</p></div><details class="tool-limitations"><summary>Tool limitations</summary><div class="tool-limitations-body"><p class="plain-text">Lean backend only, requiring cargo-proofs 0.4.0 or later. The version identifies the official Aeneas Git revision pinned in lake-manifest.json (backends/lean); this revision uses Lean 4.35.0. The recorder checks committed Lean theorem declarations and permits only propext, Classical.choice, and Quot.sound as transitive axioms. It rejects sorryAx and custom axioms, including axiomatized external models. Charon/Aeneas extraction is not rerun. The author must review that the committed functional model matches the recorded Rust source, that the named theorem corresponds to the public API, and that the reported precondition matches the theorem. A checked theorem alone does not establish those links or the adequacy of the specification. The current adapter records the default Cargo configuration, with ordinary Lean module paths and a pinned official Git dependency. Other backends, custom Lake source directories, and local-path Aeneas dependencies are unsupported. See https://proofs.rs/book/aeneas.html and https://github.com/AeneasVerif/aeneas/tree/be86ab0f1989d04944292b345b24c435be3ad10a.</p><p class="meta">Updated 2026-10-16 00:00 UTC</p><p><a href="/tool-version/aeneas-be86ab0f1989d04944292b345b24c435be3ad10a">Aeneas be86ab0f1989d04944292b345b24c435be3ad10a — version details</a></p></div></details></section>
+    <section class="report-section report-dependencies" id="dependencies"><h2>Dependencies (0)</h2><p>No direct dependencies.</p></section>
+    <section id="discussion" class="discussion"><h2>Comments (0)</h2><p>No comments.</p><p><a href="/auth/github?return_to=%2Freport%2F26">Sign in to comment.</a></p></section></main><footer>© 2026 proofs.rs · <a href="/book/">About</a> · <a href="https://github.com/proofs-rs/proofs-rs">GitHub</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Help &amp; feedback</a></footer><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"8f657b70f5ab42ba94967b59ec3f8ef1","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body></html>

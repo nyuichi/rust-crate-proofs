@@ -1,0 +1,189 @@
+--- a/src/api.rs
++++ b/src/api.rs
+@@ -108,7 +108,7 @@
+         }
+         Ok(value)
+     }
+-    pub fn upload(&self, path: &str, bytes: &[u8]) -> Result<()> {
++    pub fn upload(&self, path: &str, bytes: &[u8]) -> Result<Value> {
+         ensure!(path.starts_with("/api/v1/runs/"), "Invalid artifact path");
+         let response = self
+             .client
+@@ -122,7 +122,7 @@
+             "Artifact upload failed: {}",
+             response.text()?
+         );
+-        Ok(())
++        response.json().context("Expected artifact upload JSON response")
+     }
+     pub fn get(&self, path: &str) -> Result<Value> {
+         self.request("GET", path, None, None)
+--- a/src/publish.rs
++++ b/src/publish.rs
+@@ -14,6 +14,49 @@
+     io::{self, IsTerminal, Write},
+     path::Path,
+ };
++
++/// Validate exact opt-in bindings returned by the official immutable SARIF upload.
++/// No catalogue alias fallback is permitted for this narrow source-key scope.
++fn exact_uploaded_bindings(project: &Project, tool: &crate::config::Tool, record: &record::Record,
++    bytes: &[u8], response: &Value, metadata: &Value) -> Result<Vec<(String, String)>> {
++    use sha2::{Digest, Sha256};
++    ensure!(project.name == "endian-type" && project.version == "0.2.0"
++        && tool.is_aeneas() && tool.exact_source_bindings.is_some(), "Unsupported uploaded binding scope");
++    let parsed: Value = serde_json::from_slice(bytes)?;
++    ensure!(parsed == record.sarif, "Upload bytes differ from the loaded immutable SARIF");
++    let run = &record.sarif["runs"][0];
++    let proof = &run["properties"]["proofs"];
++    let id = run["automationDetails"]["guid"].as_str().context("Missing run ID")?;
++    let digest = format!("{:x}", Sha256::digest(bytes));
++    ensure!(response["id"] == id && metadata["id"] == id
++        && response["sha256"] == digest && metadata["sha256"] == digest,
++        "Uploaded binding run/hash mismatch");
++    ensure!(metadata["crate"] == project.name && metadata["version"] == project.version
++        && metadata["tool_version_id"] == format!("aeneas-{}", tool.version)
++        && metadata["size"].as_u64() == Some(bytes.len() as u64), "Uploaded binding metadata mismatch");
++    ensure!(run["tool"]["driver"]["name"] == tool.name && run["tool"]["driver"]["version"] == tool.version, "Uploaded binding tool mismatch");
++    ensure!(proof["crate"] == project.name && proof["version"] == project.version
++        && proof["aeneas"] == crate::aeneas::configuration(tool)?, "Uploaded binding configuration mismatch");
++    let expected: BTreeSet<_> = tool.proofs.iter().map(|p| p.api.as_str()).collect();
++    let actual: BTreeSet<_> = record.contracts.iter().filter_map(|c|
++        (c.api_paths.len() == 1).then(|| c.api_paths[0].as_str())).collect();
++    ensure!(record.contracts.len() == 66 && expected.len() == 66 && actual == expected,
++        "Uploaded binding contract keys mismatch");
++    let apis = response["apis"].as_array().context("Missing uploaded API bindings")?;
++    ensure!(apis.len() == 66, "Uploaded binding count mismatch");
++    let mut ids = BTreeSet::new();
++    let mut out = Vec::new();
++    for (index, (api, contract)) in apis.iter().zip(&record.contracts).enumerate() {
++        let api_id = api["api_item_id"].as_str().context("Missing uploaded API ID")?;
++        ensure!(api["contract_index"].as_u64() == Some(index as u64)
++            && api["display_path"] == contract.api_paths[0] && api["origin"] == "recorded",
++            "Uploaded binding index/path/origin mismatch");
++        ensure!(api_id.len() == 64 && api_id.bytes().all(|c| c.is_ascii_hexdigit())
++            && ids.insert(api_id), "Duplicate or malformed uploaded API ID");
++        out.push((api_id.to_owned(), contract.api_paths[0].clone()));
++    }
++    Ok(out)
++}
+ 
+ pub struct Options {
+     pub dry_run: bool,
+@@ -370,23 +413,27 @@
+     let source = &entry["versionControlProvenance"][0];
+     ensure!(contracts.len() <= 100, "Too many claims");
+     let tool = api.tool_version(&config.tool.name, &config.tool.version)?;
+-    if options.dry_run {
+-        println!(
+-            "Recorded SARIF (will upload on publish): {}",
+-            run_dir.join("run.sarif.json").display()
+-        );
++    let sarif_bytes = fs::read(run_dir.join("run.sarif.json"))?;
++    let exact_scope = crate::aeneas::exact_source_binding_keys(&project, &config.tool)?.is_some();
++    let upload_bindings = if options.dry_run {
++        println!("Recorded SARIF (will upload on publish): {}", run_dir.join("run.sarif.json").display());
++        None
+     } else {
+-        api.upload(
+-            &format!("/api/v1/runs/{run_id}/sarif"),
+-            &fs::read(run_dir.join("run.sarif.json"))?,
+-        )?;
+-    }
++        let response = api.upload(&format!("/api/v1/runs/{run_id}/sarif"), &sarif_bytes)?;
++        if exact_scope {
++            let metadata = api.get(&format!("/api/v1/runs/{run_id}"))?;
++            Some(exact_uploaded_bindings(&project, &config.tool, &recorded, &sarif_bytes, &response, &metadata)?)
++        } else { None }
++    };
+     api.prepare(&project.name, &project.version)?;
+     let mut claims = vec![];
+     let mut seen = BTreeSet::new();
+-    for contract in contracts {
+-        let (api_id, api_path) =
+-            api.resolve(&project.name, &project.version, &contract.api_paths)?;
++    for (index, contract) in contracts.iter().enumerate() {
++        let (api_id, api_path) = if let Some(bindings) = &upload_bindings {
++            bindings[index].clone()
++        } else {
++            api.resolve(&project.name, &project.version, &contract.api_paths)?
++        };
+         ensure!(
+             seen.insert(api_id.clone()),
+             "Multiple contracts resolve to the same public API {api_path}"
+@@ -546,6 +593,64 @@
+     use super::*;
+     fn config() -> Config {
+         toml::from_str("[report]\ntitle='Local'\n[tool]\nname='kani'\nversion='0.66.0'\n").unwrap()
++    }
++    #[test]
++    #[ignore = "Read-only diagnostic requiring explicit local evidence paths"]
++    fn exact_upload_real_evidence_probe() {
++        let read = |name: &str| fs::read(std::env::var(name).unwrap()).unwrap();
++        let bytes=read("PROOFS_BINDING_SARIF");
++        let sarif:Value=serde_json::from_slice(&bytes).unwrap();
++        let response:Value=serde_json::from_slice(&read("PROOFS_BINDING_RESPONSE")).unwrap();
++        let metadata:Value=serde_json::from_slice(&read("PROOFS_BINDING_METADATA")).unwrap();
++        let config:Config=toml::from_str(&String::from_utf8(read("PROOFS_BINDING_CONFIG")).unwrap()).unwrap();
++        let contracts=serde_json::from_value(sarif["runs"][0]["properties"]["proofs"]["contracts"].clone()).unwrap();
++        let record=record::Record{sarif,contracts};
++        let p=Project{name:"endian-type".into(),version:"0.2.0".into(),lib_name:"endian_type".into(),
++            manifest:"Cargo.toml".into(),root_source:"src/lib.rs".into(),features:BTreeSet::new(),cfg:BTreeSet::new()};
++        let bindings=exact_uploaded_bindings(&p,&config.tool,&record,&bytes,&response,&metadata).unwrap();
++        assert_eq!(bindings.len(),66);
++        println!("Validated all 66 exact returned bindings against immutable local SARIF, config and server metadata");
++    }
++    #[test]
++    fn exact_upload_bindings_reject_cross_run_config_and_aliases() {
++        use sha2::{Digest, Sha256};
++        let d = tempfile::tempdir().unwrap();
++        let p = Project { name:"endian-type".into(), version:"0.2.0".into(), lib_name:"endian_type".into(),
++            manifest:d.path().join("Cargo.toml"), root_source:d.path().join("lib.rs"),
++            features:BTreeSet::new(), cfg:BTreeSet::new() };
++        let mut tool = crate::config::Tool { name:"aeneas".into(), version:"a".repeat(40),
++            exact_source_bindings:Some("bindings.json".into()), ..Default::default() };
++        tool.proofs=(0..66).map(|i| crate::aeneas::Proof { api:format!("<endian_type::BigEndian<T> as Trait{i}>::f"),
++            module:"Proofs".into(), theorem:format!("f{i}"), precondition:"true".into() }).collect();
++        let contracts: Vec<_> = tool.proofs.iter().map(|p| record::Contract { api_paths:vec![p.api.clone()],
++            precondition:p.precondition.clone(), file:"Proofs.lean".into(), first_line:1,last_line:2,harness:p.theorem.clone() }).collect();
++        let sarif=json!({"runs":[{"automationDetails":{"guid":"run-1"},
++            "tool":{"driver":{"name":tool.name,"version":tool.version}},
++            "versionControlProvenance":[{"revisionId":"source-commit"}],
++            "properties":{"proofs":{"crate":p.name,"version":p.version,
++            "aeneas":crate::aeneas::configuration(&tool).unwrap(),"contracts":contracts}}}]});
++        let bytes=serde_json::to_vec(&sarif).unwrap();
++        let record=record::Record { sarif, contracts };
++        let hash=format!("{:x}",Sha256::digest(&bytes));
++        let response=json!({"id":"run-1","sha256":hash,"apis":record.contracts.iter().enumerate().map(|(i,c)|
++            json!({"contract_index":i,"api_item_id":format!("{i:064x}"),"display_path":c.api_paths[0],"origin":"recorded"})).collect::<Vec<_>>()});
++        let metadata=json!({"id":"run-1","sha256":hash,"crate":p.name,"version":p.version,
++            "tool_version_id":format!("aeneas-{}",tool.version),"size":bytes.len()});
++        assert_eq!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&response,&metadata).unwrap().len(),66);
++        for (field,bad) in [("id",json!("other-run")),("sha256",json!("wrong-hash")),("apis",json!([]))] {
++            let mut x=response.clone();x[field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        }
++        for (field,bad) in [("contract_index",json!(1)),("display_path",json!("erased_alias")),("origin",json!("rustdoc")),("api_item_id",json!(""))] {
++            let mut x=response.clone();x["apis"][0][field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        }
++        let mut x=response.clone();x["apis"][1]["api_item_id"]=x["apis"][0]["api_item_id"].clone();
++        assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&x,&metadata).is_err());
++        for (field,bad) in [("crate",json!("other")),("version",json!("other")),("tool_version_id",json!("other")),("size",json!(0))] {
++            let mut x=metadata.clone();x[field]=bad;assert!(exact_uploaded_bindings(&p,&tool,&record,&bytes,&response,&x).is_err());
++        }
++        let mut other=tool;other.proofs[0].api="other-key".into();
++        assert!(exact_uploaded_bindings(&p,&other,&record,&bytes,&response,&metadata).is_err());
++        let mut bytes=bytes;bytes.push(b' ');assert!(exact_uploaded_bindings(&p,&other,&record,&bytes,&response,&metadata).is_err());
+     }
+     #[test]
+     fn enriched_dependency_details_do_not_change_publication_content() {
+--- a/src/aeneas.rs
++++ b/src/aeneas.rs
+@@ -138,7 +138,7 @@
+ 
+ /// Narrow opt-in for the audited endian-type specialization inventory.
+ /// This selects source identities only; it never creates or aliases callables.
+-fn exact_source_binding_keys(project: &Project, tool: &Tool) -> Result<Option<BTreeSet<String>>> {
++pub(crate) fn exact_source_binding_keys(project: &Project, tool: &Tool) -> Result<Option<BTreeSet<String>>> {
+     let Some(relative) = &tool.exact_source_bindings else { return Ok(None) };
+     ensure!(project.name == "endian-type" && project.version == "0.2.0",
+         "exact_source_bindings supports only endian-type 0.2.0");

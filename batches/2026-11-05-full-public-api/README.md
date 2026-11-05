@@ -14,15 +14,15 @@ The counts below are explicitly mapped contracts, not a claim that the crate or 
 | oorandom | 12 | report 25 revision 2, read back |
 | nohash-hasher | 14 | report 23 revision 2, four configurations, read back |
 | rand_xorshift | 1 | report 24 revision 2; separate Kani seed/nonzero and independent Lean nonzero evidence, read back |
-| bit_field | 27 | latest candidate integrated; previous 25 fresh; quota hold and signed range finding retained |
+| bit_field | 27 | fresh record passed; quota hold and signed range finding retained |
 | rand_pcg | 21 | fresh record passed; catalogue quota hold |
 | byteorder | 22 | fresh record passed; catalogue quota hold |
-| byteorder-lite | 26 | latest publisher fresh in progress; previous 22 passed; catalogue quota hold |
+| byteorder-lite | 26 | fresh record passed; catalogue quota hold |
 | rand_xoshiro | 54 candidate / 29 fresh | added external blanket APIs currently blocked in source discovery; previous 29 fresh guarantee retained; catalogue quota hold |
-| ascii | 21 | fresh record passed; catalogue quota hold |
+| ascii | 24 | latest candidate integrated; previous 21 fresh; catalogue quota hold |
 | base16ct | 3 | fresh record passed; catalogue quota hold |
 
-endian-type remains publicly at six mapped generic bitwise contracts. Its 66-contract expansion passed fresh verification and the server registered all 66 exact typed source keys with origin=recorded; publication awaits the CLI fix for the visibility of unpublished recorded API rows. normalize-line-endings retains its prior one adapted-source contract and documented Kani bridge. Neither row is a full-API completion claim. The signed bit_field range diagnostic is not generalized to its already-proved single-bit contracts.
+endian-type report 26 revision 2 publicly contains 66 exact typed source claims (six retained generic bitwise contracts and sixty modeled integer From bodies), with successful immutable-run/source/claim/precondition readback. Its separate Kani byte/slice specializations remain distinct from those Aeneas claims. normalize-line-endings retains its prior one adapted-source contract and documented Kani bridge. Neither row is a full-API completion claim. The signed bit_field range diagnostic is not generalized to its already-proved single-bit contracts.
 
 ## Counting axes
 
