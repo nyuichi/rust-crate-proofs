@@ -1,0 +1,7 @@
+# Original Error source/cause2 — complete unit receiver value
+
+The original inherited Error::source and deprecated Error::cause methods for ToAsciiCharError return None. Two direct fully qualified Kani harnesses passed15 checks each with no failures (one unreachable property each). These are distinct from the already verified description method and all scalar conversion/comparison APIs.
+
+ToAsciiCharError is a private-unit-field struct, so it has exactly one valid receiver value. Each harness obtains that value through the original checked u8 conversion rejecting255; unexpected success would panic and fail verification. The runtime zero size is additionally asserted. This covers the complete receiver value domain rather than a sample of a stateful error type. Physical reference-address identity, arbitrary heap-state framing and other Error implementations are not claimed.
+
+These effective std defaults belong to the manual Error impl, not excluded derived standard impls. Exact strict-inventory rows and signatures are retained. The actual executed std is from Kani0.68/CBMC6.11/nightly2026-08-21 on default x86_64; the inventory uses nightly2026-09-17, and cross-version byte identity is not asserted. Compiler/std/Kani semantics remain trusted. No original source adaptation, stub, new model or check suppression was used. All runtime src9 and Cargo.toml match the original archive. Archive root tests.rs was not copied or run; the full archive is retained. Publication/source binding and Aeneas primary counts are separate gates.
